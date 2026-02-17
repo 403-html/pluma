@@ -2,10 +2,17 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import sensible from '@fastify/sensible';
+import { registerProjectRoutes } from './routes/projects.js';
 
-export async function buildApp() {
+type BuildAppOptions = {
+  logger?: boolean;
+};
+
+export async function buildApp(options: BuildAppOptions = {}) {
+  const { logger = true } = options;
+
   const fastify = Fastify({
-    logger: true,
+    logger,
   });
 
   // Register plugins
@@ -17,6 +24,8 @@ export async function buildApp() {
   fastify.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
+
+  await registerProjectRoutes(fastify);
 
   return fastify;
 }
