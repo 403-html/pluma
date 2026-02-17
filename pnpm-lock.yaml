@@ -103,7 +103,7 @@ importers:
 
   packages/sdk: {}
 
-  packages/shared: {}
+  packages/types: {}
 
 packages:
 

@@ -5,5 +5,5 @@ Monorepo layout:
 - `apps/app` - self-hosted Next.js UI
 - `apps/api` - self-hosted API server
 - `packages/sdk` - npm SDK package
-- `packages/shared` - shared types and schemas
+- `packages/types` - shared types and schemas
 - `packages/db` - migrations and query helpers
