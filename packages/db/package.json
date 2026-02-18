@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",
