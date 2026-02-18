@@ -3,15 +3,21 @@ import { prisma } from '../src/index';
 async function main() {
   console.log('Start seeding...');
   
-  // Example: Create a project
-  const project = await prisma.project.create({
-    data: {
+  // Example: Create or update a project (idempotent)
+  const project = await prisma.project.upsert({
+    where: {
+      key: 'demo',
+    },
+    update: {
+      name: 'Demo Project',
+    },
+    create: {
       key: 'demo',
       name: 'Demo Project',
     },
   });
   
-  console.log('Created project:', project);
+  console.log('Upserted project:', project);
   console.log('Seeding finished.');
 }
 
