@@ -44,7 +44,7 @@ describe('API Health', () => {
     
     expect(payload).toHaveProperty('status', 'ok');
     expect(payload).toHaveProperty('timestamp');
-    expect(new Date(payload.timestamp)).toBeInstanceOf(Date);
+    expect(Number.isNaN(new Date(payload.timestamp).getTime())).toBe(false);
   });
 
 });
