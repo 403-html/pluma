@@ -51,6 +51,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Session_token_key" ON "Session"("token");
 
 -- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "SdkToken_tokenHash_key" ON "SdkToken"("tokenHash");
 
 -- CreateIndex

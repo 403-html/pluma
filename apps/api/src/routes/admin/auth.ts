@@ -57,7 +57,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * POST /api/v1/auth/login
    * Validates credentials and creates a session cookie.
    * Always runs bcrypt compare to prevent user enumeration via timing attacks.
-   * Opportunistically deletes expired sessions for the user on successful login.
+   * Invalidates all existing sessions for the user before creating a new one.
    */
   fastify.post('/login', async (request, reply) => {
     const parsedBody = loginBodySchema.safeParse(request.body);
@@ -80,9 +80,9 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
-    // Opportunistically clean up expired sessions for this user.
+    // Invalidate all existing sessions for this user before creating a new one.
     await prisma.session.deleteMany({
-      where: { userId: user.id, expiresAt: { lt: new Date() } },
+      where: { userId: user.id },
     });
 
     const token = randomBytes(TOKEN_BYTES).toString('hex');
@@ -94,7 +94,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     reply.setCookie(COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
+      secure: true,
       sameSite: 'lax',
       path: '/',
       expires: expiresAt,

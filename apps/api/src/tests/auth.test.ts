@@ -121,7 +121,7 @@ describe('Auth routes', () => {
         createdAt: new Date('2024-01-01'),
       });
       bcryptMock.compare.mockResolvedValue(true);
-      prismaMock.session.deleteMany.mockResolvedValue({ count: 0 });
+      prismaMock.session.deleteMany.mockResolvedValue({ count: 1 });
       prismaMock.session.create.mockResolvedValue({
         id: 'session-id',
         token: SESSION_TOKEN,
@@ -140,6 +140,8 @@ describe('Auth routes', () => {
       expect(response.headers['set-cookie']).toContain('pluma_session=');
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('email', 'admin@example.com');
+      // All existing sessions should be invalidated on login
+      expect(prismaMock.session.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     });
 
     it('should return 401 for invalid credentials', async () => {
