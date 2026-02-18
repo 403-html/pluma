@@ -1,0 +1,11 @@
+{
+  "name": "@pluma/eslint-config",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./base": "./base.js",
+    "./typescript": "./typescript.js",
+    "./next-app": "./next-app.js"
+  }
+}
