@@ -2,7 +2,12 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import sensible from '@fastify/sensible';
-import { registerProjectRoutes } from './routes/projects.js';
+import cookie from '@fastify/cookie';
+import { registerAuthRoutes } from './routes/admin/auth.js';
+import { registerProjectRoutes } from './routes/admin/projects.js';
+import { registerTokenRoutes } from './routes/admin/tokens.js';
+import { registerFlagRoutes } from './routes/admin/flags.js';
+import { registerSdkRoutes } from './routes/sdk/snapshot.js';
 
 type BuildAppOptions = {
   logger?: boolean;
@@ -19,13 +24,37 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await fastify.register(cors);
   await fastify.register(helmet);
   await fastify.register(sensible);
+  await fastify.register(cookie);
 
   // Health check endpoint
   fastify.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
-  await registerProjectRoutes(fastify);
+  // Admin API: /api/v1/*
+  await fastify.register(
+    async (adminApi) => {
+      await adminApi.register(
+        async (authApi) => {
+          await registerAuthRoutes(authApi);
+        },
+        { prefix: '/auth' },
+      );
+      await registerProjectRoutes(adminApi);
+      await registerTokenRoutes(adminApi);
+      await registerFlagRoutes(adminApi);
+    },
+    { prefix: '/api/v1' },
+  );
+
+  // SDK API: /sdk/v1/*
+  await fastify.register(
+    async (sdkApi) => {
+      await registerSdkRoutes(sdkApi);
+    },
+    { prefix: '/sdk/v1' },
+  );
 
   return fastify;
 }
+
