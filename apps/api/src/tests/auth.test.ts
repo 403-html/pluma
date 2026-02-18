@@ -121,6 +121,7 @@ describe('Auth routes', () => {
         createdAt: new Date('2024-01-01'),
       });
       bcryptMock.compare.mockResolvedValue(true);
+      prismaMock.session.deleteMany.mockResolvedValue({ count: 0 });
       prismaMock.session.create.mockResolvedValue({
         id: 'session-id',
         token: SESSION_TOKEN,
@@ -159,8 +160,9 @@ describe('Auth routes', () => {
       expect(response.statusCode).toBe(401);
     });
 
-    it('should return 401 when user not found', async () => {
+    it('should return 401 when user not found (always runs bcrypt to prevent timing attacks)', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
+      bcryptMock.compare.mockResolvedValue(false);
 
       const response = await app.inject({
         method: 'POST',
@@ -169,6 +171,7 @@ describe('Auth routes', () => {
       });
 
       expect(response.statusCode).toBe(401);
+      expect(bcryptMock.compare).toHaveBeenCalledTimes(1);
     });
   });
 

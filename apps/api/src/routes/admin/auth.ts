@@ -4,11 +4,15 @@ import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
+import { adminAuthHook } from '../../hooks/adminAuth.js';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const BCRYPT_ROUNDS = 12;
 const COOKIE_NAME = 'pluma_session';
 const TOKEN_BYTES = 32;
+
+// Pre-computed dummy hash used in constant-time login to prevent user enumeration via timing.
+const DUMMY_HASH = '$2a$12$dummyhashforpreventingtimingattacks.placeholder000000';
 
 const loginBodySchema = z.object({
   email: z.string().email(),
@@ -52,6 +56,8 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/v1/auth/login
    * Validates credentials and creates a session cookie.
+   * Always runs bcrypt compare to prevent user enumeration via timing attacks.
+   * Opportunistically deletes expired sessions for the user on successful login.
    */
   fastify.post('/login', async (request, reply) => {
     const parsedBody = loginBodySchema.safeParse(request.body);
@@ -65,17 +71,19 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       where: { email: parsedBody.data.email },
     });
 
-    if (!user) {
-      request.log.warn('Login rejected: user not found');
+    // Always compare against a hash to prevent user enumeration via timing attacks.
+    const hashToCompare = user?.passwordHash ?? DUMMY_HASH;
+    const passwordValid = await compare(parsedBody.data.password, hashToCompare);
+
+    if (!user || !passwordValid) {
+      request.log.warn('Login rejected: invalid credentials');
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
-    const passwordValid = await compare(parsedBody.data.password, user.passwordHash);
-
-    if (!passwordValid) {
-      request.log.warn({ userId: user.id }, 'Login rejected: invalid password');
-      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
-    }
+    // Opportunistically clean up expired sessions for this user.
+    await prisma.session.deleteMany({
+      where: { userId: user.id, expiresAt: { lt: new Date() } },
+    });
 
     const token = randomBytes(TOKEN_BYTES).toString('hex');
     const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
@@ -86,7 +94,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     reply.setCookie(COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV !== 'development',
       sameSite: 'lax',
       path: '/',
       expires: expiresAt,
@@ -115,24 +123,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * GET /api/v1/auth/me
    * Returns the currently authenticated user.
    */
-  fastify.get('/me', { preHandler: [] }, async (request, reply) => {
-    const sessionToken = request.cookies[COOKIE_NAME];
-
-    if (!sessionToken) {
-      request.log.warn('GET /me rejected: missing session cookie');
-      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-      include: { user: true },
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      request.log.warn('GET /me rejected: session not found or expired');
-      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
-    }
-
-    return { id: session.user.id, email: session.user.email, createdAt: session.user.createdAt };
+  fastify.get('/me', { preHandler: [adminAuthHook] }, async (request) => {
+    return request.sessionUser;
   });
 }

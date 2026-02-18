@@ -47,7 +47,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       }
 
       const tokens = await prisma.sdkToken.findMany({
-        where: { projectId: parsedParams.data.id },
+        where: { projectId: parsedParams.data.id, revokedAt: null },
         orderBy: { createdAt: 'desc' },
         select: { id: true, projectId: true, name: true, createdAt: true, revokedAt: true },
       });
