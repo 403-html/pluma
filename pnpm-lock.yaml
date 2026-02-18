@@ -22,6 +22,9 @@ importers:
       '@pluma/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@pluma/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -47,6 +50,9 @@ importers:
 
   apps/app:
     dependencies:
+      '@pluma/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       next:
         specifier: ^16.1.6
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -72,6 +78,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@pluma/types':
+        specifier: workspace:*
+        version: link:../types
       '@prisma/adapter-pg':
         specifier: ^7.4.0
         version: 7.4.0
@@ -102,6 +111,10 @@ importers:
         version: 5.9.3
 
   packages/sdk:
+    dependencies:
+      '@pluma/types':
+        specifier: workspace:*
+        version: link:../types
     devDependencies:
       '@types/node':
         specifier: ^25.2.3
@@ -113,7 +126,14 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@25.2.3)(jiti@2.6.1)(tsx@4.21.0)
 
-  packages/types: {}
+  packages/types:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.2.3
+        version: 25.2.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 
