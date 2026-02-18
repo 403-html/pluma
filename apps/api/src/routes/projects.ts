@@ -17,7 +17,7 @@ const projectUpdateBodySchema = z
   });
 
 const projectParamsSchema = z.object({
-  id: z.uuid(),
+  projectId: z.uuid(),
 });
 
 export async function registerProjectRoutes(fastify: FastifyInstance) {
@@ -25,7 +25,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     return prisma.project.findMany({ orderBy: { createdAt: 'desc' } });
   });
 
-  fastify.get('/projects/:id', async (request, reply) => {
+  fastify.get('/projects/:projectId', async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
@@ -33,7 +33,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: parsedParams.data.id },
+      where: { id: parsedParams.data.projectId },
     });
 
     if (!project) {
@@ -65,7 +65,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.patch('/projects/:id', async (request, reply) => {
+  fastify.patch('/projects/:projectId', async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
     const parsedBody = projectUpdateBodySchema.safeParse(request.body);
 
@@ -79,7 +79,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
     try {
       const project = await prisma.project.update({
-        where: { id: parsedParams.data.id },
+        where: { id: parsedParams.data.projectId },
         data: parsedBody.data,
       });
 
@@ -97,7 +97,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.delete('/projects/:id', async (request, reply) => {
+  fastify.delete('/projects/:projectId', async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
@@ -106,7 +106,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
     try {
       await prisma.project.delete({
-        where: { id: parsedParams.data.id },
+        where: { id: parsedParams.data.projectId },
       });
 
       return reply.code(204).send();

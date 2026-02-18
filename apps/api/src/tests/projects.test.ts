@@ -20,9 +20,20 @@ vi.mock('@pluma/db', () => ({
 
 describe('API Projects', () => {
   let app: FastifyInstance;
+  let authCookie: string;
 
   beforeAll(async () => {
     app = await buildApp({ logger: false });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: 'admin@pluma.local', password: 'pluma-admin' },
+    });
+
+    const setCookie = response.headers['set-cookie'];
+    const cookieValue = Array.isArray(setCookie) ? setCookie[0] : setCookie;
+    authCookie = cookieValue?.split(';')[0] ?? '';
   });
 
   afterAll(async () => {
@@ -44,7 +55,8 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/projects',
+      url: '/api/v1/projects',
+      headers: { cookie: authCookie },
     });
 
     expect(response.statusCode).toBe(200);
@@ -61,8 +73,9 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'POST',
-      url: '/projects',
+      url: '/api/v1/projects',
       payload: { key: 'alpha', name: 'Alpha' },
+      headers: { cookie: authCookie },
     });
 
     expect(response.statusCode).toBe(201);
@@ -80,7 +93,8 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      headers: { cookie: authCookie },
     });
 
     expect(response.statusCode).toBe(200);
@@ -92,7 +106,8 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      headers: { cookie: authCookie },
     });
 
     expect(response.statusCode).toBe(404);
@@ -107,8 +122,9 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'PATCH',
-      url: '/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
       payload: { name: 'Alpha Updated' },
+      headers: { cookie: authCookie },
     });
 
     expect(response.statusCode).toBe(200);
@@ -127,12 +143,22 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'DELETE',
-      url: '/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      headers: { cookie: authCookie },
     });
 
     expect(response.statusCode).toBe(204);
     expect(prismaMock.project.delete).toHaveBeenCalledWith({
       where: { id: '8becc1f9-39b2-4d73-ab84-a61f487d117a' },
     });
+  });
+
+  it('should require admin session', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/projects',
+    });
+
+    expect(response.statusCode).toBe(401);
   });
 });
