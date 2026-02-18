@@ -2,6 +2,7 @@ import { verifyPassword } from './password.js';
 
 const DEFAULT_ADMIN_EMAIL = 'admin@pluma.local';
 const DEFAULT_ADMIN_PASSWORD = 'pluma-admin';
+let warnedDefaults = false;
 
 export type AdminIdentity = {
   userId: string;
@@ -16,9 +17,16 @@ type AdminConfig = AdminIdentity & {
 
 export const getAdminConfig = (): AdminConfig => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const email = process.env.ADMIN_EMAIL ?? (isProduction ? undefined : DEFAULT_ADMIN_EMAIL);
+  const envEmail = process.env.ADMIN_EMAIL;
+  const envPassword = process.env.ADMIN_PASSWORD;
   const passwordHash = process.env.ADMIN_PASSWORD_HASH?.trim();
-  const password = process.env.ADMIN_PASSWORD ?? (isProduction ? undefined : DEFAULT_ADMIN_PASSWORD);
+  const email = envEmail ?? (isProduction ? undefined : DEFAULT_ADMIN_EMAIL);
+  const password = envPassword ?? (isProduction ? undefined : DEFAULT_ADMIN_PASSWORD);
+
+  if (!isProduction && !warnedDefaults && (!envEmail || (!envPassword && !passwordHash))) {
+    warnedDefaults = true;
+    console.warn('Using default admin credentials. Set ADMIN_EMAIL and ADMIN_PASSWORD.');
+  }
 
   if (!email || (!passwordHash && !password)) {
     throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD or ADMIN_PASSWORD_HASH are required');

@@ -22,6 +22,9 @@ describe('API Projects', () => {
   let app: FastifyInstance;
   let authCookie: string;
 
+  process.env.ADMIN_EMAIL = 'admin@pluma.local';
+  process.env.ADMIN_PASSWORD = 'pluma-admin';
+
   beforeAll(async () => {
     app = await buildApp({ logger: false });
 

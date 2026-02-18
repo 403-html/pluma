@@ -7,7 +7,7 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
       return reply.unauthorized('SDK token required');
     }
 
-    // Snapshot is derived solely from the token's environment to prevent overrides.
+    // Snapshot is derived solely from the token's environment; client params are ignored.
     const flags = await prisma.flag.findMany({
       where: { projectId: request.sdk.projectId },
       orderBy: { createdAt: 'desc' },

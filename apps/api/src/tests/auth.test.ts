@@ -4,6 +4,9 @@ import type { FastifyInstance } from 'fastify';
 
 const credentials = { email: 'admin@pluma.local', password: 'pluma-admin' };
 
+process.env.ADMIN_EMAIL = credentials.email;
+process.env.ADMIN_PASSWORD = credentials.password;
+
 const getSessionCookie = (setCookie?: string | string[]) => {
   const cookieValue = Array.isArray(setCookie) ? setCookie[0] : setCookie;
   return cookieValue?.split(';')[0] ?? '';

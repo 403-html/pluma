@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 import { registerSessionAuth, requireAdminSession } from './auth/admin-session.js';
 import { requireSdkToken } from './auth/sdk-token.js';
@@ -27,6 +28,10 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await fastify.register(cors);
   await fastify.register(helmet);
   await fastify.register(sensible);
+  await fastify.register(rateLimit, {
+    max: 1000,
+    timeWindow: '1 minute',
+  });
   await registerSessionAuth(fastify);
 
   // Health check endpoint

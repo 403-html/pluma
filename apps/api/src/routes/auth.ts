@@ -9,7 +9,12 @@ const loginBodySchema = z.object({
 });
 
 export async function registerAuthRoutes(fastify: FastifyInstance) {
-  fastify.post('/login', async (request, reply) => {
+  const loginRateLimit = fastify.rateLimit({
+    max: 10,
+    timeWindow: '1 minute',
+  });
+
+  fastify.post('/login', { preHandler: loginRateLimit }, async (request, reply) => {
     const parsedBody = loginBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {

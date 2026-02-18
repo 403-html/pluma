@@ -15,6 +15,10 @@ export const registerSessionAuth = async (fastify: FastifyInstance) => {
     throw new Error('SESSION_SECRET is required in production');
   }
 
+  if (!isProduction && !process.env.SESSION_SECRET) {
+    fastify.log.warn('SESSION_SECRET not set; using development fallback secret.');
+  }
+
   const key = createHash('sha256').update(secret).digest();
 
   await fastify.register(cookie);
