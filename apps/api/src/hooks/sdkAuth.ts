@@ -14,12 +14,14 @@ export async function sdkAuthHook(
   const authHeader = request.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    request.log.warn('SDK auth rejected: missing or malformed Authorization header');
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
   const rawToken = authHeader.slice(7);
 
   if (!rawToken) {
+    request.log.warn('SDK auth rejected: empty Bearer token');
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
@@ -29,7 +31,13 @@ export async function sdkAuthHook(
     where: { tokenHash },
   });
 
-  if (!sdkToken || sdkToken.revokedAt !== null) {
+  if (!sdkToken) {
+    request.log.warn('SDK auth rejected: token not found');
+    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
+  }
+
+  if (sdkToken.revokedAt !== null) {
+    request.log.warn({ tokenId: sdkToken.id, projectId: sdkToken.projectId, revokedAt: sdkToken.revokedAt }, 'SDK auth rejected: token revoked');
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 

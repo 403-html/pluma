@@ -29,12 +29,14 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const parsedBody = registerBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
+      request.log.warn({ issues: parsedBody.error.flatten() }, 'Register rejected: invalid payload');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const existingCount = await prisma.user.count();
 
     if (existingCount > 0) {
+      request.log.warn('Register rejected: admin user already exists');
       return reply.conflict(ReasonPhrases.CONFLICT);
     }
 
@@ -55,6 +57,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const parsedBody = loginBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
+      request.log.warn({ issues: parsedBody.error.flatten() }, 'Login rejected: invalid payload');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
@@ -63,12 +66,14 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     });
 
     if (!user) {
+      request.log.warn('Login rejected: user not found');
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
     const passwordValid = await compare(parsedBody.data.password, user.passwordHash);
 
     if (!passwordValid) {
+      request.log.warn({ userId: user.id }, 'Login rejected: invalid password');
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
@@ -114,6 +119,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const sessionToken = request.cookies[COOKIE_NAME];
 
     if (!sessionToken) {
+      request.log.warn('GET /me rejected: missing session cookie');
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
@@ -123,6 +129,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     });
 
     if (!session || session.expiresAt < new Date()) {
+      request.log.warn('GET /me rejected: session not found or expired');
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 

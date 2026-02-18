@@ -39,6 +39,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
+      request.log.warn({ params: request.params }, 'GET /projects/:id/flags rejected: invalid id');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
@@ -47,6 +48,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     });
 
     if (!project) {
+      request.log.warn({ projectId: parsedParams.data.id }, 'GET /projects/:id/flags rejected: project not found');
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
@@ -64,10 +66,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     const parsedBody = flagBodySchema.safeParse(request.body);
 
     if (!parsedParams.success) {
+      request.log.warn({ params: request.params }, 'POST /projects/:id/flags rejected: invalid id');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     if (!parsedBody.success) {
+      request.log.warn({ issues: parsedBody.error.flatten() }, 'POST /projects/:id/flags rejected: invalid payload');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
@@ -76,6 +80,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     });
 
     if (!project) {
+      request.log.warn({ projectId: parsedParams.data.id }, 'POST /projects/:id/flags rejected: project not found');
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
@@ -92,6 +97,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
+        request.log.warn({ projectId: parsedParams.data.id, key: parsedBody.data.key }, 'POST /projects/:id/flags rejected: flag key already exists');
         return reply.conflict(ReasonPhrases.CONFLICT);
       }
 
@@ -110,10 +116,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       const parsedBody = flagUpdateBodySchema.safeParse(request.body);
 
       if (!parsedParams.success) {
+        request.log.warn({ params: request.params }, 'PATCH /projects/:id/flags/:flagId rejected: invalid params');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       if (!parsedBody.success) {
+        request.log.warn({ issues: parsedBody.error.flatten() }, 'PATCH /projects/:id/flags/:flagId rejected: invalid payload');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
@@ -129,10 +137,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return flag;
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
+          request.log.warn({ flagId: parsedParams.data.flagId, projectId: parsedParams.data.id }, 'PATCH /projects/:id/flags/:flagId rejected: flag not found');
           return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
+          request.log.warn({ flagId: parsedParams.data.flagId, key: parsedBody.data.key }, 'PATCH /projects/:id/flags/:flagId rejected: flag key already exists');
           return reply.conflict(ReasonPhrases.CONFLICT);
         }
 
@@ -151,6 +161,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       const parsedParams = flagParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
+        request.log.warn({ params: request.params }, 'DELETE /projects/:id/flags/:flagId rejected: invalid params');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
@@ -165,6 +176,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
+          request.log.warn({ flagId: parsedParams.data.flagId, projectId: parsedParams.data.id }, 'DELETE /projects/:id/flags/:flagId rejected: flag not found');
           return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 

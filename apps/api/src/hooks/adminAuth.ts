@@ -13,6 +13,7 @@ export async function adminAuthHook(
   const sessionToken = request.cookies['pluma_session'];
 
   if (!sessionToken) {
+    request.log.warn('Admin auth rejected: missing session cookie');
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
@@ -22,10 +23,12 @@ export async function adminAuthHook(
   });
 
   if (!session) {
+    request.log.warn('Admin auth rejected: session not found');
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
   if (session.expiresAt < new Date()) {
+    request.log.warn({ userId: session.userId, expiredAt: session.expiresAt }, 'Admin auth rejected: session expired');
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 

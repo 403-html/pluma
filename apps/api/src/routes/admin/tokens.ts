@@ -33,6 +33,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       const parsedParams = projectParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
+        request.log.warn({ params: request.params }, 'GET /projects/:id/tokens rejected: invalid id');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
@@ -41,6 +42,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       });
 
       if (!project) {
+        request.log.warn({ projectId: parsedParams.data.id }, 'GET /projects/:id/tokens rejected: project not found');
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
@@ -66,10 +68,12 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       const parsedBody = tokenBodySchema.safeParse(request.body);
 
       if (!parsedParams.success) {
+        request.log.warn({ params: request.params }, 'POST /projects/:id/tokens rejected: invalid id');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       if (!parsedBody.success) {
+        request.log.warn({ issues: parsedBody.error.flatten() }, 'POST /projects/:id/tokens rejected: invalid payload');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
@@ -78,6 +82,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       });
 
       if (!project) {
+        request.log.warn({ projectId: parsedParams.data.id }, 'POST /projects/:id/tokens rejected: project not found');
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
@@ -108,6 +113,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       const parsedParams = tokenParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
+        request.log.warn({ params: request.params }, 'DELETE /projects/:id/tokens/:tokenId rejected: invalid params');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
@@ -124,6 +130,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
+          request.log.warn({ tokenId: parsedParams.data.tokenId, projectId: parsedParams.data.id }, 'DELETE /projects/:id/tokens/:tokenId rejected: token not found or already revoked');
           return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
