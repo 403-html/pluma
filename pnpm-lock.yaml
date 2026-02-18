@@ -23,9 +23,6 @@ importers:
       eslint:
         specifier: ^10.0.0
         version: 10.0.0(jiti@2.6.1)
-      eslint-plugin-next:
-        specifier: ^0.0.0
-        version: 0.0.0
       eslint-plugin-react-hooks:
         specifier: ^7.0.1
         version: 7.0.1(eslint@10.0.0(jiti@2.6.1))
@@ -1264,9 +1261,6 @@ packages:
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
-
-  eslint-plugin-next@0.0.0:
-    resolution: {integrity: sha512-IldNDVb6WNduggwRbYzSGZhaskUwVecJ6fhmqwX01+S1aohwAWNzU4me6y47DDzpD/g0fdayNBGxEdt9vKkUtg==}
 
   eslint-plugin-react-hooks@7.0.1:
     resolution: {integrity: sha512-O0d0m04evaNzEPoSW+59Mezf8Qt0InfgGIBJnpC0h3NH/WjUAR7BIKUfysC6todmtiZ/A0oUVS8Gce0WhBrHsA==}
@@ -3145,8 +3139,6 @@ snapshots:
   escalade@3.2.0: {}
 
   escape-string-regexp@4.0.0: {}
-
-  eslint-plugin-next@0.0.0: {}
 
   eslint-plugin-react-hooks@7.0.1(eslint@10.0.0(jiti@2.6.1)):
     dependencies:
