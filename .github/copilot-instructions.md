@@ -2,6 +2,12 @@
 
 ## Repository Overview
 
+**Build Pluma: a self-hosted feature flag system.**
+
+Two planes:
+- **Admin API** (`/api/v1/*`) → CRUD + config + SDK tokens (human session auth)
+- **SDK API** (`/sdk/v1/*`) → read-only snapshot (Bearer SDK token)
+
 Pluma is a monorepo built with pnpm workspaces containing a Next.js UI, Fastify API server, and shared packages for SDK, types, and database management with Prisma ORM and PostgreSQL.
 
 ## Project Structure
