@@ -6,7 +6,12 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-const connectionString = `${process.env.DATABASE_URL}`;
+const connectionString = process.env.DATABASE_URL?.trim();
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is required and cannot be empty');
+}
+
 const adapter = new PrismaPg({ connectionString });
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
