@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { StatusCodes } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth.js';
 
@@ -88,7 +89,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         },
       });
 
-      return reply.code(201).send(flag);
+      return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
         return reply.conflict('Flag key already exists in this project');
@@ -161,7 +162,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           },
         });
 
-        return reply.code(204).send();
+        return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
           return reply.notFound('Flag not found');

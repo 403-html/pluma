@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
+import { StatusCodes } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -43,7 +44,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       data: { email: parsedBody.data.email, passwordHash },
     });
 
-    return reply.code(201).send({ id: user.id, email: user.email, createdAt: user.createdAt });
+    return reply.code(StatusCodes.CREATED).send({ id: user.id, email: user.email, createdAt: user.createdAt });
   });
 
   /**
@@ -86,7 +87,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       expires: expiresAt,
     });
 
-    return reply.code(200).send({ id: user.id, email: user.email, createdAt: user.createdAt });
+    return reply.code(StatusCodes.OK).send({ id: user.id, email: user.email, createdAt: user.createdAt });
   });
 
   /**
@@ -102,7 +103,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     reply.clearCookie(COOKIE_NAME, { path: '/' });
 
-    return reply.code(204).send();
+    return reply.code(StatusCodes.NO_CONTENT).send();
   });
 
   /**

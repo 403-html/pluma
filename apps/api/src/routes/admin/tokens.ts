@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { randomBytes, createHash } from 'crypto';
+import { StatusCodes } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth.js';
 
@@ -92,7 +93,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
         select: { id: true, projectId: true, name: true, createdAt: true, revokedAt: true },
       });
 
-      return reply.code(201).send({ ...sdkToken, token: rawToken });
+      return reply.code(StatusCodes.CREATED).send({ ...sdkToken, token: rawToken });
     },
   );
 
@@ -120,7 +121,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
           data: { revokedAt: new Date() },
         });
 
-        return reply.code(204).send();
+        return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
           return reply.notFound('Token not found');

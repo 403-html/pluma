@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { StatusCodes } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth.js';
 
@@ -56,7 +57,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         data: parsedBody.data,
       });
 
-      return reply.code(201).send(project);
+      return reply.code(StatusCodes.CREATED).send(project);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
         return reply.conflict('Project key already exists');
@@ -110,7 +111,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         where: { id: parsedParams.data.id },
       });
 
-      return reply.code(204).send();
+      return reply.code(StatusCodes.NO_CONTENT).send();
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
         return reply.notFound('Project not found');
