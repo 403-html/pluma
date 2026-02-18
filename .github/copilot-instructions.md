@@ -105,6 +105,30 @@ cd packages/sdk && pnpm test
 - `eslint.config.js` - ESLint configuration
 - `tsconfig.json` - TypeScript configuration
 
+## Coding Rules
+
+Follow these 10 essential coding rules when working in this repository:
+
+1. **Code Style**: Use ESLint configuration for consistent formatting. Run `pnpm lint` before committing. Follow existing patterns in the codebase.
+
+2. **Naming Conventions**: Use camelCase for variables/functions, PascalCase for types/classes/components, UPPER_SNAKE_CASE for constants. Prefix interfaces with descriptive names (no `I` prefix).
+
+3. **Error Handling**: Always handle errors explicitly. Use try-catch for async operations. Return descriptive error messages. Never silently fail or use empty catch blocks.
+
+4. **Testing**: Write tests for new features and bug fixes. Aim for high code coverage. Use descriptive test names that explain what is being tested.
+
+5. **Documentation**: Add JSDoc comments for public APIs. Update README files when adding features. Keep inline comments minimal and focused on "why" not "what".
+
+6. **Security**: Never commit secrets or API keys. Validate all user inputs. Use parameterized queries with Prisma. Apply security headers in Fastify (Helmet). Keep dependencies updated.
+
+7. **Performance**: Minimize database queries. Use proper indexing. Avoid N+1 query problems. Lazy load when appropriate. Use React Server Components by default in Next.js.
+
+8. **Accessibility**: Use semantic HTML. Ensure keyboard navigation works. Add proper ARIA labels. Test with screen readers when building UI components.
+
+9. **Code Review**: Keep changes focused and small. Write clear commit messages. Self-review before requesting review. Address all review comments.
+
+10. **Dependencies**: Minimize external dependencies. Vet packages before adding. Keep dependencies up to date. Use workspace protocol for internal packages.
+
 ## Coding Conventions
 
 ### General
