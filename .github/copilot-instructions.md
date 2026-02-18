@@ -105,29 +105,67 @@ cd packages/sdk && pnpm test
 - `eslint.config.js` - ESLint configuration
 - `tsconfig.json` - TypeScript configuration
 
-## Coding Rules
+## Code Rules
 
-Follow these 10 essential coding rules when working in this repository:
+These rules are mandatory for all new code.
 
-1. **Code Style**: Use ESLint configuration for consistent formatting. Run `pnpm lint` before committing. Follow existing patterns in the codebase.
+**1️⃣ Restrict Control Flow**
+- Use only simple constructs (if, switch, for, while, try/catch)
+- No recursion (direct or indirect)
+- No clever flow tricks
 
-2. **Naming Conventions**: Use camelCase for variables/functions, PascalCase for types/classes/components, UPPER_SNAKE_CASE for constants. Prefix interfaces with descriptive names (no `I` prefix).
+**2️⃣ Fixed Loop Bounds**
+- All loops must have a statically obvious upper bound (prefer .map/.forEach/.reduce)
+- Enforce explicit max sizes on external inputs
 
-3. **Error Handling**: Always handle errors explicitly. Use try-catch for async operations. Return descriptive error messages. Never silently fail or use empty catch blocks.
+**3️⃣ No Unbounded Dynamic Allocation**
+- Avoid unbounded in-memory growth
+- Enforce max collection sizes
+- No accumulating uncontrolled arrays
 
-4. **Testing**: Write tests for new features and bug fixes. Aim for high code coverage. Use descriptive test names that explain what is being tested.
+**4️⃣ Function Length Limit**
+- Max ~60 lines per function
+- Split responsibilities aggressively
 
-5. **Documentation**: Add JSDoc comments for public APIs. Update README files when adding features. Keep inline comments minimal and focused on "why" not "what".
+**5️⃣ Assertion Density**
+- Minimum 2 assertions per function in core logic
+- Assertions must be side-effect free
+- On failure, return explicit error
 
-6. **Security**: Never commit secrets or API keys. Validate all user inputs. Use parameterized queries with Prisma. Apply security headers in Fastify (Helmet). Keep dependencies updated.
+**6️⃣ Smallest Scope**
+- Declare variables at smallest scope
+- Avoid module-level mutable state unless documented
 
-7. **Performance**: Minimize database queries. Use proper indexing. Avoid N+1 query problems. Lazy load when appropriate. Use React Server Components by default in Next.js.
+**7️⃣ Check Inputs & Outputs**
+- Validate all external inputs (e.g., Zod)
+- Never ignore return values or Promises
+- Validate parameters in called functions
 
-8. **Accessibility**: Use semantic HTML. Ensure keyboard navigation works. Add proper ARIA labels. Test with screen readers when building UI components.
+**8️⃣ No Preprocessor-Like Tricks**
+- Avoid build-time hacks
+- Minimal conditional logic based on env
+- No magic global replacements
 
-9. **Code Review**: Keep changes focused and small. Write clear commit messages. Self-review before requesting review. Address all review comments.
+**9️⃣ Restrict Indirection**
+- No dynamic dispatch chains
+- Avoid decorators/proxy magic for core logic
+- Keep logic traceable
 
-10. **Dependencies**: Minimize external dependencies. Vet packages before adding. Keep dependencies up to date. Use workspace protocol for internal packages.
+**🔟 Pedantic Compilation**
+- TypeScript strict mode enabled
+- Zero TS errors
+- Zero lint warnings
+- Static analysis in CI
+- Explicit types at boundaries
+
+### Copilot Behavior Rules
+
+- Prefer small vertical slices
+- Keep changes deterministic
+- Update SDK + API together if snapshot changes
+- Add tests for new logic
+- Never silently violate invariants
+- Do not invent endpoints outside this contract
 
 ## Coding Conventions
 
