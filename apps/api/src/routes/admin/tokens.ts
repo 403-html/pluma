@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { randomBytes, createHash } from 'crypto';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth.js';
 
@@ -33,7 +33,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       const parsedParams = projectParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
-        return reply.badRequest('Invalid project id');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       const project = await prisma.project.findUnique({
@@ -41,7 +41,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       });
 
       if (!project) {
-        return reply.notFound('Project not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       const tokens = await prisma.sdkToken.findMany({
@@ -66,11 +66,11 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       const parsedBody = tokenBodySchema.safeParse(request.body);
 
       if (!parsedParams.success) {
-        return reply.badRequest('Invalid project id');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       if (!parsedBody.success) {
-        return reply.badRequest('Invalid token payload');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       const project = await prisma.project.findUnique({
@@ -78,7 +78,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       });
 
       if (!project) {
-        return reply.notFound('Project not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       const rawToken = TOKEN_PREFIX + randomBytes(TOKEN_BYTES).toString('hex');
@@ -108,7 +108,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
       const parsedParams = tokenParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
-        return reply.badRequest('Invalid params');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       try {
@@ -124,7 +124,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-          return reply.notFound('Token not found');
+          return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
         throw error;

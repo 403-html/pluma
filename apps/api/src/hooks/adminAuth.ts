@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 
 /**
@@ -13,7 +13,7 @@ export async function adminAuthHook(
   const sessionToken = request.cookies['pluma_session'];
 
   if (!sessionToken) {
-    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: 'Unauthorized' });
+    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
   const session = await prisma.session.findUnique({
@@ -22,11 +22,11 @@ export async function adminAuthHook(
   });
 
   if (!session) {
-    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: 'Unauthorized' });
+    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
   if (session.expiresAt < new Date()) {
-    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: 'Session expired' });
+    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
   request.sessionUserId = session.user.id;

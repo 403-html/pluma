@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -29,13 +29,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const parsedBody = registerBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
-      return reply.badRequest('Invalid registration payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const existingCount = await prisma.user.count();
 
     if (existingCount > 0) {
-      return reply.conflict('Admin user already exists');
+      return reply.conflict(ReasonPhrases.CONFLICT);
     }
 
     const passwordHash = await hash(parsedBody.data.password, BCRYPT_ROUNDS);
@@ -55,7 +55,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const parsedBody = loginBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
-      return reply.badRequest('Invalid login payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const user = await prisma.user.findUnique({
@@ -63,13 +63,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     });
 
     if (!user) {
-      return reply.unauthorized('Invalid credentials');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
     const passwordValid = await compare(parsedBody.data.password, user.passwordHash);
 
     if (!passwordValid) {
-      return reply.unauthorized('Invalid credentials');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
     const token = randomBytes(TOKEN_BYTES).toString('hex');
@@ -114,7 +114,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const sessionToken = request.cookies[COOKIE_NAME];
 
     if (!sessionToken) {
-      return reply.unauthorized('Not authenticated');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
     const session = await prisma.session.findUnique({
@@ -123,7 +123,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     });
 
     if (!session || session.expiresAt < new Date()) {
-      return reply.unauthorized('Not authenticated');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
     return { id: session.user.id, email: session.user.email, createdAt: session.user.createdAt };

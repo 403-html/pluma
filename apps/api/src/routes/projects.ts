@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 
 const projectBodySchema = z.object({
@@ -30,7 +30,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
-      return reply.badRequest('Invalid project id');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const project = await prisma.project.findUnique({
@@ -38,7 +38,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     });
 
     if (!project) {
-      return reply.notFound('Project not found');
+      return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
     return project;
@@ -48,7 +48,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     const parsedBody = projectBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
-      return reply.badRequest('Invalid project payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     try {
@@ -59,7 +59,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.CREATED).send(project);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
-        return reply.conflict('Project key already exists');
+        return reply.conflict(ReasonPhrases.CONFLICT);
       }
 
       throw error;
@@ -71,11 +71,11 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     const parsedBody = projectUpdateBodySchema.safeParse(request.body);
 
     if (!parsedParams.success) {
-      return reply.badRequest('Invalid project id');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     if (!parsedBody.success) {
-      return reply.badRequest('Invalid project payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     try {
@@ -87,11 +87,11 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
       return project;
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-        return reply.notFound('Project not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
-        return reply.conflict('Project key already exists');
+        return reply.conflict(ReasonPhrases.CONFLICT);
       }
 
       throw error;
@@ -102,7 +102,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
-      return reply.badRequest('Invalid project id');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     try {
@@ -113,7 +113,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.NO_CONTENT).send();
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-        return reply.notFound('Project not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       throw error;

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth.js';
 
@@ -39,7 +39,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
-      return reply.badRequest('Invalid project id');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const project = await prisma.project.findUnique({
@@ -47,7 +47,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     });
 
     if (!project) {
-      return reply.notFound('Project not found');
+      return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
     return prisma.featureFlag.findMany({
@@ -64,11 +64,11 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     const parsedBody = flagBodySchema.safeParse(request.body);
 
     if (!parsedParams.success) {
-      return reply.badRequest('Invalid project id');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     if (!parsedBody.success) {
-      return reply.badRequest('Invalid flag payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const project = await prisma.project.findUnique({
@@ -76,7 +76,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     });
 
     if (!project) {
-      return reply.notFound('Project not found');
+      return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
     try {
@@ -92,7 +92,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
-        return reply.conflict('Flag key already exists in this project');
+        return reply.conflict(ReasonPhrases.CONFLICT);
       }
 
       throw error;
@@ -110,11 +110,11 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       const parsedBody = flagUpdateBodySchema.safeParse(request.body);
 
       if (!parsedParams.success) {
-        return reply.badRequest('Invalid params');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       if (!parsedBody.success) {
-        return reply.badRequest('Invalid flag payload');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       try {
@@ -129,11 +129,11 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return flag;
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-          return reply.notFound('Flag not found');
+          return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
-          return reply.conflict('Flag key already exists in this project');
+          return reply.conflict(ReasonPhrases.CONFLICT);
         }
 
         throw error;
@@ -151,7 +151,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       const parsedParams = flagParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
-        return reply.badRequest('Invalid params');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       try {
@@ -165,7 +165,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-          return reply.notFound('Flag not found');
+          return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
         throw error;
