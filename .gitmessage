@@ -1,0 +1,24 @@
+# <type>(<scope>): <subject>
+#
+# Types:
+#   feat     – new feature
+#   fix      – bug fix
+#   chore    – maintenance / tooling / deps (no prod code change)
+#   docs     – documentation only
+#   refactor – code restructure without behaviour change
+#   test     – adding or updating tests
+#   perf     – performance improvement
+#   ci       – CI/CD configuration
+#   misc     – anything that doesn't fit above
+#
+# Rules:
+#   - Use imperative mood in the subject ("add", not "added")
+#   - No capital first letter, no period at the end
+#   - Keep subject ≤ 72 chars
+#   - Add a body (blank line + text) for "why" when helpful
+#
+# Examples:
+#   feat(auth): add session-based admin authentication
+#   fix(sdk): exclude revoked tokens from snapshot response
+#   chore(deps): remove deprecated @types/bcryptjs
+#   test(flags): add coverage for flag CRUD routes
