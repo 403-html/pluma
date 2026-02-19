@@ -2,10 +2,10 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 
-const SESSION_TOKEN = 'flags-test-session-token';
-const USER_ID = '33333333-3333-3333-3333-333333333333';
-const PROJECT_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
-const FLAG_ID = 'bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb';
+const SESSION_TOKEN = 'envs-test-session-token';
+const USER_ID = '44444444-4444-4444-4444-444444444444';
+const PROJECT_ID = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeeeee';
+const ENV_ID = 'ffffffff-ffff-4fff-afff-ffffffffffff';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -56,10 +56,10 @@ const { prismaMock } = vi.hoisted(() => ({
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
 
-const mockProject = { id: PROJECT_ID, key: 'test-project', name: 'Test Project', createdAt: new Date(), updatedAt: new Date() };
-const mockFlag = { id: FLAG_ID, projectId: PROJECT_ID, key: 'dark-mode', name: 'Dark Mode', description: null, createdAt: new Date() };
+const mockProject = { id: PROJECT_ID, key: 'my-project', name: 'My Project', createdAt: new Date(), updatedAt: new Date() };
+const mockEnv = { id: ENV_ID, projectId: PROJECT_ID, key: 'staging', name: 'Staging', createdAt: new Date(), updatedAt: new Date() };
 
-describe('Feature Flag routes', () => {
+describe('Environment routes', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
@@ -84,21 +84,21 @@ describe('Feature Flag routes', () => {
 
   const authCookie = `pluma_session=${SESSION_TOKEN}`;
 
-  describe('GET /api/v1/projects/:projectId/flags', () => {
-    it('should list flags for a project', async () => {
+  describe('GET /api/v1/projects/:projectId/environments', () => {
+    it('should list environments for a project', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
+      prismaMock.environment.findMany.mockResolvedValue([mockEnv]);
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
         headers: { cookie: authCookie },
       });
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveLength(1);
-      expect(payload[0]).toHaveProperty('key', 'dark-mode');
+      expect(payload[0]).toHaveProperty('key', 'staging');
     });
 
     it('should return 404 when project not found', async () => {
@@ -106,39 +106,61 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
         headers: { cookie: authCookie },
       });
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 401 when no session cookie', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
   });
 
-  describe('POST /api/v1/projects/:projectId/flags', () => {
-    it('should create a flag', async () => {
+  describe('POST /api/v1/projects/:projectId/environments', () => {
+    it('should create an environment', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.featureFlag.create.mockResolvedValue(mockFlag);
+      prismaMock.environment.create.mockResolvedValue(mockEnv);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        payload: { key: 'dark-mode', name: 'Dark Mode' },
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        payload: { key: 'staging', name: 'Staging' },
         headers: { cookie: authCookie },
       });
 
       expect(response.statusCode).toBe(201);
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('key', 'dark-mode');
+      expect(payload).toHaveProperty('key', 'staging');
     });
 
-    it('should return 409 when flag key already exists', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.featureFlag.create.mockRejectedValue({ code: 'P2002' });
+    it('should return 404 when project not found', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        payload: { key: 'dark-mode', name: 'Dark Mode' },
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        payload: { key: 'staging', name: 'Staging' },
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 when env key already exists in project', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.create.mockRejectedValue({ code: 'P2002' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        payload: { key: 'staging', name: 'Staging' },
         headers: { cookie: authCookie },
       });
 
@@ -150,7 +172,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
         payload: {},
         headers: { cookie: authCookie },
       });
@@ -159,28 +181,28 @@ describe('Feature Flag routes', () => {
     });
   });
 
-  describe('PATCH /api/v1/flags/:flagId', () => {
-    it('should update a flag name', async () => {
-      prismaMock.featureFlag.update.mockResolvedValue({ ...mockFlag, name: 'Dark Mode Updated' });
+  describe('PATCH /api/v1/environments/:envId', () => {
+    it('should update an environment', async () => {
+      prismaMock.environment.update.mockResolvedValue({ ...mockEnv, name: 'Staging Updated' });
 
       const response = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/flags/${FLAG_ID}`,
-        payload: { name: 'Dark Mode Updated' },
+        url: `/api/v1/environments/${ENV_ID}`,
+        payload: { name: 'Staging Updated' },
         headers: { cookie: authCookie },
       });
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('name', 'Dark Mode Updated');
+      expect(payload).toHaveProperty('name', 'Staging Updated');
     });
 
-    it('should return 404 when flag not found', async () => {
-      prismaMock.featureFlag.update.mockRejectedValue({ code: 'P2025' });
+    it('should return 404 when environment not found', async () => {
+      prismaMock.environment.update.mockRejectedValue({ code: 'P2025' });
 
       const response = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/flags/${FLAG_ID}`,
+        url: `/api/v1/environments/${ENV_ID}`,
         payload: { name: 'New Name' },
         headers: { cookie: authCookie },
       });
@@ -188,10 +210,23 @@ describe('Feature Flag routes', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 400 for invalid payload', async () => {
+    it('should return 409 when env key already exists', async () => {
+      prismaMock.environment.update.mockRejectedValue({ code: 'P2002' });
+
       const response = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/flags/${FLAG_ID}`,
+        url: `/api/v1/environments/${ENV_ID}`,
+        payload: { key: 'production' },
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 400 for invalid payload with no fields', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}`,
         payload: {},
         headers: { cookie: authCookie },
       });
@@ -200,25 +235,25 @@ describe('Feature Flag routes', () => {
     });
   });
 
-  describe('DELETE /api/v1/flags/:flagId', () => {
-    it('should delete a flag', async () => {
-      prismaMock.featureFlag.delete.mockResolvedValue(mockFlag);
+  describe('DELETE /api/v1/environments/:envId', () => {
+    it('should delete an environment', async () => {
+      prismaMock.environment.delete.mockResolvedValue(mockEnv);
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/api/v1/flags/${FLAG_ID}`,
+        url: `/api/v1/environments/${ENV_ID}`,
         headers: { cookie: authCookie },
       });
 
       expect(response.statusCode).toBe(204);
     });
 
-    it('should return 404 when flag not found', async () => {
-      prismaMock.featureFlag.delete.mockRejectedValue({ code: 'P2025' });
+    it('should return 404 when environment not found', async () => {
+      prismaMock.environment.delete.mockRejectedValue({ code: 'P2025' });
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/api/v1/flags/${FLAG_ID}`,
+        url: `/api/v1/environments/${ENV_ID}`,
         headers: { cookie: authCookie },
       });
 

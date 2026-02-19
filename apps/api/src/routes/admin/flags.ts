@@ -7,97 +7,96 @@ import { adminAuthHook } from '../../hooks/adminAuth';
 const flagBodySchema = z.object({
   key: z.string().min(1).max(100),
   name: z.string().min(1).max(200),
-  enabled: z.boolean().optional().default(false),
+  description: z.string().max(500).optional(),
 });
 
 const flagUpdateBodySchema = z
   .object({
     key: z.string().min(1).max(100).optional(),
     name: z.string().min(1).max(200).optional(),
-    enabled: z.boolean().optional(),
+    description: z.string().max(500).optional().nullable(),
   })
   .refine(
     (body) =>
-      body.key !== undefined || body.name !== undefined || body.enabled !== undefined,
+      body.key !== undefined || body.name !== undefined || body.description !== undefined,
     { message: 'At least one field is required' },
   );
 
 const projectParamsSchema = z.object({
-  id: z.uuid(),
+  projectId: z.uuid(),
 });
 
 const flagParamsSchema = z.object({
-  id: z.uuid(),
   flagId: z.uuid(),
 });
 
 export async function registerFlagRoutes(fastify: FastifyInstance) {
   /**
-   * GET /api/v1/projects/:id/flags
+   * GET /api/v1/projects/:projectId/flags
    */
-  fastify.get('/projects/:id/flags', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.get('/projects/:projectId/flags', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
-      request.log.warn({ params: request.params }, 'GET /projects/:id/flags rejected: invalid id');
+      request.log.warn({ params: request.params }, 'GET /projects/:projectId/flags rejected: invalid projectId');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: parsedParams.data.id },
+      where: { id: parsedParams.data.projectId },
     });
 
     if (!project) {
-      request.log.warn({ projectId: parsedParams.data.id }, 'GET /projects/:id/flags rejected: project not found');
+      request.log.warn({ projectId: parsedParams.data.projectId }, 'GET /projects/:projectId/flags rejected: project not found');
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
     return prisma.featureFlag.findMany({
-      where: { projectId: parsedParams.data.id },
+      where: { projectId: parsedParams.data.projectId },
       orderBy: { createdAt: 'desc' },
     });
   });
 
   /**
-   * POST /api/v1/projects/:id/flags
+   * POST /api/v1/projects/:projectId/flags
    */
-  fastify.post('/projects/:id/flags', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.post('/projects/:projectId/flags', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
     const parsedBody = flagBodySchema.safeParse(request.body);
 
     if (!parsedParams.success) {
-      request.log.warn({ params: request.params }, 'POST /projects/:id/flags rejected: invalid id');
+      request.log.warn({ params: request.params }, 'POST /projects/:projectId/flags rejected: invalid projectId');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     if (!parsedBody.success) {
-      request.log.warn({ issues: parsedBody.error.flatten() }, 'POST /projects/:id/flags rejected: invalid payload');
+      request.log.warn({ issues: parsedBody.error.flatten() }, 'POST /projects/:projectId/flags rejected: invalid payload');
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: parsedParams.data.id },
+      where: { id: parsedParams.data.projectId },
     });
 
     if (!project) {
-      request.log.warn({ projectId: parsedParams.data.id }, 'POST /projects/:id/flags rejected: project not found');
+      request.log.warn({ projectId: parsedParams.data.projectId }, 'POST /projects/:projectId/flags rejected: project not found');
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
     try {
       const flag = await prisma.featureFlag.create({
         data: {
-          projectId: parsedParams.data.id,
+          projectId: parsedParams.data.projectId,
           key: parsedBody.data.key,
           name: parsedBody.data.name,
-          enabled: parsedBody.data.enabled,
+          description: parsedBody.data.description,
         },
       });
 
       return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
-        request.log.warn({ projectId: parsedParams.data.id, key: parsedBody.data.key }, 'POST /projects/:id/flags rejected: flag key already exists');
+        request.log.warn({ projectId: parsedParams.data.projectId, key: parsedBody.data.key }, 'POST /projects/:projectId/flags rejected: flag key already exists');
         return reply.conflict(ReasonPhrases.CONFLICT);
       }
 
@@ -106,43 +105,40 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
   });
 
   /**
-   * PATCH /api/v1/projects/:id/flags/:flagId
+   * PATCH /api/v1/flags/:flagId
    */
   fastify.patch(
-    '/projects/:id/flags/:flagId',
+    '/flags/:flagId',
     { preHandler: [adminAuthHook] },
     async (request, reply) => {
       const parsedParams = flagParamsSchema.safeParse(request.params);
       const parsedBody = flagUpdateBodySchema.safeParse(request.body);
 
       if (!parsedParams.success) {
-        request.log.warn({ params: request.params }, 'PATCH /projects/:id/flags/:flagId rejected: invalid params');
+        request.log.warn({ params: request.params }, 'PATCH /flags/:flagId rejected: invalid flagId');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       if (!parsedBody.success) {
-        request.log.warn({ issues: parsedBody.error.flatten() }, 'PATCH /projects/:id/flags/:flagId rejected: invalid payload');
+        request.log.warn({ issues: parsedBody.error.flatten() }, 'PATCH /flags/:flagId rejected: invalid payload');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       try {
         const flag = await prisma.featureFlag.update({
-          where: {
-            id: parsedParams.data.flagId,
-            projectId: parsedParams.data.id,
-          },
+          where: { id: parsedParams.data.flagId },
           data: parsedBody.data,
         });
 
         return flag;
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-          request.log.warn({ flagId: parsedParams.data.flagId, projectId: parsedParams.data.id }, 'PATCH /projects/:id/flags/:flagId rejected: flag not found');
+          request.log.warn({ flagId: parsedParams.data.flagId }, 'PATCH /flags/:flagId rejected: flag not found');
           return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
-          request.log.warn({ flagId: parsedParams.data.flagId, key: parsedBody.data.key }, 'PATCH /projects/:id/flags/:flagId rejected: flag key already exists');
+          request.log.warn({ flagId: parsedParams.data.flagId, key: parsedBody.data.key }, 'PATCH /flags/:flagId rejected: flag key already exists');
           return reply.conflict(ReasonPhrases.CONFLICT);
         }
 
@@ -152,31 +148,28 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
   );
 
   /**
-   * DELETE /api/v1/projects/:id/flags/:flagId
+   * DELETE /api/v1/flags/:flagId
    */
   fastify.delete(
-    '/projects/:id/flags/:flagId',
+    '/flags/:flagId',
     { preHandler: [adminAuthHook] },
     async (request, reply) => {
       const parsedParams = flagParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
-        request.log.warn({ params: request.params }, 'DELETE /projects/:id/flags/:flagId rejected: invalid params');
+        request.log.warn({ params: request.params }, 'DELETE /flags/:flagId rejected: invalid flagId');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       try {
         await prisma.featureFlag.delete({
-          where: {
-            id: parsedParams.data.flagId,
-            projectId: parsedParams.data.id,
-          },
+          where: { id: parsedParams.data.flagId },
         });
 
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-          request.log.warn({ flagId: parsedParams.data.flagId, projectId: parsedParams.data.id }, 'DELETE /projects/:id/flags/:flagId rejected: flag not found');
+          request.log.warn({ flagId: parsedParams.data.flagId }, 'DELETE /flags/:flagId rejected: flag not found');
           return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 

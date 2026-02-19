@@ -37,13 +37,23 @@ export type FeatureFlag = {
   projectId: string;
   key: string;
   name: string;
-  enabled: boolean;
+  description: string | null;
+  createdAt: Date;
+};
+
+// Environments
+export type Environment = {
+  id: string;
+  projectId: string;
+  key: string;
+  name: string;
   createdAt: Date;
   updatedAt: Date;
 };
 
-// SDK Snapshot
-export type FlagSnapshot = {
-  projectId: string;
-  flags: Array<{ key: string; enabled: boolean }>;
+// Flag Config (per environment)
+export type FlagConfig = {
+  envId: string;
+  flagId: string;
+  enabled: boolean;
 };

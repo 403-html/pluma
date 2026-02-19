@@ -12,7 +12,7 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
 
     const flags = await prisma.featureFlag.findMany({
       where: { projectId },
-      select: { key: true, enabled: true },
+      select: { key: true },
       orderBy: { key: 'asc' },
     });
 

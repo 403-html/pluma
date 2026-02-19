@@ -7,6 +7,8 @@ import { registerAuthRoutes } from './routes/admin/auth';
 import { registerProjectRoutes } from './routes/admin/projects';
 import { registerTokenRoutes } from './routes/admin/tokens';
 import { registerFlagRoutes } from './routes/admin/flags';
+import { registerEnvironmentRoutes } from './routes/admin/environments';
+import { registerFlagConfigRoutes } from './routes/admin/flagConfigs';
 import { registerSdkRoutes } from './routes/sdk/snapshot';
 
 type BuildAppOptions = {
@@ -43,6 +45,8 @@ export async function buildApp(options: BuildAppOptions = {}) {
       await registerProjectRoutes(adminApi);
       await registerTokenRoutes(adminApi);
       await registerFlagRoutes(adminApi);
+      await registerEnvironmentRoutes(adminApi);
+      await registerFlagConfigRoutes(adminApi);
     },
     { prefix: '/api/v1' },
   );
