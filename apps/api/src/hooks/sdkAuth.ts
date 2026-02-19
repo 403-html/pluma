@@ -4,8 +4,27 @@ import { prisma } from '@pluma/db';
 import { createHash } from 'crypto';
 
 /**
- * Fastify preHandler hook that validates the SDK Bearer token.
- * Attaches the resolved projectId to `request.sdkProjectId`.
+ * Fastify preHandler hook for the SDK API (`/sdk/v1/*`).
+ *
+ * Use this hook on every route that machine clients (apps, SDKs) call using a
+ * `pluma_sdk_*` Bearer token.  Do **not** use it on admin routes — those must
+ * use `adminAuthHook` instead.
+ *
+ * ## When to use
+ * - Route is under `/sdk/v1/*`
+ * - The caller is a non-human client (a backend app, the `@pluma/sdk` package, etc.)
+ * - Authentication is via `Authorization: Bearer <pluma_sdk_…>` header
+ *
+ * ## What it rejects (→ 401)
+ * - Missing or non-Bearer `Authorization` header
+ * - Token not found in the database
+ * - Token that has been revoked (`revokedAt` is set)
+ * - Session cookies are silently ignored — they are never accepted here
+ *
+ * ## What it populates on success
+ * - `request.sdkProjectId` — always set to the project the token belongs to
+ * - `request.sdkEnvId`     — set only when the token is scoped to a specific
+ *                            environment; absent for project-scoped tokens
  */
 export async function sdkAuthHook(
   request: FastifyRequest,
@@ -42,4 +61,8 @@ export async function sdkAuthHook(
   }
 
   request.sdkProjectId = sdkToken.projectId;
+
+  if (sdkToken.envId) {
+    request.sdkEnvId = sdkToken.envId;
+  }
 }

@@ -1,16 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
+import {
+  PROJECT_ID, OTHER_PROJECT_ID, ENV_ID, FLAG_ID, AUTH_COOKIE,
+  mockSession, mockEnvironment, mockFlag, mockFlagConfig,
+} from './fixtures';
 
-const SESSION_TOKEN = 'flagconfigs-test-session-token';
-const USER_ID = '55555555-5555-4555-a555-555555555555';
-const PROJECT_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
-const OTHER_PROJECT_ID = 'bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb';
-const ENV_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
-const FLAG_ID = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
-
-const { prismaMock } = vi.hoisted(() => ({
-  prismaMock: {
+const { prismaMock } = vi.hoisted(() => {
+  const prismaMock = {
     project: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -53,14 +50,15 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
-  },
-}));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $transaction: vi.fn() as any,
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismaMock.$transaction.mockImplementation((fn: (tx: any) => Promise<any>) => fn(prismaMock));
+  return { prismaMock };
+});
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
-
-const mockEnv = { id: ENV_ID, projectId: PROJECT_ID, key: 'staging', name: 'Staging', createdAt: new Date(), updatedAt: new Date() };
-const mockFlag = { id: FLAG_ID, projectId: PROJECT_ID, key: 'dark-mode', name: 'Dark Mode', description: null, createdAt: new Date() };
-const mockConfig = { envId: ENV_ID, flagId: FLAG_ID, enabled: true };
 
 describe('Flag Config routes', () => {
   let app: FastifyInstance;
@@ -75,28 +73,19 @@ describe('Flag Config routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'session-id',
-      token: SESSION_TOKEN,
-      expiresAt: new Date(Date.now() + 60_000),
-      userId: USER_ID,
-      createdAt: new Date(),
-      user: { id: USER_ID, email: 'admin@example.com', createdAt: new Date(), passwordHash: 'hash' },
-    });
+    prismaMock.session.findUnique.mockResolvedValue(mockSession);
   });
-
-  const authCookie = `pluma_session=${SESSION_TOKEN}`;
 
   describe('GET /api/v1/environments/:envId/flags', () => {
     it('should return flags with enabled state for environment', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
-      prismaMock.flagConfig.findMany.mockResolvedValue([mockConfig]);
+      prismaMock.flagConfig.findMany.mockResolvedValue([mockFlagConfig]);
 
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/environments/${ENV_ID}/flags`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -105,19 +94,19 @@ describe('Flag Config routes', () => {
       expect(payload).toHaveProperty('nextCursor', null);
       expect(payload.data).toHaveLength(1);
       expect(payload.data[0]).toHaveProperty('flagId', FLAG_ID);
-      expect(payload.data[0]).toHaveProperty('key', 'dark-mode');
+      expect(payload.data[0]).toHaveProperty('key', mockFlag.key);
       expect(payload.data[0]).toHaveProperty('enabled', true);
     });
 
     it('should default enabled to false when no config exists', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
       prismaMock.flagConfig.findMany.mockResolvedValue([]);
 
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/environments/${ENV_ID}/flags`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -132,14 +121,14 @@ describe('Flag Config routes', () => {
       const manyFlags = Array.from({ length: 101 }, (_, i) =>
         i === 100 ? extraFlag : { ...mockFlag, id: `${FLAG_ID.slice(0, -1)}${i % 10}`, key: `flag-${i}` },
       );
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findMany.mockResolvedValue(manyFlags);
       prismaMock.flagConfig.findMany.mockResolvedValue([]);
 
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/environments/${ENV_ID}/flags`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -149,14 +138,14 @@ describe('Flag Config routes', () => {
     });
 
     it('should accept a cursor query param', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
-      prismaMock.flagConfig.findMany.mockResolvedValue([mockConfig]);
+      prismaMock.flagConfig.findMany.mockResolvedValue([mockFlagConfig]);
 
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/environments/${ENV_ID}/flags?cursor=${FLAG_ID}`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -166,12 +155,12 @@ describe('Flag Config routes', () => {
     });
 
     it('should return 400 for an invalid cursor', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
 
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/environments/${ENV_ID}/flags?cursor=not-a-uuid`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(400);
@@ -183,7 +172,7 @@ describe('Flag Config routes', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/environments/${ENV_ID}/flags`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
@@ -192,15 +181,15 @@ describe('Flag Config routes', () => {
 
   describe('PATCH /api/v1/environments/:envId/flags/:flagId', () => {
     it('should enable a flag in an environment', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag);
-      prismaMock.flagConfig.upsert.mockResolvedValue(mockConfig);
+      prismaMock.flagConfig.upsert.mockResolvedValue(mockFlagConfig);
 
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
         payload: { enabled: true },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -215,35 +204,35 @@ describe('Flag Config routes', () => {
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
         payload: { enabled: true },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
     it('should return 404 when flag not found', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findUnique.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
         payload: { enabled: true },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
     it('should return 400 when flag belongs to a different project', async () => {
-      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.featureFlag.findUnique.mockResolvedValue({ ...mockFlag, projectId: OTHER_PROJECT_ID });
 
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
         payload: { enabled: true },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(400);
@@ -254,7 +243,7 @@ describe('Flag Config routes', () => {
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
         payload: {},
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(400);

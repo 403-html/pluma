@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
-import { createHash } from 'crypto';
-
-const PROJECT_ID = '33333333-3333-3333-3333-333333333333';
-const RAW_TOKEN = 'pluma_' + 'a'.repeat(64);
-const TOKEN_HASH = createHash('sha256').update(RAW_TOKEN).digest('hex');
+import {
+  PROJECT_ID, ENV_ID, AUTH_COOKIE,
+  RAW_SDK_TOKEN, SDK_TOKEN_HASH,
+  mockSession, mockSdkToken, mockEnvironmentWithProject, mockProject,
+} from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -94,49 +94,105 @@ describe('SDK snapshot', () => {
 
   it('should return 401 with a revoked token', async () => {
     prismaMock.sdkToken.findUnique.mockResolvedValue({
-      id: 'token-id',
-      projectId: PROJECT_ID,
-      tokenHash: TOKEN_HASH,
-      name: 'CI Token',
-      createdAt: new Date(),
+      ...mockSdkToken,
       revokedAt: new Date(),
     });
 
     const response = await app.inject({
       method: 'GET',
       url: '/sdk/v1/snapshot',
-      headers: { authorization: `Bearer ${RAW_TOKEN}` },
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
     });
 
     expect(response.statusCode).toBe(401);
   });
 
-  it('should return flag snapshot for a valid token', async () => {
-    prismaMock.sdkToken.findUnique.mockResolvedValue({
-      id: 'token-id',
-      projectId: PROJECT_ID,
-      tokenHash: TOKEN_HASH,
-      name: 'CI Token',
-      createdAt: new Date(),
-      revokedAt: null,
+  it('should return 401 when session cookie is used instead of Bearer token', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { cookie: AUTH_COOKIE },
     });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it('should return 401 for project-scoped tokens (no envId)', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue({
+      ...mockSdkToken,
+      envId: null,
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it('should return env-scoped flag snapshot for a valid env token', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue({ ...mockEnvironmentWithProject, configVersion: 3 });
     prismaMock.featureFlag.findMany.mockResolvedValue([
-      { key: 'dark-mode', enabled: true },
-      { key: 'new-ui', enabled: false },
+      { id: 'flag-1', key: 'dark-mode', projectId: PROJECT_ID },
+      { id: 'flag-2', key: 'new-ui', projectId: PROJECT_ID },
+    ]);
+    prismaMock.flagConfig.findMany.mockResolvedValue([
+      { envId: ENV_ID, flagId: 'flag-1', enabled: true },
     ]);
 
     const response = await app.inject({
       method: 'GET',
       url: '/sdk/v1/snapshot',
-      headers: { authorization: `Bearer ${RAW_TOKEN}` },
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
     });
 
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.payload);
-    expect(payload).toHaveProperty('projectId', PROJECT_ID);
+    expect(payload).toHaveProperty('version', 3);
+    expect(payload).toHaveProperty('projectKey', mockProject.key);
+    expect(payload).toHaveProperty('envKey', mockEnvironmentWithProject.key);
     expect(payload.flags).toHaveLength(2);
+    expect(payload.flags.find((f: { key: string }) => f.key === 'dark-mode')).toMatchObject({ key: 'dark-mode', enabled: true });
+    expect(payload.flags.find((f: { key: string }) => f.key === 'new-ui')).toMatchObject({ key: 'new-ui', enabled: false });
+    expect(response.headers['etag']).toBe('3');
+  });
+
+  it('should return 304 when If-None-Match matches current version', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue({ ...mockEnvironmentWithProject, configVersion: 3 });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: {
+        authorization: `Bearer ${RAW_SDK_TOKEN}`,
+        'if-none-match': '3',
+      },
+    });
+
+    expect(response.statusCode).toBe(304);
+    expect(prismaMock.featureFlag.findMany).not.toHaveBeenCalled();
+  });
+
+  it('should verify the SDK token lookup uses the correct hash', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue(mockEnvironmentWithProject);
+    prismaMock.featureFlag.findMany.mockResolvedValue([]);
+    prismaMock.flagConfig.findMany.mockResolvedValue([]);
+
+    await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
+    });
+
     expect(prismaMock.sdkToken.findUnique).toHaveBeenCalledWith({
-      where: { tokenHash: TOKEN_HASH },
+      where: { tokenHash: SDK_TOKEN_HASH },
     });
   });
 });

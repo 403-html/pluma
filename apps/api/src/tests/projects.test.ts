@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
-
-const SESSION_TOKEN = 'test-session-token';
-const USER_ID = '11111111-1111-1111-1111-111111111111';
+import { PROJECT_ID, AUTH_COOKIE, mockSession } from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -70,17 +68,8 @@ describe('API Projects', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Provide a valid session for all admin routes
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'session-id',
-      token: SESSION_TOKEN,
-      expiresAt: new Date(Date.now() + 60_000),
-      userId: USER_ID,
-      createdAt: new Date(),
-      user: { id: USER_ID, email: 'admin@example.com', createdAt: new Date(), passwordHash: 'hash' },
-    });
+    prismaMock.session.findUnique.mockResolvedValue(mockSession);
   });
-
-  const authCookie = `pluma_session=${SESSION_TOKEN}`;
 
   it('should return 401 when no session cookie', async () => {
     const response = await app.inject({
@@ -93,17 +82,13 @@ describe('API Projects', () => {
 
   it('should list projects', async () => {
     prismaMock.project.findMany.mockResolvedValue([
-      {
-        id: '8becc1f9-39b2-4d73-ab84-a61f487d117a',
-        key: 'alpha',
-        name: 'Alpha',
-      },
+      { id: PROJECT_ID, key: 'alpha', name: 'Alpha' },
     ]);
 
     const response = await app.inject({
       method: 'GET',
       url: '/api/v1/projects',
-      headers: { cookie: authCookie },
+      headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(200);
@@ -113,7 +98,7 @@ describe('API Projects', () => {
 
   it('should create a project', async () => {
     prismaMock.project.create.mockResolvedValue({
-      id: '8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      id: PROJECT_ID,
       key: 'alpha',
       name: 'Alpha',
     });
@@ -122,7 +107,7 @@ describe('API Projects', () => {
       method: 'POST',
       url: '/api/v1/projects',
       payload: { key: 'alpha', name: 'Alpha' },
-      headers: { cookie: authCookie },
+      headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(201);
@@ -133,15 +118,15 @@ describe('API Projects', () => {
 
   it('should get a project by id', async () => {
     prismaMock.project.findUnique.mockResolvedValue({
-      id: '8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      id: PROJECT_ID,
       key: 'alpha',
       name: 'Alpha',
     });
 
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
-      headers: { cookie: authCookie },
+      url: `/api/v1/projects/${PROJECT_ID}`,
+      headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(200);
@@ -153,8 +138,8 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
-      headers: { cookie: authCookie },
+      url: `/api/v1/projects/${PROJECT_ID}`,
+      headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(404);
@@ -162,41 +147,41 @@ describe('API Projects', () => {
 
   it('should update a project', async () => {
     prismaMock.project.update.mockResolvedValue({
-      id: '8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      id: PROJECT_ID,
       key: 'alpha',
       name: 'Alpha Updated',
     });
 
     const response = await app.inject({
       method: 'PATCH',
-      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      url: `/api/v1/projects/${PROJECT_ID}`,
       payload: { name: 'Alpha Updated' },
-      headers: { cookie: authCookie },
+      headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(200);
     expect(prismaMock.project.update).toHaveBeenCalledWith({
-      where: { id: '8becc1f9-39b2-4d73-ab84-a61f487d117a' },
+      where: { id: PROJECT_ID },
       data: { name: 'Alpha Updated' },
     });
   });
 
   it('should delete a project', async () => {
     prismaMock.project.delete.mockResolvedValue({
-      id: '8becc1f9-39b2-4d73-ab84-a61f487d117a',
+      id: PROJECT_ID,
       key: 'alpha',
       name: 'Alpha',
     });
 
     const response = await app.inject({
       method: 'DELETE',
-      url: '/api/v1/projects/8becc1f9-39b2-4d73-ab84-a61f487d117a',
-      headers: { cookie: authCookie },
+      url: `/api/v1/projects/${PROJECT_ID}`,
+      headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(204);
     expect(prismaMock.project.delete).toHaveBeenCalledWith({
-      where: { id: '8becc1f9-39b2-4d73-ab84-a61f487d117a' },
+      where: { id: PROJECT_ID },
     });
   });
 });

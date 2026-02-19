@@ -130,7 +130,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       try {
         const environment = await prisma.environment.update({
           where: { id: parsedParams.data.envId },
-          data: parsedBody.data,
+          data: { ...parsedBody.data, configVersion: { increment: 1 } },
         });
 
         return environment;

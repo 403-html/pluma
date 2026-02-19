@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
-
-const SESSION_TOKEN = 'envs-test-session-token';
-const USER_ID = '44444444-4444-4444-4444-444444444444';
-const PROJECT_ID = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeeeee';
-const ENV_ID = 'ffffffff-ffff-4fff-afff-ffffffffffff';
+import {
+  PROJECT_ID, ENV_ID, AUTH_COOKIE,
+  mockSession, mockProject, mockEnvironment,
+} from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -56,9 +55,6 @@ const { prismaMock } = vi.hoisted(() => ({
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
 
-const mockProject = { id: PROJECT_ID, key: 'my-project', name: 'My Project', createdAt: new Date(), updatedAt: new Date() };
-const mockEnv = { id: ENV_ID, projectId: PROJECT_ID, key: 'staging', name: 'Staging', createdAt: new Date(), updatedAt: new Date() };
-
 describe('Environment routes', () => {
   let app: FastifyInstance;
 
@@ -72,33 +68,24 @@ describe('Environment routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'session-id',
-      token: SESSION_TOKEN,
-      expiresAt: new Date(Date.now() + 60_000),
-      userId: USER_ID,
-      createdAt: new Date(),
-      user: { id: USER_ID, email: 'admin@example.com', createdAt: new Date(), passwordHash: 'hash' },
-    });
+    prismaMock.session.findUnique.mockResolvedValue(mockSession);
   });
-
-  const authCookie = `pluma_session=${SESSION_TOKEN}`;
 
   describe('GET /api/v1/projects/:projectId/environments', () => {
     it('should list environments for a project', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.environment.findMany.mockResolvedValue([mockEnv]);
+      prismaMock.environment.findMany.mockResolvedValue([mockEnvironment]);
 
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/projects/${PROJECT_ID}/environments`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveLength(1);
-      expect(payload[0]).toHaveProperty('key', 'staging');
+      expect(payload[0]).toHaveProperty('key', mockEnvironment.key);
     });
 
     it('should return 404 when project not found', async () => {
@@ -107,7 +94,7 @@ describe('Environment routes', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/projects/${PROJECT_ID}/environments`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
@@ -126,18 +113,18 @@ describe('Environment routes', () => {
   describe('POST /api/v1/projects/:projectId/environments', () => {
     it('should create an environment', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.environment.create.mockResolvedValue(mockEnv);
+      prismaMock.environment.create.mockResolvedValue(mockEnvironment);
 
       const response = await app.inject({
         method: 'POST',
         url: `/api/v1/projects/${PROJECT_ID}/environments`,
-        payload: { key: 'staging', name: 'Staging' },
-        headers: { cookie: authCookie },
+        payload: { key: mockEnvironment.key, name: mockEnvironment.name },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(201);
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('key', 'staging');
+      expect(payload).toHaveProperty('key', mockEnvironment.key);
     });
 
     it('should return 404 when project not found', async () => {
@@ -147,7 +134,7 @@ describe('Environment routes', () => {
         method: 'POST',
         url: `/api/v1/projects/${PROJECT_ID}/environments`,
         payload: { key: 'staging', name: 'Staging' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
@@ -161,7 +148,7 @@ describe('Environment routes', () => {
         method: 'POST',
         url: `/api/v1/projects/${PROJECT_ID}/environments`,
         payload: { key: 'staging', name: 'Staging' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(409);
@@ -174,7 +161,7 @@ describe('Environment routes', () => {
         method: 'POST',
         url: `/api/v1/projects/${PROJECT_ID}/environments`,
         payload: {},
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(400);
@@ -183,13 +170,13 @@ describe('Environment routes', () => {
 
   describe('PATCH /api/v1/environments/:envId', () => {
     it('should update an environment', async () => {
-      prismaMock.environment.update.mockResolvedValue({ ...mockEnv, name: 'Staging Updated' });
+      prismaMock.environment.update.mockResolvedValue({ ...mockEnvironment, name: 'Staging Updated' });
 
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}`,
         payload: { name: 'Staging Updated' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -204,7 +191,7 @@ describe('Environment routes', () => {
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}`,
         payload: { name: 'New Name' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
@@ -217,7 +204,7 @@ describe('Environment routes', () => {
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}`,
         payload: { key: 'production' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(409);
@@ -228,7 +215,7 @@ describe('Environment routes', () => {
         method: 'PATCH',
         url: `/api/v1/environments/${ENV_ID}`,
         payload: {},
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(400);
@@ -237,12 +224,12 @@ describe('Environment routes', () => {
 
   describe('DELETE /api/v1/environments/:envId', () => {
     it('should delete an environment', async () => {
-      prismaMock.environment.delete.mockResolvedValue(mockEnv);
+      prismaMock.environment.delete.mockResolvedValue(mockEnvironment);
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/environments/${ENV_ID}`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(204);
@@ -254,7 +241,7 @@ describe('Environment routes', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/environments/${ENV_ID}`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);

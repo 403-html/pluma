@@ -1,11 +1,3 @@
-export type HelloWorldMessage = {
-  message: "hello world";
-};
-
-export const HELLO_WORLD: HelloWorldMessage = {
-  message: "hello world",
-};
-
 // Auth
 export type AuthUser = {
   id: string;
@@ -56,4 +48,19 @@ export type FlagConfig = {
   envId: string;
   flagId: string;
   enabled: boolean;
+};
+
+// SDK Snapshot
+export type SnapshotFlag = {
+  key: string;
+  parentKey: string | null;
+  enabled: boolean;
+  inheritParent: boolean;
+};
+
+export type Snapshot = {
+  version: number;
+  projectKey: string;
+  envKey: string;
+  flags: SnapshotFlag[];
 };

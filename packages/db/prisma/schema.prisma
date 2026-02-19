@@ -40,26 +40,30 @@ model Project {
 }
 
 model Environment {
-  id          String       @id @default(uuid())
-  projectId   String
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  key         String
-  name        String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  flagConfigs FlagConfig[]
+  id            String       @id @default(uuid())
+  projectId     String
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key           String
+  name          String
+  configVersion Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  flagConfigs   FlagConfig[]
+  sdkTokens     SdkToken[]
 
   @@unique([projectId, key])
 }
 
 model SdkToken {
-  id        String    @id @default(uuid())
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  name      String
-  tokenHash String    @unique
-  createdAt DateTime  @default(now())
-  revokedAt DateTime?
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  envId       String?
+  environment Environment? @relation(fields: [envId], references: [id], onDelete: Cascade)
+  name        String
+  tokenHash   String       @unique
+  createdAt   DateTime     @default(now())
+  revokedAt   DateTime?
 }
 
 model FeatureFlag {

@@ -5,5 +5,6 @@ declare module 'fastify' {
     sessionUserId?: string;
     sessionUser?: AuthUser;
     sdkProjectId?: string;
+    sdkEnvId?: string;
   }
 }

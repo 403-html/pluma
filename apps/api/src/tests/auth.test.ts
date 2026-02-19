@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
-
-const USER_ID = '22222222-2222-2222-2222-222222222222';
-const SESSION_TOKEN = 'auth-test-session-token';
+import {
+  USER_ID, SESSION_TOKEN, AUTH_COOKIE,
+  mockUser, mockSession,
+} from './fixtures';
 
 const { prismaMock, bcryptMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -81,23 +82,18 @@ describe('Auth routes', () => {
     it('should create the first admin user', async () => {
       prismaMock.user.count.mockResolvedValue(0);
       bcryptMock.hash.mockResolvedValue('hashed_pw');
-      prismaMock.user.create.mockResolvedValue({
-        id: USER_ID,
-        email: 'admin@example.com',
-        passwordHash: 'hashed_pw',
-        createdAt: new Date('2024-01-01'),
-      });
+      prismaMock.user.create.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw' });
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/register',
-        payload: { email: 'admin@example.com', password: 'securepassword' },
+        payload: { email: mockUser.email, password: 'securepassword' },
       });
 
       expect(response.statusCode).toBe(201);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('id', USER_ID);
-      expect(payload).toHaveProperty('email', 'admin@example.com');
+      expect(payload).toHaveProperty('email', mockUser.email);
       expect(payload).not.toHaveProperty('passwordHash');
     });
 
@@ -126,49 +122,33 @@ describe('Auth routes', () => {
 
   describe('POST /api/v1/auth/login', () => {
     it('should login with valid credentials and set a session cookie', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
-        id: USER_ID,
-        email: 'admin@example.com',
-        passwordHash: 'hashed_pw',
-        createdAt: new Date('2024-01-01'),
-      });
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw' });
       bcryptMock.compare.mockResolvedValue(true);
       prismaMock.session.deleteMany.mockResolvedValue({ count: 1 });
-      prismaMock.session.create.mockResolvedValue({
-        id: 'session-id',
-        token: SESSION_TOKEN,
-        userId: USER_ID,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(),
-      });
+      prismaMock.session.create.mockResolvedValue(mockSession);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/login',
-        payload: { email: 'admin@example.com', password: 'securepassword' },
+        payload: { email: mockUser.email, password: 'securepassword' },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.headers['set-cookie']).toContain('pluma_session=');
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('email', 'admin@example.com');
+      expect(payload).toHaveProperty('email', mockUser.email);
       // All existing sessions should be invalidated on login
       expect(prismaMock.session.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     });
 
     it('should return 401 for invalid credentials', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
-        id: USER_ID,
-        email: 'admin@example.com',
-        passwordHash: 'hashed_pw',
-        createdAt: new Date('2024-01-01'),
-      });
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw' });
       bcryptMock.compare.mockResolvedValue(false);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/login',
-        payload: { email: 'admin@example.com', password: 'wrongpassword' },
+        payload: { email: mockUser.email, password: 'wrongpassword' },
       });
 
       expect(response.statusCode).toBe(401);
@@ -196,7 +176,7 @@ describe('Auth routes', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/logout',
-        headers: { cookie: `pluma_session=${SESSION_TOKEN}` },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(204);
@@ -208,24 +188,17 @@ describe('Auth routes', () => {
 
   describe('GET /api/v1/auth/me', () => {
     it('should return the current user', async () => {
-      prismaMock.session.findUnique.mockResolvedValue({
-        id: 'session-id',
-        token: SESSION_TOKEN,
-        expiresAt: new Date(Date.now() + 60_000),
-        userId: USER_ID,
-        createdAt: new Date(),
-        user: { id: USER_ID, email: 'admin@example.com', createdAt: new Date('2024-01-01'), passwordHash: 'hash' },
-      });
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
 
       const response = await app.inject({
         method: 'GET',
         url: '/api/v1/auth/me',
-        headers: { cookie: `pluma_session=${SESSION_TOKEN}` },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('email', 'admin@example.com');
+      expect(payload).toHaveProperty('email', mockUser.email);
     });
 
     it('should return 401 when not authenticated', async () => {

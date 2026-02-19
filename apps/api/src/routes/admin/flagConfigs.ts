@@ -164,14 +164,23 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         return;
       }
 
-      const config = await prisma.flagConfig.upsert({
-        where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
-        update: { enabled: parsedBody.data.enabled },
-        create: {
-          envId: validated.envId,
-          flagId: validated.flagId,
-          enabled: parsedBody.data.enabled,
-        },
+      const config = await prisma.$transaction(async (tx) => {
+        const upserted = await tx.flagConfig.upsert({
+          where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
+          update: { enabled: parsedBody.data.enabled },
+          create: {
+            envId: validated.envId,
+            flagId: validated.flagId,
+            enabled: parsedBody.data.enabled,
+          },
+        });
+
+        await tx.environment.update({
+          where: { id: validated.envId },
+          data: { configVersion: { increment: 1 } },
+        });
+
+        return upserted;
       });
 
       return config;
