@@ -3,11 +3,11 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import sensible from '@fastify/sensible';
 import cookie from '@fastify/cookie';
-import { registerAuthRoutes } from './routes/admin/auth.js';
-import { registerProjectRoutes } from './routes/admin/projects.js';
-import { registerTokenRoutes } from './routes/admin/tokens.js';
-import { registerFlagRoutes } from './routes/admin/flags.js';
-import { registerSdkRoutes } from './routes/sdk/snapshot.js';
+import { registerAuthRoutes } from './routes/admin/auth';
+import { registerProjectRoutes } from './routes/admin/projects';
+import { registerTokenRoutes } from './routes/admin/tokens';
+import { registerFlagRoutes } from './routes/admin/flags';
+import { registerSdkRoutes } from './routes/sdk/snapshot';
 
 type BuildAppOptions = {
   logger?: boolean;

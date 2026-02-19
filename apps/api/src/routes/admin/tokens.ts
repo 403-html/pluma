@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { randomBytes, createHash } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
-import { adminAuthHook } from '../../hooks/adminAuth.js';
+import { adminAuthHook } from '../../hooks/adminAuth';
 
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'pluma_';

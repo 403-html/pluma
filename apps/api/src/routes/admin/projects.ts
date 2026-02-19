@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
-import { adminAuthHook } from '../../hooks/adminAuth.js';
+import { adminAuthHook } from '../../hooks/adminAuth';
 
 const projectBodySchema = z.object({
   key: z.string().min(1),

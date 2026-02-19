@@ -4,7 +4,7 @@ import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
-import { adminAuthHook } from '../../hooks/adminAuth.js';
+import { adminAuthHook } from '../../hooks/adminAuth';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const BCRYPT_ROUNDS = 12;
