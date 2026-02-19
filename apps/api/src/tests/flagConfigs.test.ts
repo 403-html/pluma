@@ -101,10 +101,12 @@ describe('Flag Config routes', () => {
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveLength(1);
-      expect(payload[0]).toHaveProperty('flagId', FLAG_ID);
-      expect(payload[0]).toHaveProperty('key', 'dark-mode');
-      expect(payload[0]).toHaveProperty('enabled', true);
+      expect(payload).toHaveProperty('data');
+      expect(payload).toHaveProperty('nextCursor', null);
+      expect(payload.data).toHaveLength(1);
+      expect(payload.data[0]).toHaveProperty('flagId', FLAG_ID);
+      expect(payload.data[0]).toHaveProperty('key', 'dark-mode');
+      expect(payload.data[0]).toHaveProperty('enabled', true);
     });
 
     it('should default enabled to false when no config exists', async () => {
@@ -120,7 +122,59 @@ describe('Flag Config routes', () => {
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
-      expect(payload[0]).toHaveProperty('enabled', false);
+      expect(payload.data[0]).toHaveProperty('enabled', false);
+    });
+
+    it('should return nextCursor when there are more flags than PAGE_SIZE', async () => {
+      // Simulate PAGE_SIZE + 1 flags returned (triggers hasNextPage)
+      const CURSOR_ID = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeeeee';
+      const extraFlag = { ...mockFlag, id: CURSOR_ID, key: 'extra-flag' };
+      const manyFlags = Array.from({ length: 101 }, (_, i) =>
+        i === 100 ? extraFlag : { ...mockFlag, id: `${FLAG_ID.slice(0, -1)}${i % 10}`, key: `flag-${i}` },
+      );
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.featureFlag.findMany.mockResolvedValue(manyFlags);
+      prismaMock.flagConfig.findMany.mockResolvedValue([]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/flags`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.data).toHaveLength(100);
+      expect(payload.nextCursor).toBe(payload.data[99].flagId);
+    });
+
+    it('should accept a cursor query param', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+      prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
+      prismaMock.flagConfig.findMany.mockResolvedValue([mockConfig]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/flags?cursor=${FLAG_ID}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('data');
+      expect(payload).toHaveProperty('nextCursor', null);
+    });
+
+    it('should return 400 for an invalid cursor', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnv);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/flags?cursor=not-a-uuid`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 404 when environment not found', async () => {

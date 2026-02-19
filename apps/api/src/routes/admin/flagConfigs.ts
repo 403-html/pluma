@@ -4,10 +4,14 @@ import { ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
-const MAX_FLAGS_PER_PROJECT = 1000;
+const PAGE_SIZE = 100;
 
 const envParamsSchema = z.object({
   envId: z.uuid(),
+});
+
+const flagsQuerySchema = z.object({
+  cursor: z.uuid().optional(),
 });
 
 const flagConfigParamsSchema = z.object({
@@ -21,7 +25,7 @@ const flagConfigUpdateBodySchema = z.object({
 
 /**
  * Validates that the environment and flag exist and belong to the same project.
- * Returns the flag on success, or replies with an error and returns null.
+ * Returns the ids on success, or replies with an error and returns null.
  */
 async function validateFlagEnvironmentMatch(
   envId: string,
@@ -63,16 +67,26 @@ async function validateFlagEnvironmentMatch(
 export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/v1/environments/:envId/flags
-   * Returns all flags for the project with their enabled state in this environment.
+   * Returns a paginated list of flags for the project with their enabled state in
+   * this environment. Supports cursor-based pagination via the `cursor` query param
+   * (pass the `nextCursor` from the previous response to fetch the next page).
+   *
+   * Response: { data: FlagConfigEntry[], nextCursor: string | null }
    */
   fastify.get(
     '/environments/:envId/flags',
     { preHandler: [adminAuthHook] },
     async (request, reply) => {
       const parsedParams = envParamsSchema.safeParse(request.params);
+      const parsedQuery = flagsQuerySchema.safeParse(request.query);
 
       if (!parsedParams.success) {
         request.log.warn({ params: request.params }, 'GET /environments/:envId/flags rejected: invalid envId');
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
+      }
+
+      if (!parsedQuery.success) {
+        request.log.warn({ query: request.query }, 'GET /environments/:envId/flags rejected: invalid query');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
@@ -85,26 +99,37 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
+      const cursor = parsedQuery.data.cursor;
+
       const flags = await prisma.featureFlag.findMany({
         where: { projectId: environment.projectId },
         orderBy: { createdAt: 'desc' },
-        take: MAX_FLAGS_PER_PROJECT,
+        take: PAGE_SIZE + 1,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       });
 
+      const hasNextPage = flags.length > PAGE_SIZE;
+      const page = hasNextPage ? flags.slice(0, PAGE_SIZE) : flags;
+      const nextCursor = hasNextPage ? (page[page.length - 1]?.id ?? null) : null;
+
+      const flagIds = page.map((f) => f.id);
+
       const configs = await prisma.flagConfig.findMany({
-        where: { envId: parsedParams.data.envId },
-        take: MAX_FLAGS_PER_PROJECT,
+        where: { envId: parsedParams.data.envId, flagId: { in: flagIds } },
       });
 
       const configMap = new Map(configs.map((c) => [c.flagId, c.enabled]));
 
-      return flags.map((flag) => ({
-        flagId: flag.id,
-        key: flag.key,
-        name: flag.name,
-        description: flag.description,
-        enabled: configMap.get(flag.id) ?? false,
-      }));
+      return {
+        data: page.map((flag) => ({
+          flagId: flag.id,
+          key: flag.key,
+          name: flag.name,
+          description: flag.description,
+          enabled: configMap.get(flag.id) ?? false,
+        })),
+        nextCursor,
+      };
     },
   );
 
