@@ -3,8 +3,25 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 
 /**
- * Fastify preHandler hook that validates the admin session cookie.
- * Attaches the authenticated user id to `request.sessionUserId`.
+ * Fastify preHandler hook for the Admin API (`/api/v1/*`).
+ *
+ * Use this hook on every route that human operators call through the UI or
+ * direct API access using a browser session cookie.  Do **not** use it on SDK
+ * routes — those must use `sdkAuthHook` instead.
+ *
+ * ## When to use
+ * - Route is under `/api/v1/*`
+ * - The caller is a human (browser, Postman, CLI acting on behalf of an admin)
+ * - Authentication is via the `pluma_session` HTTP-only cookie set at login
+ *
+ * ## What it rejects (→ 401)
+ * - Missing `pluma_session` cookie
+ * - Session not found in the database
+ * - Session that has expired (`expiresAt` is in the past)
+ *
+ * ## What it populates on success
+ * - `request.sessionUserId` — the authenticated user's ID
+ * - `request.sessionUser`   — `{ id, email, createdAt }` (no password hash)
  */
 export async function adminAuthHook(
   request: FastifyRequest,
