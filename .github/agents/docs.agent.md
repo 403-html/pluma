@@ -69,5 +69,3 @@ Definition of done:
 - Reader can complete the intended task without guesswork.
 - README/docs remain consistent with each other.
 - Any behavior changes include migration or upgrade guidance.
-
-```
