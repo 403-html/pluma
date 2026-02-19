@@ -6,8 +6,8 @@ import {
   mockSession, mockEnvironment, mockFlag, mockFlagConfig,
 } from './fixtures';
 
-const { prismaMock } = vi.hoisted(() => ({
-  prismaMock: {
+const { prismaMock } = vi.hoisted(() => {
+  const prismaMock = {
     project: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -50,8 +50,13 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
-  },
-}));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $transaction: vi.fn() as any,
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prismaMock.$transaction.mockImplementation((fn: (tx: any) => Promise<any>) => fn(prismaMock));
+  return { prismaMock };
+});
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
 

@@ -23,7 +23,7 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
       include: { project: true },
     });
 
-    if (!environment) {
+    if (!environment || environment.projectId !== projectId) {
       return reply.code(StatusCodes.UNAUTHORIZED).send({ error: 'Unauthorized' });
     }
 

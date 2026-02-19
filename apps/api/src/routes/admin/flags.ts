@@ -84,18 +84,22 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const flag = await prisma.featureFlag.create({
-        data: {
-          projectId: parsedParams.data.projectId,
-          key: parsedBody.data.key,
-          name: parsedBody.data.name,
-          description: parsedBody.data.description,
-        },
-      });
+      const flag = await prisma.$transaction(async (tx) => {
+        const created = await tx.featureFlag.create({
+          data: {
+            projectId: parsedParams.data.projectId,
+            key: parsedBody.data.key,
+            name: parsedBody.data.name,
+            description: parsedBody.data.description,
+          },
+        });
 
-      await prisma.environment.updateMany({
-        where: { projectId: parsedParams.data.projectId },
-        data: { configVersion: { increment: 1 } },
+        await tx.environment.updateMany({
+          where: { projectId: parsedParams.data.projectId },
+          data: { configVersion: { increment: 1 } },
+        });
+
+        return created;
       });
 
       return reply.code(StatusCodes.CREATED).send(flag);
@@ -130,14 +134,18 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const flag = await prisma.featureFlag.update({
-          where: { id: parsedParams.data.flagId },
-          data: parsedBody.data,
-        });
+        const flag = await prisma.$transaction(async (tx) => {
+          const updated = await tx.featureFlag.update({
+            where: { id: parsedParams.data.flagId },
+            data: parsedBody.data,
+          });
 
-        await prisma.environment.updateMany({
-          where: { projectId: flag.projectId },
-          data: { configVersion: { increment: 1 } },
+          await tx.environment.updateMany({
+            where: { projectId: updated.projectId },
+            data: { configVersion: { increment: 1 } },
+          });
+
+          return updated;
         });
 
         return flag;
@@ -172,13 +180,15 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const flag = await prisma.featureFlag.delete({
-          where: { id: parsedParams.data.flagId },
-        });
+        await prisma.$transaction(async (tx) => {
+          const flag = await tx.featureFlag.delete({
+            where: { id: parsedParams.data.flagId },
+          });
 
-        await prisma.environment.updateMany({
-          where: { projectId: flag.projectId },
-          data: { configVersion: { increment: 1 } },
+          await tx.environment.updateMany({
+            where: { projectId: flag.projectId },
+            data: { configVersion: { increment: 1 } },
+          });
         });
 
         return reply.code(StatusCodes.NO_CONTENT).send();
