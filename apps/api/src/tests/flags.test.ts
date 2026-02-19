@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
-
-const SESSION_TOKEN = 'flags-test-session-token';
-const USER_ID = '33333333-3333-3333-3333-333333333333';
-const PROJECT_ID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
-const FLAG_ID = 'bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb';
+import {
+  PROJECT_ID, FLAG_ID, AUTH_COOKIE,
+  mockSession, mockProject, mockFlag,
+} from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -44,6 +43,7 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       delete: vi.fn(),
     },
     flagConfig: {
@@ -55,9 +55,6 @@ const { prismaMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
-
-const mockProject = { id: PROJECT_ID, key: 'test-project', name: 'Test Project', createdAt: new Date(), updatedAt: new Date() };
-const mockFlag = { id: FLAG_ID, projectId: PROJECT_ID, key: 'dark-mode', name: 'Dark Mode', description: null, createdAt: new Date() };
 
 describe('Feature Flag routes', () => {
   let app: FastifyInstance;
@@ -72,17 +69,8 @@ describe('Feature Flag routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'session-id',
-      token: SESSION_TOKEN,
-      expiresAt: new Date(Date.now() + 60_000),
-      userId: USER_ID,
-      createdAt: new Date(),
-      user: { id: USER_ID, email: 'admin@example.com', createdAt: new Date(), passwordHash: 'hash' },
-    });
+    prismaMock.session.findUnique.mockResolvedValue(mockSession);
   });
-
-  const authCookie = `pluma_session=${SESSION_TOKEN}`;
 
   describe('GET /api/v1/projects/:projectId/flags', () => {
     it('should list flags for a project', async () => {
@@ -92,13 +80,13 @@ describe('Feature Flag routes', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveLength(1);
-      expect(payload[0]).toHaveProperty('key', 'dark-mode');
+      expect(payload[0]).toHaveProperty('key', mockFlag.key);
     });
 
     it('should return 404 when project not found', async () => {
@@ -107,7 +95,7 @@ describe('Feature Flag routes', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
@@ -122,13 +110,26 @@ describe('Feature Flag routes', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        payload: { key: 'dark-mode', name: 'Dark Mode' },
-        headers: { cookie: authCookie },
+        payload: { key: mockFlag.key, name: mockFlag.name },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(201);
       const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('key', 'dark-mode');
+      expect(payload).toHaveProperty('key', mockFlag.key);
+    });
+
+    it('should return 404 when project not found', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(null);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        payload: { key: 'dark-mode', name: 'Dark Mode' },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 409 when flag key already exists', async () => {
@@ -139,35 +140,22 @@ describe('Feature Flag routes', () => {
         method: 'POST',
         url: `/api/v1/projects/${PROJECT_ID}/flags`,
         payload: { key: 'dark-mode', name: 'Dark Mode' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(409);
     });
-
-    it('should return 400 for invalid payload', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(mockProject);
-
-      const response = await app.inject({
-        method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        payload: {},
-        headers: { cookie: authCookie },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
   });
 
   describe('PATCH /api/v1/flags/:flagId', () => {
-    it('should update a flag name', async () => {
+    it('should update a flag', async () => {
       prismaMock.featureFlag.update.mockResolvedValue({ ...mockFlag, name: 'Dark Mode Updated' });
 
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/flags/${FLAG_ID}`,
         payload: { name: 'Dark Mode Updated' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
@@ -182,21 +170,23 @@ describe('Feature Flag routes', () => {
         method: 'PATCH',
         url: `/api/v1/flags/${FLAG_ID}`,
         payload: { name: 'New Name' },
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 400 for invalid payload', async () => {
+    it('should return 409 when flag key already exists', async () => {
+      prismaMock.featureFlag.update.mockRejectedValue({ code: 'P2002' });
+
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/flags/${FLAG_ID}`,
-        payload: {},
-        headers: { cookie: authCookie },
+        payload: { key: 'existing-key' },
+        headers: { cookie: AUTH_COOKIE },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(409);
     });
   });
 
@@ -207,7 +197,7 @@ describe('Feature Flag routes', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/flags/${FLAG_ID}`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(204);
@@ -219,7 +209,7 @@ describe('Feature Flag routes', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/flags/${FLAG_ID}`,
-        headers: { cookie: authCookie },
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);

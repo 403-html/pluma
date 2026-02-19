@@ -12,44 +12,43 @@ const tokenBodySchema = z.object({
   name: z.string().min(1).max(100),
 });
 
-const projectParamsSchema = z.object({
-  id: z.uuid(),
+const envParamsSchema = z.object({
+  envId: z.uuid(),
 });
 
 const tokenParamsSchema = z.object({
   id: z.uuid(),
-  tokenId: z.uuid(),
 });
 
-export async function registerTokenRoutes(fastify: FastifyInstance) {
+export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
   /**
-   * GET /api/v1/projects/:id/tokens
-   * Lists all SDK tokens for a project (excludes revoked).
+   * GET /api/v1/environments/:envId/sdk-tokens
+   * Lists all active (non-revoked) SDK tokens for an environment.
    */
   fastify.get(
-    '/projects/:id/tokens',
+    '/environments/:envId/sdk-tokens',
     { preHandler: [adminAuthHook] },
     async (request, reply) => {
-      const parsedParams = projectParamsSchema.safeParse(request.params);
+      const parsedParams = envParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
-        request.log.warn({ params: request.params }, 'GET /projects/:id/tokens rejected: invalid id');
+        request.log.warn({ params: request.params }, 'GET /environments/:envId/sdk-tokens rejected: invalid envId');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
-      const project = await prisma.project.findUnique({
-        where: { id: parsedParams.data.id },
+      const environment = await prisma.environment.findUnique({
+        where: { id: parsedParams.data.envId },
       });
 
-      if (!project) {
-        request.log.warn({ projectId: parsedParams.data.id }, 'GET /projects/:id/tokens rejected: project not found');
+      if (!environment) {
+        request.log.warn({ envId: parsedParams.data.envId }, 'GET /environments/:envId/sdk-tokens rejected: environment not found');
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       const tokens = await prisma.sdkToken.findMany({
-        where: { projectId: parsedParams.data.id, revokedAt: null },
+        where: { envId: parsedParams.data.envId, revokedAt: null },
         orderBy: { createdAt: 'desc' },
-        select: { id: true, projectId: true, name: true, createdAt: true, revokedAt: true },
+        select: { id: true, envId: true, projectId: true, name: true, createdAt: true },
       });
 
       return tokens;
@@ -57,32 +56,32 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
   );
 
   /**
-   * POST /api/v1/projects/:id/tokens
-   * Creates a new SDK token for a project. Returns the raw token once.
+   * POST /api/v1/environments/:envId/sdk-tokens
+   * Creates a new env-scoped SDK token. Returns the raw token once.
    */
   fastify.post(
-    '/projects/:id/tokens',
+    '/environments/:envId/sdk-tokens',
     { preHandler: [adminAuthHook] },
     async (request, reply) => {
-      const parsedParams = projectParamsSchema.safeParse(request.params);
+      const parsedParams = envParamsSchema.safeParse(request.params);
       const parsedBody = tokenBodySchema.safeParse(request.body);
 
       if (!parsedParams.success) {
-        request.log.warn({ params: request.params }, 'POST /projects/:id/tokens rejected: invalid id');
+        request.log.warn({ params: request.params }, 'POST /environments/:envId/sdk-tokens rejected: invalid envId');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       if (!parsedBody.success) {
-        request.log.warn({ issues: parsedBody.error.flatten() }, 'POST /projects/:id/tokens rejected: invalid payload');
+        request.log.warn({ issues: parsedBody.error.flatten() }, 'POST /environments/:envId/sdk-tokens rejected: invalid payload');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
-      const project = await prisma.project.findUnique({
-        where: { id: parsedParams.data.id },
+      const environment = await prisma.environment.findUnique({
+        where: { id: parsedParams.data.envId },
       });
 
-      if (!project) {
-        request.log.warn({ projectId: parsedParams.data.id }, 'POST /projects/:id/tokens rejected: project not found');
+      if (!environment) {
+        request.log.warn({ envId: parsedParams.data.envId }, 'POST /environments/:envId/sdk-tokens rejected: environment not found');
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
@@ -91,11 +90,12 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
 
       const sdkToken = await prisma.sdkToken.create({
         data: {
-          projectId: parsedParams.data.id,
+          projectId: environment.projectId,
+          envId: parsedParams.data.envId,
           name: parsedBody.data.name,
           tokenHash,
         },
-        select: { id: true, projectId: true, name: true, createdAt: true, revokedAt: true },
+        select: { id: true, envId: true, projectId: true, name: true, createdAt: true },
       });
 
       return reply.code(StatusCodes.CREATED).send({ ...sdkToken, token: rawToken });
@@ -103,34 +103,30 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
   );
 
   /**
-   * DELETE /api/v1/projects/:id/tokens/:tokenId
-   * Revokes a SDK token (sets revokedAt).
+   * DELETE /api/v1/sdk-tokens/:id
+   * Revokes an SDK token by id (immediate revocation).
    */
   fastify.delete(
-    '/projects/:id/tokens/:tokenId',
+    '/sdk-tokens/:id',
     { preHandler: [adminAuthHook] },
     async (request, reply) => {
       const parsedParams = tokenParamsSchema.safeParse(request.params);
 
       if (!parsedParams.success) {
-        request.log.warn({ params: request.params }, 'DELETE /projects/:id/tokens/:tokenId rejected: invalid params');
+        request.log.warn({ params: request.params }, 'DELETE /sdk-tokens/:id rejected: invalid id');
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
       try {
         await prisma.sdkToken.update({
-          where: {
-            id: parsedParams.data.tokenId,
-            projectId: parsedParams.data.id,
-            revokedAt: null,
-          },
+          where: { id: parsedParams.data.id, revokedAt: null },
           data: { revokedAt: new Date() },
         });
 
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
-          request.log.warn({ tokenId: parsedParams.data.tokenId, projectId: parsedParams.data.id }, 'DELETE /projects/:id/tokens/:tokenId rejected: token not found or already revoked');
+          request.log.warn({ tokenId: parsedParams.data.id }, 'DELETE /sdk-tokens/:id rejected: token not found or already revoked');
           return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 

@@ -6,6 +6,7 @@ import { createHash } from 'crypto';
 /**
  * Fastify preHandler hook that validates the SDK Bearer token.
  * Attaches the resolved projectId to `request.sdkProjectId`.
+ * If the token is env-scoped, also attaches `request.sdkEnvId`.
  */
 export async function sdkAuthHook(
   request: FastifyRequest,
@@ -42,4 +43,8 @@ export async function sdkAuthHook(
   }
 
   request.sdkProjectId = sdkToken.projectId;
+
+  if (sdkToken.envId) {
+    request.sdkEnvId = sdkToken.envId;
+  }
 }

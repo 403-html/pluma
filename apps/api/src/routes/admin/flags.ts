@@ -93,6 +93,11 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         },
       });
 
+      await prisma.environment.updateMany({
+        where: { projectId: parsedParams.data.projectId },
+        data: { configVersion: { increment: 1 } },
+      });
+
       return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
@@ -130,6 +135,11 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           data: parsedBody.data,
         });
 
+        await prisma.environment.updateMany({
+          where: { projectId: flag.projectId },
+          data: { configVersion: { increment: 1 } },
+        });
+
         return flag;
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
@@ -162,8 +172,13 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        await prisma.featureFlag.delete({
+        const flag = await prisma.featureFlag.delete({
           where: { id: parsedParams.data.flagId },
+        });
+
+        await prisma.environment.updateMany({
+          where: { projectId: flag.projectId },
+          data: { configVersion: { increment: 1 } },
         });
 
         return reply.code(StatusCodes.NO_CONTENT).send();

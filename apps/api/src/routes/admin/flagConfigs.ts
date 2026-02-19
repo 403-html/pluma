@@ -174,6 +174,11 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         },
       });
 
+      await prisma.environment.update({
+        where: { id: validated.envId },
+        data: { configVersion: { increment: 1 } },
+      });
+
       return config;
     },
   );

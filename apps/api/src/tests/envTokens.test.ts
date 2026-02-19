@@ -3,8 +3,8 @@ import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import { createHash } from 'crypto';
 import {
-  PROJECT_ID, TOKEN_ID, AUTH_COOKIE,
-  mockSession, mockProject, mockSdkToken,
+  PROJECT_ID, ENV_ID, TOKEN_ID, AUTH_COOKIE,
+  mockSession, mockEnvironment, mockSdkToken,
 } from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
@@ -44,6 +44,7 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       delete: vi.fn(),
     },
     flagConfig: {
@@ -56,7 +57,7 @@ const { prismaMock } = vi.hoisted(() => ({
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
 
-describe('SDK Token routes', () => {
+describe('Env-scoped SDK Token routes', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
@@ -72,14 +73,14 @@ describe('SDK Token routes', () => {
     prismaMock.session.findUnique.mockResolvedValue(mockSession);
   });
 
-  describe('GET /api/v1/projects/:id/tokens', () => {
-    it('should list active (non-revoked) tokens for a project', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+  describe('GET /api/v1/environments/:envId/sdk-tokens', () => {
+    it('should list active tokens for an environment', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.sdkToken.findMany.mockResolvedValue([mockSdkToken]);
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens`,
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -87,34 +88,44 @@ describe('SDK Token routes', () => {
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveLength(1);
       expect(payload[0]).toHaveProperty('name', mockSdkToken.name);
-      // Verify the query filters out revoked tokens
+      expect(payload[0]).not.toHaveProperty('token');
+      // Listing must never return the plaintext token
       expect(prismaMock.sdkToken.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ revokedAt: null }) }),
+        expect.objectContaining({ where: expect.objectContaining({ envId: ENV_ID, revokedAt: null }) }),
       );
     });
 
-    it('should return 404 when project not found', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(null);
+    it('should return 404 when environment not found', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens`,
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
         headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 401 without session', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
   });
 
-  describe('POST /api/v1/projects/:id/tokens', () => {
-    it('should create a token and return the raw token once', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+  describe('POST /api/v1/environments/:envId/sdk-tokens', () => {
+    it('should create a token and return the plaintext once', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.sdkToken.create.mockResolvedValue(mockSdkToken);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens`,
-        payload: { name: 'My Token' },
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
+        payload: { name: 'CI Token' },
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -122,18 +133,39 @@ describe('SDK Token routes', () => {
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('token');
       expect(payload.token).toMatch(/^pluma_sdk_/);
-      // Verify the token hash was stored, not the raw token
+      // Verify only the hash was stored, not the raw token
       const storedHash = prismaMock.sdkToken.create.mock.calls[0][0].data.tokenHash;
       const expectedHash = createHash('sha256').update(payload.token).digest('hex');
       expect(storedHash).toBe(expectedHash);
     });
 
+    it('should set envId and projectId on the created token', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.sdkToken.create.mockResolvedValue(mockSdkToken);
+
+      await app.inject({
+        method: 'POST',
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
+        payload: { name: 'CI Token' },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(prismaMock.sdkToken.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            envId: ENV_ID,
+            projectId: PROJECT_ID,
+          }),
+        }),
+      );
+    });
+
     it('should return 400 for invalid payload', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens`,
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
         payload: {},
         headers: { cookie: AUTH_COOKIE },
       });
@@ -141,13 +173,13 @@ describe('SDK Token routes', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 when project not found', async () => {
-      prismaMock.project.findUnique.mockResolvedValue(null);
+    it('should return 404 when environment not found', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens`,
-        payload: { name: 'My Token' },
+        url: `/api/v1/environments/${ENV_ID}/sdk-tokens`,
+        payload: { name: 'CI Token' },
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -155,13 +187,13 @@ describe('SDK Token routes', () => {
     });
   });
 
-  describe('DELETE /api/v1/projects/:id/tokens/:tokenId', () => {
-    it('should revoke a token', async () => {
+  describe('DELETE /api/v1/sdk-tokens/:id', () => {
+    it('should revoke a token immediately', async () => {
       prismaMock.sdkToken.update.mockResolvedValue({ ...mockSdkToken, revokedAt: new Date() });
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens/${TOKEN_ID}`,
+        url: `/api/v1/sdk-tokens/${TOKEN_ID}`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -178,11 +210,20 @@ describe('SDK Token routes', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/api/v1/projects/${PROJECT_ID}/tokens/${TOKEN_ID}`,
+        url: `/api/v1/sdk-tokens/${TOKEN_ID}`,
         headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 401 without session', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/api/v1/sdk-tokens/${TOKEN_ID}`,
+      });
+
+      expect(response.statusCode).toBe(401);
     });
   });
 });
