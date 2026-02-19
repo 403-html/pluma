@@ -11,6 +11,29 @@ vi.mock('@pluma/db', () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    session: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
+      count: vi.fn(),
+      create: vi.fn(),
+    },
+    sdkToken: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    featureFlag: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
   },
 }));
 

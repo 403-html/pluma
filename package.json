@@ -6,14 +6,18 @@
   "scripts": {
     "dev": "pnpm -r dev",
     "build": "pnpm -r build",
+    "build:esbuild": "node tooling/esbuild/build.mjs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "pnpm -r test"
   },
   "devDependencies": {
+    "@commitlint/cli": "19.8.0",
+    "@commitlint/config-conventional": "19.8.0",
     "@eslint/js": "^10.0.1",
     "@next/eslint-plugin-next": "^16.1.6",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
+    "esbuild": "^0.27.3",
     "eslint": "^10.0.0",
     "eslint-plugin-react-hooks": "^7.0.1"
   }
