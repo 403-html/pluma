@@ -19,7 +19,7 @@ You own:
 Standards:
 
 - Strict input validation.
-- If migration is needed, you do it via db:migration command, not manually.
+- If migration is needed, you do it via db:migrate command, not manually.
 - Consistent status codes.
 - Predictable error format.
 - No silent failures.
