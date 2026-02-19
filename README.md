@@ -25,28 +25,28 @@ Pluma has two API planes:
 
 1. Install dependencies at repo root:
 
-	```bash
-	pnpm install
-	```
+    ```bash
+    pnpm install
+    ```
 
 2. Bootstrap database from `packages/db`:
 
-	```bash
-	cd packages/db
-	docker-compose up -d
-	cp .env.example .env
-	pnpm db:generate
-	pnpm db:migrate
-	pnpm db:seed   # optional
-	cd ../..
-	```
+    ```bash
+    cd packages/db
+    docker-compose up -d
+    cp .env.example .env
+    pnpm db:generate
+    pnpm db:migrate
+    pnpm db:seed   # optional
+    cd ../..
+    ```
 
 3. Create app env files:
 
-	```bash
-	cp apps/api/.env.example apps/api/.env
-	cp apps/app/.env.example apps/app/.env
-	```
+    ```bash
+    cp apps/api/.env.example apps/api/.env
+    cp apps/app/.env.example apps/app/.env
+    ```
 
 ## Common Workflows
 
