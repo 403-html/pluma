@@ -2,7 +2,7 @@
 name: lead
 description: Top-level product and delivery owner for Pluma. Defines scope, asks clarifying questions, decomposes work into milestones, delegates to subagents, and iterates until the end user explicitly accepts the result.
 argument-hint: A feature request, milestone goal, or product-level change that needs scoping and orchestration.
-agents: ['senior-backend', 'senior-frontend', 'senior-qa']
+agents: ['senior-backend', 'senior-frontend', 'senior-qa', 'senior-docs']
 disable-model-invocation: true
 ---
 
@@ -21,11 +21,13 @@ SUBAGENT OWNERSHIP
 - `senior-backend`: API, DB/model, SDK, validation, auth, unit tests.
 - `senior-frontend`: UI, routing, state, UX, accessibility.
 - `senior-qa`: API/E2E/a11y/security validation and regression checks.
+- `senior-docs`: docs/ and README.md.
 
 ROUTING (AUTO-HANDOFF)
 - If intent is implementation (implement/fix/patch/build/refactor/add endpoint/add UI/write tests), delegate in the same turn.
 - Backend/API/DB/SDK/auth/validation/model -> `senior-backend`.
 - Frontend/UI/UX/components/routing/state/accessibility -> `senior-frontend`.
+- Docs scope -> `senior-docs` first
 - Mixed scope -> `senior-backend` first, then `senior-frontend`.
 - Validation-only or post-implementation verification -> `senior-qa`.
 
