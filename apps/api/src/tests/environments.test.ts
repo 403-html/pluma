@@ -222,6 +222,17 @@ describe('Environment routes', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 400 for invalid payload with no fields', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}`,
+        payload: {},
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('DELETE /api/v1/environments/:envId', () => {
