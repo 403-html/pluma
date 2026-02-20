@@ -5,16 +5,15 @@ import type {
   FeatureFlag,
   FlagConfig,
 } from '@pluma/types';
-import { DEFAULT_API_URL } from './constants';
 
 /**
  * API URL for client-side requests. On the client, uses the Next.js rewrite
- * at /api which proxies to the backend. On the server, uses the direct URL.
+ * at /api which proxies to the backend. On the server, uses the env variable.
  */
 const API_URL =
   typeof window !== 'undefined'
     ? '/api'
-    : process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2137';
 
 class ApiError extends Error {
   constructor(
@@ -51,50 +50,50 @@ async function fetchApi<T>(
 // Auth
 export const auth = {
   async login(email: string, password: string): Promise<AuthUser> {
-    return fetchApi<AuthUser>('/api/v1/auth/login', {
+    return fetchApi<AuthUser>('/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
   },
 
   async register(email: string, password: string): Promise<void> {
-    return fetchApi<void>('/api/v1/auth/register', {
+    return fetchApi<void>('/v1/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
   },
 
   async me(): Promise<AuthUser> {
-    return fetchApi<AuthUser>('/api/v1/auth/me');
+    return fetchApi<AuthUser>('/v1/auth/me');
   },
 
   async logout(): Promise<void> {
-    return fetchApi<void>('/api/v1/auth/logout', { method: 'POST' });
+    return fetchApi<void>('/v1/auth/logout', { method: 'POST' });
   },
 };
 
 // Projects
 export const projects = {
   async list(): Promise<Project[]> {
-    return fetchApi<Project[]>('/api/v1/projects');
+    return fetchApi<Project[]>('/v1/projects');
   },
 
   async create(key: string, name: string): Promise<Project> {
-    return fetchApi<Project>('/api/v1/projects', {
+    return fetchApi<Project>('/v1/projects', {
       method: 'POST',
       body: JSON.stringify({ key, name }),
     });
   },
 
   async update(id: string, data: { name?: string }): Promise<Project> {
-    return fetchApi<Project>(`/api/v1/projects/${id}`, {
+    return fetchApi<Project>(`/v1/projects/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
   async delete(id: string): Promise<void> {
-    return fetchApi<void>(`/api/v1/projects/${id}`, { method: 'DELETE' });
+    return fetchApi<void>(`/v1/projects/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -102,7 +101,7 @@ export const projects = {
 export const environments = {
   async list(projectId: string): Promise<Environment[]> {
     return fetchApi<Environment[]>(
-      `/api/v1/projects/${projectId}/environments`,
+      `/v1/projects/${projectId}/environments`,
     );
   },
 
@@ -111,21 +110,21 @@ export const environments = {
     key: string,
     name: string,
   ): Promise<Environment> {
-    return fetchApi<Environment>(`/api/v1/projects/${projectId}/environments`, {
+    return fetchApi<Environment>(`/v1/projects/${projectId}/environments`, {
       method: 'POST',
       body: JSON.stringify({ key, name }),
     });
   },
 
   async update(envId: string, data: { name?: string }): Promise<Environment> {
-    return fetchApi<Environment>(`/api/v1/environments/${envId}`, {
+    return fetchApi<Environment>(`/v1/environments/${envId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
   async delete(envId: string): Promise<void> {
-    return fetchApi<void>(`/api/v1/environments/${envId}`, {
+    return fetchApi<void>(`/v1/environments/${envId}`, {
       method: 'DELETE',
     });
   },
@@ -134,7 +133,7 @@ export const environments = {
 // Flags
 type FlagWithConfig = FeatureFlag & { config: FlagConfig };
 
-/** Shape returned by GET /api/v1/environments/:envId/flags */
+/** Shape returned by GET /v1/environments/:envId/flags */
 export type FlagListItem = {
   flagId: string;
   key: string;
@@ -151,7 +150,7 @@ type FlagListResponse = {
 export const flags = {
   async list(envId: string): Promise<FlagListItem[]> {
     const res = await fetchApi<FlagListResponse>(
-      `/api/v1/environments/${envId}/flags`,
+      `/v1/environments/${envId}/flags`,
     );
     return res.data;
   },
@@ -162,7 +161,7 @@ export const flags = {
     name: string,
     description?: string,
   ): Promise<FeatureFlag> {
-    return fetchApi<FeatureFlag>(`/api/v1/projects/${projectId}/flags`, {
+    return fetchApi<FeatureFlag>(`/v1/projects/${projectId}/flags`, {
       method: 'POST',
       body: JSON.stringify({ key, name, description }),
     });
@@ -172,14 +171,14 @@ export const flags = {
     flagId: string,
     data: { name?: string; description?: string },
   ): Promise<FeatureFlag> {
-    return fetchApi<FeatureFlag>(`/api/v1/flags/${flagId}`, {
+    return fetchApi<FeatureFlag>(`/v1/flags/${flagId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
   async delete(flagId: string): Promise<void> {
-    return fetchApi<void>(`/api/v1/flags/${flagId}`, { method: 'DELETE' });
+    return fetchApi<void>(`/v1/flags/${flagId}`, { method: 'DELETE' });
   },
 
   async updateConfig(
@@ -188,7 +187,7 @@ export const flags = {
     data: { enabled?: boolean },
   ): Promise<FlagConfig> {
     return fetchApi<FlagConfig>(
-      `/api/v1/environments/${envId}/flags/${flagId}`,
+      `/v1/environments/${envId}/flags/${flagId}`,
       {
         method: 'PATCH',
         body: JSON.stringify(data),
