@@ -26,6 +26,24 @@ const flagConfigUpdateBodySchema = z.object({
 }).refine(
   (body) => body.enabled !== undefined || body.allowList !== undefined || body.denyList !== undefined,
   { message: 'At least one of enabled, allowList, or denyList must be provided' },
+).refine(
+  (body) => {
+    if (body.allowList === undefined) return true;
+    return new Set(body.allowList).size === body.allowList.length;
+  },
+  { message: 'allowList must not contain duplicate entries', path: ['allowList'] },
+).refine(
+  (body) => {
+    if (body.denyList === undefined) return true;
+    return new Set(body.denyList).size === body.denyList.length;
+  },
+  { message: 'denyList must not contain duplicate entries', path: ['denyList'] },
+).refine(
+  (body) => {
+    if (body.allowList === undefined || body.denyList === undefined) return true;
+    return !body.allowList.some((s) => body.denyList!.includes(s));
+  },
+  { message: 'A subject key must not appear in both allowList and denyList', path: ['allowList'] },
 );
 
 /**
