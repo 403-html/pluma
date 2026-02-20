@@ -1,19 +1,37 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { usePathname } from 'next/navigation';
+import Sidebar from '@/components/Sidebar';
+import AuthGuard from '@/components/AuthGuard';
+import { AppProvider } from '@/lib/context/AppContext';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Pluma',
-  description: 'Pluma application',
-};
+const PUBLIC_PATHS = ['/login', '/register'];
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isPublic = PUBLIC_PATHS.includes(pathname);
+
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthGuard>
+          {isPublic ? (
+            children
+          ) : (
+            <AppProvider>
+              <div className="app-layout">
+                <Sidebar />
+                <main className="app-main">{children}</main>
+              </div>
+            </AppProvider>
+          )}
+        </AuthGuard>
+      </body>
     </html>
   );
 }

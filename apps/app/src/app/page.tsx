@@ -1,8 +1,14 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function Home() {
-  return (
-    <main>
-      <h1>Welcome to Pluma</h1>
-      <p>Your Next.js application is ready.</p>
-    </main>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/projects');
+  }, [router]);
+
+  return null;
 }
