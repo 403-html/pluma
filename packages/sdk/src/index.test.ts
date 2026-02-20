@@ -261,7 +261,7 @@ describe("PlumaSnapshotCache", () => {
       expect(evaluator.isEnabled("feat")).toBe(true);
     });
 
-    it("allowList grants access only to listed subjects when non-empty", async () => {
+    it("allowList can enable access for listed subjects even when the flag is disabled", async () => {
       stubFetch(makeSnapshot([
         { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: ["vip-user"], denyList: [] },
       ]));
