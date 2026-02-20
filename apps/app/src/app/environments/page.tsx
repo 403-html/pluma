@@ -52,7 +52,7 @@ export default function EnvironmentsPage() {
       setFormKey('');
       setFormName('');
       setShowForm(false);
-      loadEnvironments();
+      await loadEnvironments();
     } catch {
       setError('Failed to create environment');
     } finally {
@@ -68,7 +68,7 @@ export default function EnvironmentsPage() {
       await environments.update(id, { name: formName });
       setEditingId(null);
       setFormName('');
-      loadEnvironments();
+      await loadEnvironments();
     } catch {
       setError('Failed to update environment');
     } finally {
@@ -85,7 +85,7 @@ export default function EnvironmentsPage() {
 
     try {
       await environments.delete(id);
-      loadEnvironments();
+      await loadEnvironments();
     } catch {
       setError('Failed to delete environment');
     }

@@ -34,7 +34,7 @@ export default function RegisterPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-surface">
       <div className="w-full max-w-md p-8 bg-card border border-stroke">
-        <div className="w-12 h-12 bg-accent mx-auto mb-6" aria-label="Pluma" />
+        <div className="w-12 h-12 bg-accent mx-auto mb-6" role="img" aria-label="Pluma" />
         <h1 className="text-2xl font-semibold text-ink mb-8 text-center">Create Account</h1>
 
         <form className="space-y-6" onSubmit={handleSubmit}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Project, Environment } from '@pluma/types';
 import { projects, environments } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
@@ -22,6 +22,7 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [envList, setEnvList] = useState<Environment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState(searchQuery);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -64,9 +65,14 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
     }
   }, [selectedProject, loadEnvironments, setSelectedEnvironment]);
 
+  const debounceRef = useRef<number | null>(null);
+
   const handleSearchChange = useCallback(
     (value: string) => {
-      setSearchQuery(value);
+      if (debounceRef.current !== null) window.clearTimeout(debounceRef.current);
+      debounceRef.current = window.setTimeout(() => {
+        setSearchQuery(value);
+      }, 300);
     },
     [setSearchQuery],
   );
@@ -129,8 +135,11 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
             type="search"
             className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
             placeholder="Filter flags..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              handleSearchChange(e.target.value);
+            }}
           />
         </label>
       </div>

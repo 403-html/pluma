@@ -140,7 +140,8 @@ export default function FlagsPage() {
     setFormDesc(flag.description || '');
   };
 
-  const startAddSubFlag = (parentFlag: FlagListItem) => {
+  const _startAddSubFlag = (parentFlag: FlagListItem) => {
+    // TODO: sub-flag creation UI will be re-enabled once the API returns parentFlagId
     setFormParentId(parentFlag.flagId);
     setFormKey('');
     setFormName('');
@@ -148,17 +149,17 @@ export default function FlagsPage() {
     setShowForm(true);
   };
 
-  // Lookup map: flagId → key, for showing parent key in sub-flag badge
-  const flagKeyById = useMemo(
-    () => new Map(flagList.map((f) => [f.flagId, f.key])),
-    [flagList],
-  );
+  // TODO: re-enable once GET /environments/:envId/flags returns parentFlagId
+  // const flagKeyById = useMemo(
+  //   () => new Map(flagList.map((f) => [f.flagId, f.key])),
+  //   [flagList],
+  // );
 
-  // Only top-level flags are offered as parent choices
-  const topLevelFlags = useMemo(
-    () => flagList.filter((f) => !f.parentFlagId),
-    [flagList],
-  );
+  // TODO: re-enable once GET /environments/:envId/flags returns parentFlagId
+  // const topLevelFlags = useMemo(
+  //   () => flagList.filter((f) => !f.parentFlagId),
+  //   [flagList],
+  // );
 
   if (!selectedProject || !selectedEnvironment) {
     return (
@@ -206,6 +207,7 @@ export default function FlagsPage() {
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
               />
+              {/* TODO: parent flag selector — re-enable once API returns parentFlagId
               <select
                 className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                 value={formParentId}
@@ -219,6 +221,7 @@ export default function FlagsPage() {
                   </option>
                 ))}
               </select>
+              */}
               <div className="col-span-2 flex gap-3 justify-end">
                 <button
                   type="submit"
@@ -254,17 +257,19 @@ export default function FlagsPage() {
                 key={flag.flagId}
                 className={`bg-card p-6 border-l-[3px] ${
                   flag.enabled ? 'border-l-accent' : 'border-l-ink-dim'
-                } ${flag.parentFlagId ? 'ml-8' : ''}`}
+                  /* TODO: add ml-8 for child flags once API returns parentFlagId */}`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-ink font-mono text-base font-semibold">{flag.key}</h3>
+                    {/* TODO: show ↳ parent badge once API returns parentFlagId
                     {flag.parentFlagId && (
                       <p className="text-ink-muted text-xs font-mono mt-1">
                         {'\u21b3'}{' '}
                         {flagKeyById.get(flag.parentFlagId) ?? 'unknown parent'}
                       </p>
                     )}
+                    */}
                     {editingId === flag.flagId ? (
                       <div className="mt-3 space-y-2">
                         <input
@@ -342,6 +347,7 @@ export default function FlagsPage() {
                       >
                         Delete
                       </button>
+                      {/* TODO: re-enable "Add sub-flag" once API returns parentFlagId
                       {!flag.parentFlagId && (
                         <button
                           className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
@@ -350,6 +356,7 @@ export default function FlagsPage() {
                           Add sub-flag
                         </button>
                       )}
+                      */}
                     </>
                   )}
                 </div>

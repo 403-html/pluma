@@ -15,7 +15,7 @@ import type {
 const API_URL =
   typeof window !== 'undefined'
     ? '/api'
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2137';
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 class ApiError extends Error {
   constructor(
@@ -46,7 +46,15 @@ async function fetchApi<T>(
     throw new ApiError(response.status, text || response.statusText);
   }
 
-  return response.json() as Promise<T>;
+  // 204 No Content and other empty bodies (e.g. DELETE, logout)
+  if (response.status === 204) {
+    return undefined as T;
+  }
+  const bodyText = await response.text();
+  if (!bodyText) {
+    return undefined as T;
+  }
+  return JSON.parse(bodyText) as T;
 }
 
 // Auth
@@ -136,10 +144,21 @@ export const environments = {
 
 export const flags = {
   async list(envId: string): Promise<FlagListItem[]> {
-    const res = await fetchApi<FlagListResponse>(
-      `/v1/environments/${envId}/flags`,
-    );
-    return res.data;
+    const MAX_FLAG_PAGES = 10;
+    const allFlags: FlagListItem[] = [];
+    let cursor: string | undefined;
+
+    for (let page = 0; page < MAX_FLAG_PAGES; page++) {
+      const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
+      const res = await fetchApi<FlagListResponse>(
+        `/v1/environments/${envId}/flags${query}`,
+      );
+      allFlags.push(...res.data);
+      if (!res.nextCursor) break;
+      cursor = res.nextCursor;
+    }
+
+    return allFlags;
   },
 
   async create(

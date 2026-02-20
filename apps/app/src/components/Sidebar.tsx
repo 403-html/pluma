@@ -26,7 +26,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-[220px] h-screen bg-card flex flex-col py-8 fixed left-0 top-0">
-      <div className="w-10 h-10 bg-accent mx-auto mb-12" aria-label="Pluma" />
+      <div className="w-10 h-10 bg-accent mx-auto mb-12" role="img" aria-label="Pluma" />
       <nav className="flex flex-col gap-1">
         {navItems.map(({ href, label }) => (
           <Link
@@ -44,7 +44,7 @@ export default function Sidebar() {
       </nav>
       <button
         type="button"
-        className="mt-auto mb-2 px-6 py-3 bg-transparent border-none border-t border-stroke text-ink-muted text-ui font-medium cursor-pointer text-left w-full transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
+        className="mt-auto mb-2 px-6 py-3 bg-transparent border-t border-stroke text-ink-muted text-ui font-medium cursor-pointer text-left w-full transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
         onClick={handleLogout}
       >
         Logout

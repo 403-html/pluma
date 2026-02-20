@@ -66,7 +66,8 @@ export type FlagListItem = {
   key: string;
   name: string;
   description: string | null;
-  parentFlagId: string | null;
+  // TODO: include parentFlagId once the GET /environments/:envId/flags API returns it
+  parentFlagId?: string | null;
   enabled: boolean;
 };
 
