@@ -29,30 +29,28 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
       setLoading(true);
       const data = await projects.list();
       setProjectList(data);
-      if (data.length > 0 && !selectedProject) {
-        setSelectedProject(data[0]);
+      if (data.length > 0) {
+        setSelectedProject((current) => current || data[0]);
       }
     } finally {
       setLoading(false);
     }
-  }, [selectedProject, setSelectedProject]);
+  }, [setSelectedProject]);
 
   const loadEnvironments = useCallback(async (projectId: string) => {
     try {
       const data = await environments.list(projectId);
       setEnvList(data);
       
-      const currentEnvStillExists = data.some((env) => env.id === selectedEnvironment?.id);
-      if (currentEnvStillExists) {
-        return;
-      }
-      
-      setSelectedEnvironment(data[0] || null);
+      setSelectedEnvironment((current) => {
+        const currentStillExists = data.some((env) => env.id === current?.id);
+        return currentStillExists ? current : data[0] || null;
+      });
     } catch {
       setEnvList([]);
       setSelectedEnvironment(null);
     }
-  }, [selectedEnvironment, setSelectedEnvironment]);
+  }, [setSelectedEnvironment]);
 
   useEffect(() => {
     loadProjects();

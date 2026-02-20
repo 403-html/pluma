@@ -7,10 +7,14 @@ import type {
 } from '@pluma/types';
 import { DEFAULT_API_URL } from './constants';
 
+/**
+ * API URL for client-side requests. On the client, uses the Next.js rewrite
+ * at /api which proxies to the backend. On the server, uses the direct URL.
+ */
 const API_URL =
   typeof window !== 'undefined'
-    ? process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL
-    : DEFAULT_API_URL;
+    ? '/api'
+    : process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 
 class ApiError extends Error {
   constructor(

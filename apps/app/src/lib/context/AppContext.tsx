@@ -1,15 +1,22 @@
 'use client';
 
 import type { Project, Environment } from '@pluma/types';
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 
 type AppContextType = {
   selectedProject: Project | null;
   selectedEnvironment: Environment | null;
   searchQuery: string;
-  setSelectedProject: (project: Project | null) => void;
-  setSelectedEnvironment: (env: Environment | null) => void;
-  setSearchQuery: (query: string) => void;
+  setSelectedProject: Dispatch<SetStateAction<Project | null>>;
+  setSelectedEnvironment: Dispatch<SetStateAction<Environment | null>>;
+  setSearchQuery: Dispatch<SetStateAction<string>>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
