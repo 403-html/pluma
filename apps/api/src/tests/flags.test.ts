@@ -196,6 +196,25 @@ describe('Feature Flag routes', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 400 when parent chain already equals MAX_PARENT_DEPTH', async () => {
+      // The direct parent already has a parentFlagId (non-null), which starts the
+      // ancestor walk. Each subsequent ancestor lookup returns a non-null parentFlagId,
+      // causing chainDepth to exceed MAX_PARENT_DEPTH after 32 hops.
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.findUnique
+        .mockResolvedValueOnce({ ...mockFlag, parentFlagId: 'grandparent-id' }) // direct parent (exists, same project, has a parent)
+        .mockResolvedValue({ parentFlagId: 'ancestor-id' }); // every ancestor also has a parent → depth exceeded
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        payload: { key: 'too-deep', name: 'Too Deep', parentFlagId: FLAG_ID },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('PATCH /api/v1/flags/:flagId', () => {

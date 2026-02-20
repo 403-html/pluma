@@ -5,6 +5,13 @@ export type AuthUser = {
   createdAt: Date;
 };
 
+/**
+ * Maximum nesting depth for sub-flag parent chains.
+ * Enforced at the API level on flag creation and respected by the SDK
+ * evaluator's bounded traversal loop.
+ */
+export const MAX_PARENT_DEPTH = 32;
+
 // Projects
 export type Project = {
   id: string;
