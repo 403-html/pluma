@@ -30,6 +30,7 @@ export type FeatureFlag = {
   key: string;
   name: string;
   description: string | null;
+  parentFlagId: string | null;
   createdAt: Date;
 };
 
@@ -48,6 +49,8 @@ export type FlagConfig = {
   envId: string;
   flagId: string;
   enabled: boolean;
+  allowList: string[];
+  denyList: string[];
 };
 
 // SDK Snapshot
@@ -56,6 +59,8 @@ export type SnapshotFlag = {
   parentKey: string | null;
   enabled: boolean;
   inheritParent: boolean;
+  allowList: string[];
+  denyList: string[];
 };
 
 export type Snapshot = {

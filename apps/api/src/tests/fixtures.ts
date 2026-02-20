@@ -65,6 +65,7 @@ export const mockFlag = {
   key: 'dark-mode',
   name: 'Dark Mode',
   description: null as string | null,
+  parentFlagId: null as string | null,
   createdAt: FIXED_DATE,
 };
 
@@ -72,6 +73,8 @@ export const mockFlagConfig = {
   envId: ENV_ID,
   flagId: FLAG_ID,
   enabled: true,
+  allowList: [] as string[],
+  denyList: [] as string[],
 };
 
 export const mockSdkToken = {

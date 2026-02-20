@@ -150,6 +150,23 @@ describe('Feature Flag routes', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should create a sub-flag with parentFlagId', async () => {
+      const subFlag = { ...mockFlag, id: 'flag-child', key: 'payments-v2', parentFlagId: FLAG_ID };
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.create.mockResolvedValue(subFlag);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        payload: { key: 'payments-v2', name: 'Payments V2', parentFlagId: FLAG_ID },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('parentFlagId', FLAG_ID);
+    });
   });
 
   describe('PATCH /api/v1/flags/:flagId', () => {

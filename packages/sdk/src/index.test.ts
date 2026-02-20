@@ -226,5 +226,100 @@ describe("PlumaSnapshotCache", () => {
       await expect(cache.evaluator()).rejects.toThrow("500");
     });
   });
+
+  describe("evaluation precedence", () => {
+    const makeSnapshot = (flags: Snapshot["flags"]): Snapshot => ({
+      version: 1,
+      projectKey: "p",
+      envKey: "e",
+      flags,
+    });
+
+    function stubFetch(snapshot: Snapshot) {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => snapshot,
+      }));
+    }
+
+    it("denyList blocks a subject even when the flag is enabled", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: ["blocked-user"] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator({ subjectKey: "blocked-user" });
+      expect(evaluator.isEnabled("feat")).toBe(false);
+    });
+
+    it("denyList does not affect other subjects", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: ["blocked-user"] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator({ subjectKey: "other-user" });
+      expect(evaluator.isEnabled("feat")).toBe(true);
+    });
+
+    it("allowList grants access only to listed subjects when non-empty", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: ["vip-user"], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const allowedEval = await cache.evaluator({ subjectKey: "vip-user" });
+      expect(allowedEval.isEnabled("feat")).toBe(true);
+      const blockedEval = await cache.evaluator({ subjectKey: "regular-user" });
+      expect(blockedEval.isEnabled("feat")).toBe(false);
+    });
+
+    it("empty allowList falls through to base enabled state", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator({ subjectKey: "any-user" });
+      expect(evaluator.isEnabled("feat")).toBe(true);
+    });
+
+    it("denyList takes precedence over allowList", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["user-x"], denyList: ["user-x"] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator({ subjectKey: "user-x" });
+      expect(evaluator.isEnabled("feat")).toBe(false);
+    });
+
+    it("inheritParent delegates to parent flag when no subject targeting applies", async () => {
+      stubFetch(makeSnapshot([
+        { key: "parent", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+        { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: [], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator();
+      // child inherits parent (enabled=true), overriding its own enabled=false
+      expect(evaluator.isEnabled("child")).toBe(true);
+    });
+
+    it("cycle detection returns base enabled state and does not throw", async () => {
+      stubFetch(makeSnapshot([
+        { key: "a", parentKey: "b", enabled: true, inheritParent: true, allowList: [], denyList: [] },
+        { key: "b", parentKey: "a", enabled: false, inheritParent: true, allowList: [], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator();
+      // Should not throw; resolves to base state
+      expect(() => evaluator.isEnabled("a")).not.toThrow();
+    });
+
+    it("no subjectKey falls back to base enabled state ignoring allow/deny lists", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["only-this"], denyList: ["other"] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator(); // no subjectKey
+      expect(evaluator.isEnabled("feat")).toBe(true);
+    });
+  });
 });
 

@@ -8,6 +8,7 @@ const flagBodySchema = z.object({
   key: z.string().min(1).max(100),
   name: z.string().min(1).max(200),
   description: z.string().max(500).optional(),
+  parentFlagId: z.uuid().optional(),
 });
 
 const flagUpdateBodySchema = z
@@ -91,6 +92,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
             key: parsedBody.data.key,
             name: parsedBody.data.name,
             description: parsedBody.data.description,
+            parentFlagId: parsedBody.data.parentFlagId,
           },
         });
 

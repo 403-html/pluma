@@ -57,21 +57,51 @@ export class PlumaSnapshotCache {
    * Returns an Evaluator for the current snapshot.
    * Fetches or refreshes the snapshot if the TTL has expired.
    */
-  async evaluator(_options: EvaluatorOptions = {}): Promise<Evaluator> {
+  async evaluator(options: EvaluatorOptions = {}): Promise<Evaluator> {
     await this.refreshIfStale();
 
     const snap = this.snapshot;
     const flagMap = new Map<string, SnapshotFlag>(
       (snap?.flags ?? []).map((f) => [f.key, f]),
     );
+    const subjectKey = options.subjectKey;
+
+    function isEnabled(flagKey: string, visited: Set<string> = new Set()): boolean {
+      if (visited.has(flagKey)) {
+        // Cycle detected — fall back to raw enabled state to avoid infinite loop.
+        const flag = flagMap.get(flagKey);
+        return flag?.enabled ?? false;
+      }
+
+      const flag = flagMap.get(flagKey);
+      if (!flag) {
+        return false;
+      }
+
+      // 1. Deny list: subject explicitly blocked.
+      if (subjectKey !== undefined && flag.denyList.includes(subjectKey)) {
+        return false;
+      }
+
+      // 2. Allow list targeting: if non-empty, only listed subjects are enabled.
+      if (subjectKey !== undefined && flag.allowList.length > 0) {
+        return flag.allowList.includes(subjectKey);
+      }
+
+      // 3. Parent inheritance: delegate to parent flag.
+      if (flag.inheritParent && flag.parentKey !== null) {
+        const next = new Set(visited);
+        next.add(flagKey);
+        return isEnabled(flag.parentKey, next);
+      }
+
+      // 4. Base enabled state.
+      return flag.enabled;
+    }
 
     return {
       isEnabled(flagKey: string): boolean {
-        const flag = flagMap.get(flagKey);
-        if (!flag) {
-          return false;
-        }
-        return flag.enabled;
+        return isEnabled(flagKey);
       },
     };
   }
