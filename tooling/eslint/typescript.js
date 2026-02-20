@@ -18,9 +18,6 @@ export default [
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      // TypeScript handles undefined variable checks; no-undef produces false
-      // positives for built-in DOM/TS types (e.g. RequestInit, HTMLElement).
-      'no-undef': 'off',
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

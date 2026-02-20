@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth, ApiError } from '@/lib/api';
-import styles from '../login/page.module.css';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,19 +32,19 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.logo} aria-label="Pluma" />
-        <h1 className={styles.title}>Create Account</h1>
+    <div className="flex items-center justify-center min-h-screen bg-surface">
+      <div className="w-full max-w-md p-8 bg-card border border-stroke">
+        <div className="w-12 h-12 bg-accent mx-auto mb-6" aria-label="Pluma" />
+        <h1 className="text-2xl font-semibold text-ink mb-8 text-center">Create Account</h1>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
-          {error && <div className={styles.error}>{error}</div>}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-4 text-sm">{error}</div>}
 
-          <label className={styles.label}>
-            <span className={styles.labelText}>Email</span>
+          <label className="block">
+            <span className="block text-label text-ink-muted font-medium uppercase tracking-wider mb-2">Email</span>
             <input
               type="email"
-              className={styles.input}
+              className="w-full px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -53,11 +52,11 @@ export default function RegisterPage() {
             />
           </label>
 
-          <label className={styles.label}>
-            <span className={styles.labelText}>Password</span>
+          <label className="block">
+            <span className="block text-label text-ink-muted font-medium uppercase tracking-wider mb-2">Password</span>
             <input
               type="password"
-              className={styles.input}
+              className="w-full px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -67,16 +66,16 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className={styles.button}
+            className="w-full px-6 py-2.5 bg-accent text-surface font-semibold text-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
-        <p className={styles.footer}>
+        <p className="mt-6 text-center text-sm text-ink-muted">
           Already have an account?{' '}
-          <Link href="/login" className={styles.link}>
+          <Link href="/login" className="text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">
             Sign in
           </Link>
         </p>

@@ -150,7 +150,6 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
           key: flag.key,
           name: flag.name,
           description: flag.description,
-          parentFlagId: flag.parentFlagId,
           enabled: configMap.get(flag.id) ?? false,
         })),
         nextCursor,

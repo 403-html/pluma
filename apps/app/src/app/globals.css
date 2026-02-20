@@ -1,30 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens live in tailwind.config.js → theme.extend.colors / fontSize.
+ * These CSS custom properties alias the same values so that non-Tailwind
+ * contexts (e.g. ::placeholder, legacy CSS) can reference them too.
+ */
 :root {
-  --color-bg: #0A2342;
-  --color-card: #112E52;
-  --color-accent: #00C2A8;
-  --color-inactive: #6B7A8D;
-  --color-text: #E8EDF2;
-  --color-text-muted: #8A99AB;
-  --color-border: #1D3D6A;
+  --color-surface:    #0A2342;
+  --color-card:       #112E52;
+  --color-stroke:     #1D3D6A;
+  --color-accent:     #00C2A8;
+  --color-ink:        #E8EDF2;
+  --color-ink-muted:  #8A99AB;
+  --color-ink-dim:    #6B7A8D;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 
-html,
-body {
-  height: 100%;
-  overflow-x: hidden;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  line-height: 1.6;
-  background: var(--color-bg);
-  color: var(--color-text);
+::placeholder {
+  color: var(--color-ink-muted);
+  opacity: 0.6;
 }
 
 .app-layout {
@@ -36,22 +34,4 @@ body {
   margin-left: 220px;
   flex: 1;
   overflow-y: auto;
-  background: var(--color-bg);
-}
-
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-}
-
-::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.6;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
 }

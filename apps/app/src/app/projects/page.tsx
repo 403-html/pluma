@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Project } from '@pluma/types';
 import { projects } from '@/lib/api';
-import styles from './page.module.css';
 
 export default function ProjectsPage() {
   const [projectList, setProjectList] = useState<Project[]>([]);
@@ -86,19 +85,19 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <p className={styles.loading}>Loading projects...</p>
+      <div className="p-8">
+        <p className="text-ink-muted">Loading projects...</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Projects</h1>
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-semibold text-ink">Projects</h1>
         {!showForm && (
           <button
-            className={styles.createButton}
+            className="px-6 py-2.5 bg-accent text-surface font-semibold hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
             onClick={() => setShowForm(true)}
             type="button"
           >
@@ -107,14 +106,14 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-4 text-sm mb-6">{error}</div>}
 
       {showForm && (
-        <form className={styles.form} onSubmit={handleCreate}>
-          <div className={styles.formRow}>
+        <form className="mb-6 p-6 bg-card border border-stroke" onSubmit={handleCreate}>
+          <div className="flex gap-3">
             <input
               type="text"
-              className={styles.input}
+              className="flex-1 px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               placeholder="Key (e.g., my-app)"
               value={formKey}
               onChange={(e) => setFormKey(e.target.value)}
@@ -123,7 +122,7 @@ export default function ProjectsPage() {
             />
             <input
               type="text"
-              className={styles.input}
+              className="flex-1 px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               placeholder="Name (e.g., My App)"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
@@ -131,14 +130,14 @@ export default function ProjectsPage() {
             />
             <button
               type="submit"
-              className={styles.submitButton}
+              className="px-6 py-2.5 bg-accent text-surface font-semibold text-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={submitting}
             >
               Create
             </button>
             <button
               type="button"
-              className={styles.cancelButton}
+              className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
               onClick={() => {
                 setShowForm(false);
                 setFormKey('');
@@ -152,28 +151,28 @@ export default function ProjectsPage() {
       )}
 
       {projectList.length === 0 ? (
-        <p className={styles.empty}>
+        <p className="text-ink-muted">
           No projects yet. Create one to get started.
         </p>
       ) : (
-        <table className={styles.table}>
+        <table className="w-full border-collapse bg-card">
           <thead>
             <tr>
-              <th>Key</th>
-              <th>Name</th>
-              <th>Created</th>
-              <th className={styles.actionsHeader}>Actions</th>
+              <th className="text-left p-4 text-ink-muted text-xs font-semibold uppercase tracking-wider border-b border-stroke">Key</th>
+              <th className="text-left p-4 text-ink-muted text-xs font-semibold uppercase tracking-wider border-b border-stroke">Name</th>
+              <th className="text-left p-4 text-ink-muted text-xs font-semibold uppercase tracking-wider border-b border-stroke">Created</th>
+              <th className="text-right p-4 text-ink-muted text-xs font-semibold uppercase tracking-wider border-b border-stroke">Actions</th>
             </tr>
           </thead>
           <tbody>
             {projectList.map((project) => (
               <tr key={project.id}>
-                <td className={styles.keyCell}>{project.key}</td>
-                <td>
+                <td className="p-4 text-ink text-sm font-mono border-b border-stroke">{project.key}</td>
+                <td className="p-4 text-ink text-sm border-b border-stroke">
                   {editingId === project.id ? (
                     <input
                       type="text"
-                      className={styles.inlineInput}
+                      className="px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
                       autoFocus
@@ -182,21 +181,21 @@ export default function ProjectsPage() {
                     project.name
                   )}
                 </td>
-                <td className={styles.dateCell}>
+                <td className="p-4 text-ink-muted text-sm border-b border-stroke">
                   {new Date(project.createdAt).toLocaleDateString()}
                 </td>
-                <td className={styles.actions}>
+                <td className="p-4 text-sm border-b border-stroke text-right space-x-3">
                   {editingId === project.id ? (
                     <>
                       <button
-                        className={styles.actionButton}
+                        className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => handleEdit(project.id)}
                         disabled={submitting}
                       >
                         Save
                       </button>
                       <button
-                        className={styles.actionButton}
+                        className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                         onClick={() => {
                           setEditingId(null);
                           setFormName('');
@@ -208,13 +207,13 @@ export default function ProjectsPage() {
                   ) : (
                     <>
                       <button
-                        className={styles.actionButton}
+                        className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                         onClick={() => startEdit(project)}
                       >
                         Edit
                       </button>
                       <button
-                        className={styles.deleteButton}
+                        className="px-4 py-2 border border-red-800/50 text-red-300 text-sm hover:bg-red-900/20 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                         onClick={() => handleDelete(project.id)}
                       >
                         Delete

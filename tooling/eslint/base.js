@@ -13,6 +13,8 @@ export default [
         console: "readonly",
         process: "readonly",
         Buffer: "readonly",
+        fetch: "readonly",
+        RequestInit: "readonly",
       },
     },
     rules: {

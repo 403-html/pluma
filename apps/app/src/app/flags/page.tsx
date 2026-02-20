@@ -5,7 +5,6 @@ import type { FlagListItem } from '@pluma/types';
 import { flags } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
 import TopBar from '@/components/TopBar';
-import styles from './page.module.css';
 
 export default function FlagsPage() {
   const { selectedProject, selectedEnvironment, searchQuery } =
@@ -165,8 +164,8 @@ export default function FlagsPage() {
     return (
       <>
         <TopBar onCreateFlag={handleCreateFlagClick} />
-        <div className={styles.container}>
-          <p className={styles.empty}>
+        <div className="p-8">
+          <p className="text-ink-muted">
             Select a project and environment to manage flags
           </p>
         </div>
@@ -177,15 +176,15 @@ export default function FlagsPage() {
   return (
     <>
       <TopBar onCreateFlag={handleCreateFlagClick} />
-      <div className={styles.container}>
-        {error && <div className={styles.error}>{error}</div>}
+      <div className="p-8">
+        {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-4 text-sm mb-6">{error}</div>}
 
         {showForm && (
-          <form className={styles.form} onSubmit={handleCreate}>
-            <div className={styles.formGrid}>
+          <form className="mb-8 p-6 bg-card border border-stroke" onSubmit={handleCreate}>
+            <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
-                className={styles.input}
+                className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                 placeholder="Key (e.g., new-checkout-flow)"
                 value={formKey}
                 onChange={(e) => setFormKey(e.target.value)}
@@ -194,7 +193,7 @@ export default function FlagsPage() {
               />
               <input
                 type="text"
-                className={styles.input}
+                className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                 placeholder="Name (e.g., New Checkout Flow)"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
@@ -202,13 +201,13 @@ export default function FlagsPage() {
               />
               <input
                 type="text"
-                className={styles.input}
+                className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                 placeholder="Description (optional)"
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
               />
               <select
-                className={styles.input}
+                className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                 value={formParentId}
                 onChange={(e) => setFormParentId(e.target.value)}
                 aria-label="Parent flag"
@@ -220,17 +219,17 @@ export default function FlagsPage() {
                   </option>
                 ))}
               </select>
-              <div className={styles.formActions}>
+              <div className="col-span-2 flex gap-3 justify-end">
                 <button
                   type="submit"
-                  className={styles.submitButton}
+                  className="px-6 py-2.5 bg-accent text-surface font-semibold text-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting}
                 >
                   Create
                 </button>
                 <button
                   type="button"
-                  className={styles.cancelButton}
+                  className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                   onClick={resetForm}
                 >
                   Cancel
@@ -241,36 +240,36 @@ export default function FlagsPage() {
         )}
 
         {loading ? (
-          <p className={styles.loading}>Loading flags...</p>
+          <p className="text-ink-muted">Loading flags...</p>
         ) : filteredFlags.length === 0 ? (
-          <p className={styles.empty}>
+          <p className="text-ink-muted">
             {searchQuery
               ? 'No flags match your search'
               : 'No flags yet. Create one to get started.'}
           </p>
         ) : (
-          <div className={styles.flagsGrid}>
+          <div className="space-y-4">
             {filteredFlags.map((flag) => (
               <div
                 key={flag.flagId}
-                className={`${styles.flagCard} ${
-                  flag.enabled ? styles.flagCardActive : ''
-                } ${flag.parentFlagId ? styles.flagCardChild : ''}`}
+                className={`bg-card p-6 border-l-[3px] ${
+                  flag.enabled ? 'border-l-accent' : 'border-l-ink-dim'
+                } ${flag.parentFlagId ? 'ml-8' : ''}`}
               >
-                <div className={styles.flagHeader}>
-                  <div className={styles.flagInfo}>
-                    <h3 className={styles.flagKey}>{flag.key}</h3>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-ink font-mono text-base font-semibold">{flag.key}</h3>
                     {flag.parentFlagId && (
-                      <p className={styles.parentBadge}>
+                      <p className="text-ink-muted text-xs font-mono mt-1">
                         {'\u21b3'}{' '}
                         {flagKeyById.get(flag.parentFlagId) ?? 'unknown parent'}
                       </p>
                     )}
                     {editingId === flag.flagId ? (
-                      <div className={styles.editForm}>
+                      <div className="mt-3 space-y-2">
                         <input
                           type="text"
-                          className={styles.inlineInput}
+                          className="w-full px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                           value={formName}
                           onChange={(e) => setFormName(e.target.value)}
                           placeholder="Name"
@@ -278,7 +277,7 @@ export default function FlagsPage() {
                         />
                         <input
                           type="text"
-                          className={styles.inlineInput}
+                          className="w-full px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
                           value={formDesc}
                           onChange={(e) => setFormDesc(e.target.value)}
                           placeholder="Description"
@@ -286,38 +285,40 @@ export default function FlagsPage() {
                       </div>
                     ) : (
                       <>
-                        <p className={styles.flagName}>{flag.name}</p>
+                        <p className="text-ink text-sm mt-2">{flag.name}</p>
                         {flag.description && (
-                          <p className={styles.flagDesc}>{flag.description}</p>
+                          <p className="text-ink-muted text-sm mt-1">{flag.description}</p>
                         )}
                       </>
                     )}
                   </div>
-                  <label className={styles.toggle}>
+                  <label className="flex items-center gap-3 ml-6 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={flag.enabled}
                       onChange={() => handleToggle(flag)}
-                      className={styles.toggleInput}
+                      className="sr-only peer"
                     />
-                    <span className={styles.toggleSlider} />
-                    <span className={styles.toggleLabel}>
+                    <div className="relative w-12 h-6 bg-stroke peer-checked:bg-accent transition-colors">
+                      <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-ink transition-transform peer-checked:translate-x-6" />
+                    </div>
+                    <span className="text-ink-muted text-sm select-none">
                       {flag.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
                 </div>
-                <div className={styles.flagActions}>
+                <div className="flex gap-3">
                   {editingId === flag.flagId ? (
                     <>
                       <button
-                        className={styles.actionButton}
+                        className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => handleEdit(flag.flagId)}
                         disabled={submitting}
                       >
                         Save
                       </button>
                       <button
-                        className={styles.actionButton}
+                        className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                         onClick={() => {
                           setEditingId(null);
                           setFormName('');
@@ -330,25 +331,25 @@ export default function FlagsPage() {
                   ) : (
                     <>
                       <button
-                        className={styles.actionButton}
+                        className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                         onClick={() => startEdit(flag)}
                       >
                         Edit
                       </button>
+                      <button
+                        className="px-4 py-2 border border-red-800/50 text-red-300 text-sm hover:bg-red-900/20 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+                        onClick={() => handleDelete(flag.flagId)}
+                      >
+                        Delete
+                      </button>
                       {!flag.parentFlagId && (
                         <button
-                          className={styles.actionButton}
+                          className="px-4 py-2 bg-card border border-stroke text-ink text-sm hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                           onClick={() => startAddSubFlag(flag)}
                         >
                           Add sub-flag
                         </button>
                       )}
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => handleDelete(flag.flagId)}
-                      >
-                        Delete
-                      </button>
                     </>
                   )}
                 </div>

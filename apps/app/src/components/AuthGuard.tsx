@@ -34,15 +34,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
   if (isChecking) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          color: 'var(--color-text-muted)',
-        }}
-      >
+      <div className="flex items-center justify-center h-screen text-ink-muted">
         Loading...
       </div>
     );

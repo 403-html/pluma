@@ -1,10 +1,10 @@
 export default function AuditPage() {
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1 style={{ color: 'var(--color-text)', fontSize: '2rem', fontWeight: 600 }}>
+    <div className="p-8">
+      <h1 className="text-3xl font-semibold text-ink">
         Audit Log
       </h1>
-      <p style={{ color: 'var(--color-text-muted)', marginTop: '1rem' }}>
+      <p className="text-ink-muted mt-4">
         Coming soon: View all changes to projects, environments, and flags.
       </p>
     </div>

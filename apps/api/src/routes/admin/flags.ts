@@ -121,6 +121,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           );
           return reply.badRequest(`Parent chain depth would exceed the maximum of ${MAX_PARENT_DEPTH}.`);
         }
+        // eslint-disable-next-line no-await-in-loop
         const ancestor = await prisma.featureFlag.findUnique({
           where: { id: cursor.parentFlagId },
           select: { parentFlagId: true },

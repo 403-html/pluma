@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react';
 import type { Project, Environment } from '@pluma/types';
 import { projects, environments } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
-import styles from './TopBar.module.css';
 
 type TopBarProps = {
   onCreateFlag?: () => void;
@@ -74,19 +73,19 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
 
   if (loading) {
     return (
-      <div className={styles.topBar}>
-        <div className={styles.loading}>Loading...</div>
+      <div className="flex items-end justify-between px-8 py-6 bg-card mb-8 gap-6">
+        <div className="text-ink-muted text-ui">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className={styles.topBar}>
-      <div className={styles.selectors}>
-        <label className={styles.selectLabel}>
-          <span className={styles.labelText}>Project</span>
+    <div className="flex items-end justify-between px-8 py-6 bg-card mb-8 gap-6">
+      <div className="flex gap-6 flex-1 items-end">
+        <label className="flex flex-col gap-2 min-w-[180px]">
+          <span className="text-label text-ink-muted font-medium uppercase tracking-wider">Project</span>
           <select
-            className={styles.select}
+            className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
             value={selectedProject?.id || ''}
             onChange={(e) => {
               const proj = projectList.find((p) => p.id === e.target.value);
@@ -104,10 +103,10 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
           </select>
         </label>
 
-        <label className={styles.selectLabel}>
-          <span className={styles.labelText}>Environment</span>
+        <label className="flex flex-col gap-2 min-w-[180px]">
+          <span className="text-label text-ink-muted font-medium uppercase tracking-wider">Environment</span>
           <select
-            className={styles.select}
+            className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent disabled:opacity-50 disabled:cursor-not-allowed"
             value={selectedEnvironment?.id || ''}
             onChange={(e) => {
               const env = envList.find((env) => env.id === e.target.value);
@@ -124,11 +123,11 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
           </select>
         </label>
 
-        <label className={styles.searchLabel}>
-          <span className={styles.labelText}>Search</span>
+        <label className="flex flex-col gap-2 min-w-[180px]">
+          <span className="text-label text-ink-muted font-medium uppercase tracking-wider">Search</span>
           <input
             type="search"
-            className={styles.searchInput}
+            className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
             placeholder="Filter flags..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -138,7 +137,7 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
 
       {onCreateFlag && (
         <button
-          className={styles.createButton}
+          className="px-6 py-2.5 bg-accent text-surface border-none text-ui font-semibold cursor-pointer transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
           onClick={onCreateFlag}
           type="button"
         >

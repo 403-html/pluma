@@ -13,6 +13,9 @@ export default [
     languageOptions: {
       globals: {
         React: "readonly",
+        window: "readonly",
+        fetch: "readonly",
+        RequestInit: "readonly",
       },
       parserOptions: {
         ecmaFeatures: {
