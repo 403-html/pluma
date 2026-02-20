@@ -189,19 +189,22 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
       }
 
       const config = await prisma.$transaction(async (tx) => {
+        const { enabled, allowList, denyList } = parsedBody.data;
+        const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[] } = {};
+
+        if (enabled !== undefined) updates.enabled = enabled;
+        if (allowList !== undefined) updates.allowList = allowList;
+        if (denyList !== undefined) updates.denyList = denyList;
+
         const upserted = await tx.flagConfig.upsert({
           where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
-          update: {
-            ...(parsedBody.data.enabled !== undefined && { enabled: parsedBody.data.enabled }),
-            ...(parsedBody.data.allowList !== undefined && { allowList: parsedBody.data.allowList }),
-            ...(parsedBody.data.denyList !== undefined && { denyList: parsedBody.data.denyList }),
-          },
+          update: updates,
           create: {
             envId: validated.envId,
             flagId: validated.flagId,
-            enabled: parsedBody.data.enabled ?? false,
-            allowList: parsedBody.data.allowList ?? [],
-            denyList: parsedBody.data.denyList ?? [],
+            enabled: enabled ?? false,
+            allowList: allowList ?? [],
+            denyList: denyList ?? [],
           },
         });
 
