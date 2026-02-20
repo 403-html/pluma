@@ -74,10 +74,10 @@ services:
 Generate cryptographically secure passwords:
 
 ```bash
-# PostgreSQL password (32 bytes = 44 base64 chars)
-openssl rand -base64 32
+# PostgreSQL password (32 bytes = 64 hex chars, URL-safe for DATABASE_URL)
+openssl rand -hex 32
 
-# Or use pwgen if available
+# Or use pwgen if available (ensure output is URL-safe or percent-encode in DATABASE_URL)
 pwgen -s 32 1
 ```
 
