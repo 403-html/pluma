@@ -66,6 +66,13 @@ export class PlumaSnapshotCache {
     );
     const subjectKey = options.subjectKey;
 
+    // Evaluates a flag key following the precedence chain:
+    //   denyList → allowList → parent inheritance → base enabled state.
+    //
+    // NOTE: Deep parent chains are supported by design. Each hop recurses one
+    // level, so very long chains (e.g. 10+ parents) will perform proportionally
+    // more work per isEnabled() call. Keep flag hierarchies shallow when
+    // latency is critical.
     function isEnabled(flagKey: string, visited: Set<string> = new Set()): boolean {
       if (visited.has(flagKey)) {
         // Cycle detected — fall back to raw enabled state to avoid infinite loop.
