@@ -80,19 +80,19 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
 
   if (loading) {
     return (
-      <div className="flex items-end justify-between px-8 py-6 bg-card mb-8 gap-6">
-        <div className="text-ink-muted text-ui">Loading...</div>
+      <div className="flex items-center px-5 py-3 bg-card border-b border-stroke gap-6">
+        <div className="text-ink-muted text-sm">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-end justify-between px-8 py-6 bg-card mb-8 gap-6">
-      <div className="flex gap-6 flex-1 items-end">
-        <label className="flex flex-col gap-2 min-w-[180px]">
-          <span className="text-label text-ink-muted font-medium uppercase tracking-wider">Project</span>
+    <div className="flex items-center justify-between px-5 py-3 bg-card border-b border-stroke gap-6">
+      <div className="flex gap-4 flex-1 items-end">
+        <label className="flex flex-col gap-1 min-w-[160px]">
+          <span className="text-label text-ink-dim font-medium uppercase tracking-wider">Project</span>
           <select
-            className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
+            className="px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
             value={selectedProject?.id || ''}
             onChange={(e) => {
               const proj = projectList.find((p) => p.id === e.target.value);
@@ -110,10 +110,10 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 min-w-[180px]">
-          <span className="text-label text-ink-muted font-medium uppercase tracking-wider">Environment</span>
+        <label className="flex flex-col gap-1 min-w-[160px]">
+          <span className="text-label text-ink-dim font-medium uppercase tracking-wider">Environment</span>
           <select
-            className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent disabled:opacity-50 disabled:cursor-not-allowed"
             value={selectedEnvironment?.id || ''}
             onChange={(e) => {
               const env = envList.find((env) => env.id === e.target.value);
@@ -130,11 +130,11 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 min-w-[180px]">
-          <span className="text-label text-ink-muted font-medium uppercase tracking-wider">Search</span>
+        <label className="flex flex-col gap-1 min-w-[200px]">
+          <span className="text-label text-ink-dim font-medium uppercase tracking-wider">Search</span>
           <input
             type="search"
-            className="px-3.5 py-2.5 bg-surface border border-stroke text-ink text-ui focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
+            className="px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
             placeholder="Filter flags..."
             value={searchInput}
             onChange={(e) => {
@@ -147,7 +147,7 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
 
       {onCreateFlag && (
         <button
-          className="px-6 py-2.5 bg-accent text-surface border-none text-ui font-semibold cursor-pointer transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+          className="px-4 py-1.5 bg-accent text-surface border-none text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
           onClick={onCreateFlag}
           type="button"
         >

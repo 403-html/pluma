@@ -33,18 +33,18 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-surface">
-      <div className="w-full max-w-md p-8 bg-card border border-stroke">
-        <div className="w-12 h-12 bg-accent mx-auto mb-6" role="img" aria-label="Pluma" />
-        <h1 className="text-2xl font-semibold text-ink mb-8 text-center">Sign In</h1>
+      <div className="w-full max-w-sm p-6 bg-card border border-stroke">
+        <div className="w-8 h-8 bg-accent mb-5" role="img" aria-label="Pluma logo" />
+        <h1 className="text-lg font-semibold text-ink mb-6">Sign In</h1>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-4 text-sm">{error}</div>}
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-3 text-xs">{error}</div>}
 
           <label className="block">
-            <span className="block text-label text-ink-muted font-medium uppercase tracking-wider mb-2">Email</span>
+            <span className="block text-label text-ink-dim font-medium uppercase tracking-wider mb-1">Email</span>
             <input
               type="email"
-              className="w-full px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
+              className="w-full px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -53,10 +53,10 @@ export default function LoginPage() {
           </label>
 
           <label className="block">
-            <span className="block text-label text-ink-muted font-medium uppercase tracking-wider mb-2">Password</span>
+            <span className="block text-label text-ink-dim font-medium uppercase tracking-wider mb-1">Password</span>
             <input
               type="password"
-              className="w-full px-3.5 py-2.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
+              className="w-full px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -65,14 +65,14 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full px-6 py-2.5 bg-accent text-surface font-semibold text-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2 bg-accent text-surface font-semibold text-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-ink-muted">
+        <p className="mt-5 text-xs text-ink-muted">
           New to Pluma?{' '}
           <Link href="/register" className="text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">
             Create an account

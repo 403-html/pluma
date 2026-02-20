@@ -65,19 +65,19 @@ export default function ProjectsPage() {
     }
   };
 
-  if (loading) return <div className="p-8"><p className="text-ink-muted">Loading projects...</p></div>;
+  if (loading) return <div className="p-5"><p className="text-ink-muted text-sm">Loading projects...</p></div>;
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-semibold text-ink">Projects</h1>
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-semibold text-ink">Projects</h1>
         {!showForm && (
-          <button className="px-6 py-2.5 bg-accent text-surface font-semibold hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2" onClick={() => setShowForm(true)} type="button">
+          <button className="px-4 py-1.5 bg-accent text-surface text-sm font-semibold hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2" onClick={() => setShowForm(true)} type="button">
             New Project
           </button>
         )}
       </div>
-      {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-4 text-sm mb-6">{error}</div>}
+      {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-3 text-xs mb-4">{error}</div>}
       {showForm && (
         <ProjectCreateForm
           formKey={formKey} formName={formName} submitting={submitting}
@@ -86,7 +86,7 @@ export default function ProjectsPage() {
         />
       )}
       {projectList.length === 0 ? (
-        <p className="text-ink-muted">No projects yet. Create one to get started.</p>
+        <p className="text-ink-muted text-sm">No projects yet. Create one to get started.</p>
       ) : (
         <ProjectTable
           projects={projectList} editingId={editingId} formName={formName} submitting={submitting}

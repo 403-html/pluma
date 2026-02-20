@@ -81,18 +81,18 @@ export default function FlagsPage() {
   };
 
   if (!selectedProject || !selectedEnvironment) {
-    return <><TopBar onCreateFlag={handleCreateFlagClick} /><div className="p-8"><p className="text-ink-muted">Select a project and environment to manage flags</p></div></>;
+    return <><TopBar onCreateFlag={handleCreateFlagClick} /><div className="p-5"><p className="text-ink-muted text-sm">Select a project and environment to manage flags</p></div></>;
   }
 
   return (
     <>
       <TopBar onCreateFlag={handleCreateFlagClick} />
-      <div className="p-8">
-        {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-4 text-sm mb-6">{error}</div>}
+      <div className="p-5">
+        {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-3 text-xs mb-4">{error}</div>}
         {showForm && <FlagCreateForm formKey={formKey} formName={formName} formDesc={formDesc} submitting={submitting} onFormKey={setFormKey} onFormName={setFormName} onFormDesc={setFormDesc} onSubmit={handleCreate} onCancel={resetForm} />}
-        {loading ? <p className="text-ink-muted">Loading flags...</p>
-          : filteredFlags.length === 0 ? <p className="text-ink-muted">{searchQuery ? 'No flags match your search' : 'No flags yet. Create one to get started.'}</p>
-          : <div className="space-y-4">{filteredFlags.map((flag) => (
+        {loading ? <p className="text-ink-muted text-sm">Loading flags...</p>
+          : filteredFlags.length === 0 ? <p className="text-ink-muted text-sm">{searchQuery ? 'No flags match your search' : 'No flags yet. Create one to get started.'}</p>
+          : <div className="space-y-2">{filteredFlags.map((flag) => (
             <FlagCard key={flag.flagId} flag={flag} editingId={editingId} formName={formName} formDesc={formDesc} submitting={submitting}
               onFormName={setFormName} onFormDesc={setFormDesc}
               onStartEdit={(f) => { setEditingId(f.flagId); setFormName(f.name); setFormDesc(f.description || ''); }}
