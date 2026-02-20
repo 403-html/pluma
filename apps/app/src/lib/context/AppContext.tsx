@@ -14,9 +14,11 @@ type AppContextType = {
   selectedProject: Project | null;
   selectedEnvironment: Environment | null;
   searchQuery: string;
+  createFlagFn: (() => void) | null;
   setSelectedProject: Dispatch<SetStateAction<Project | null>>;
   setSelectedEnvironment: Dispatch<SetStateAction<Environment | null>>;
   setSearchQuery: Dispatch<SetStateAction<string>>;
+  setCreateFlagFn: Dispatch<SetStateAction<(() => void) | null>>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -26,6 +28,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedEnvironment, setSelectedEnvironment] =
     useState<Environment | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [createFlagFn, setCreateFlagFn] = useState<(() => void) | null>(null);
 
   return (
     <AppContext.Provider
@@ -33,9 +36,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         selectedProject,
         selectedEnvironment,
         searchQuery,
+        createFlagFn,
         setSelectedProject,
         setSelectedEnvironment,
         setSearchQuery,
+        setCreateFlagFn,
       }}
     >
       {children}

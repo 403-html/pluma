@@ -3,17 +3,18 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from '@/lib/api';
+import { ROUTES } from '@/lib/constants';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
   const navItems = [
-    { href: '/projects', label: 'Projects' },
-    { href: '/environments', label: 'Environments' },
-    { href: '/flags', label: 'Flags' },
-    { href: '/audit', label: 'Audit Log' },
-    { href: '/settings', label: 'Settings' },
+    { href: ROUTES.projects,     label: 'Projects' },
+    { href: ROUTES.environments, label: 'Environments' },
+    { href: ROUTES.flags,        label: 'Flags' },
+    { href: ROUTES.audit,        label: 'Audit Log' },
+    { href: ROUTES.settings,     label: 'Settings' },
   ];
 
   const handleLogout = async () => {

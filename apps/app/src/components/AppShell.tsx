@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
+import TopBar from '@/components/TopBar';
 import { AppProvider } from '@/lib/context/AppContext';
 import { PUBLIC_PATHS } from '@/lib/constants';
 
@@ -17,7 +18,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <AppProvider>
       <div className="app-layout">
         <Sidebar />
-        <main className="app-main">{children}</main>
+        <main className="app-main bg-surface">
+          <TopBar />
+          {children}
+        </main>
       </div>
     </AppProvider>
   );

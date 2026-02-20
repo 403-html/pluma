@@ -4,12 +4,11 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { FlagListItem } from '@pluma/types';
 import { flags, ApiError } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
-import TopBar from '@/components/TopBar';
 import FlagCreateForm from '@/components/FlagCreateForm';
 import FlagCard from '@/components/FlagCard';
 
 export default function FlagsPage() {
-  const { selectedProject, selectedEnvironment, searchQuery } = useAppContext();
+  const { selectedProject, selectedEnvironment, searchQuery, setCreateFlagFn } = useAppContext();
   const [flagList, setFlagList] = useState<FlagListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -44,6 +43,11 @@ export default function FlagsPage() {
 
   const resetForm = useCallback(() => { setFormKey(''); setFormName(''); setFormDesc(''); setFormParentId(''); setShowForm(false); }, []);
   const handleCreateFlagClick = useCallback(() => { setFormKey(''); setFormName(''); setFormDesc(''); setFormParentId(''); setShowForm(true); }, []);
+
+  useEffect(() => {
+    setCreateFlagFn(() => handleCreateFlagClick);
+    return () => { setCreateFlagFn(null); };
+  }, [handleCreateFlagClick, setCreateFlagFn]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,28 +85,25 @@ export default function FlagsPage() {
   };
 
   if (!selectedProject || !selectedEnvironment) {
-    return <><TopBar onCreateFlag={handleCreateFlagClick} /><div className="p-5"><p className="text-ink-muted text-sm">Select a project and environment to manage flags</p></div></>;
+    return <div className="p-5"><p className="text-ink-muted text-sm">Select a project and environment to manage flags</p></div>;
   }
 
   return (
-    <>
-      <TopBar onCreateFlag={handleCreateFlagClick} />
-      <div className="p-5">
-        {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-3 text-xs mb-4">{error}</div>}
-        {showForm && <FlagCreateForm formKey={formKey} formName={formName} formDesc={formDesc} submitting={submitting} onFormKey={setFormKey} onFormName={setFormName} onFormDesc={setFormDesc} onSubmit={handleCreate} onCancel={resetForm} />}
-        {loading ? <p className="text-ink-muted text-sm">Loading flags...</p>
-          : filteredFlags.length === 0 ? <p className="text-ink-muted text-sm">{searchQuery ? 'No flags match your search' : 'No flags yet. Create one to get started.'}</p>
-          : <div className="space-y-2">{filteredFlags.map((flag) => (
-            <FlagCard key={flag.flagId} flag={flag} editingId={editingId} formName={formName} formDesc={formDesc} submitting={submitting}
-              onFormName={setFormName} onFormDesc={setFormDesc}
-              onStartEdit={(f) => { setEditingId(f.flagId); setFormName(f.name); setFormDesc(f.description || ''); }}
-              onSaveEdit={handleEdit} onCancelEdit={() => { setEditingId(null); setFormName(''); setFormDesc(''); }}
-              onDelete={handleDelete} onToggle={handleToggle}
-            />
-          ))}</div>
-        }
-      </div>
-    </>
+    <div className="p-5">
+      {error && <div className="bg-red-900/20 border border-red-800/30 text-red-300 p-3 text-xs mb-4">{error}</div>}
+      {showForm && <FlagCreateForm formKey={formKey} formName={formName} formDesc={formDesc} submitting={submitting} onFormKey={setFormKey} onFormName={setFormName} onFormDesc={setFormDesc} onSubmit={handleCreate} onCancel={resetForm} />}
+      {loading ? <p className="text-ink-muted text-sm">Loading flags...</p>
+        : filteredFlags.length === 0 ? <p className="text-ink-muted text-sm">{searchQuery ? 'No flags match your search' : 'No flags yet. Create one to get started.'}</p>
+        : <div className="space-y-2">{filteredFlags.map((flag) => (
+          <FlagCard key={flag.flagId} flag={flag} editingId={editingId} formName={formName} formDesc={formDesc} submitting={submitting}
+            onFormName={setFormName} onFormDesc={setFormDesc}
+            onStartEdit={(f) => { setEditingId(f.flagId); setFormName(f.name); setFormDesc(f.description || ''); }}
+            onSaveEdit={handleEdit} onCancelEdit={() => { setEditingId(null); setFormName(''); setFormDesc(''); }}
+            onDelete={handleDelete} onToggle={handleToggle}
+          />
+        ))}</div>
+      }
+    </div>
   );
 }
 

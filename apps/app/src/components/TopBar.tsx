@@ -1,24 +1,25 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import type { Project, Environment } from '@pluma/types';
 import { projects, environments } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
+import { ROUTES } from '@/lib/constants';
 
-type TopBarProps = {
-  onCreateFlag?: () => void;
-};
-
-export default function TopBar({ onCreateFlag }: TopBarProps) {
+export default function TopBar() {
   const {
     selectedProject,
     selectedEnvironment,
     searchQuery,
+    createFlagFn,
     setSelectedProject,
     setSelectedEnvironment,
     setSearchQuery,
   } = useAppContext();
 
+  const pathname = usePathname();
+  const isFlagsPage = pathname === ROUTES.flags;
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [envList, setEnvList] = useState<Environment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,25 +131,27 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 min-w-[200px]">
-          <span className="text-label text-ink-dim font-medium uppercase tracking-wider">Search</span>
-          <input
-            type="search"
-            className="px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
-            placeholder="Filter flags..."
-            value={searchInput}
-            onChange={(e) => {
-              setSearchInput(e.target.value);
-              handleSearchChange(e.target.value);
-            }}
-          />
-        </label>
+        {isFlagsPage && (
+          <label className="flex flex-col gap-1 min-w-[200px]">
+            <span className="text-label text-ink-dim font-medium uppercase tracking-wider">Search</span>
+            <input
+              type="search"
+              className="px-3 py-1.5 bg-surface border border-stroke text-ink text-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] focus-visible:border-accent"
+              placeholder="Filter flags..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                handleSearchChange(e.target.value);
+              }}
+            />
+          </label>
+        )}
       </div>
 
-      {onCreateFlag && (
+      {isFlagsPage && createFlagFn && (
         <button
           className="px-4 py-1.5 bg-accent text-surface border-none text-sm font-semibold cursor-pointer transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
-          onClick={onCreateFlag}
+          onClick={createFlagFn}
           type="button"
         >
           Create Flag
