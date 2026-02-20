@@ -4,6 +4,8 @@ import type {
   Environment,
   FeatureFlag,
   FlagConfig,
+  FlagListItem,
+  FlagListResponse,
 } from '@pluma/types';
 
 /**
@@ -131,21 +133,6 @@ export const environments = {
 };
 
 // Flags
-type FlagWithConfig = FeatureFlag & { config: FlagConfig };
-
-/** Shape returned by GET /v1/environments/:envId/flags */
-export type FlagListItem = {
-  flagId: string;
-  key: string;
-  name: string;
-  description: string | null;
-  enabled: boolean;
-};
-
-type FlagListResponse = {
-  data: FlagListItem[];
-  nextCursor: string | null;
-};
 
 export const flags = {
   async list(envId: string): Promise<FlagListItem[]> {
@@ -160,10 +147,11 @@ export const flags = {
     key: string,
     name: string,
     description?: string,
+    parentFlagId?: string,
   ): Promise<FeatureFlag> {
     return fetchApi<FeatureFlag>(`/v1/projects/${projectId}/flags`, {
       method: 'POST',
-      body: JSON.stringify({ key, name, description }),
+      body: JSON.stringify({ key, name, description, parentFlagId }),
     });
   },
 
@@ -197,4 +185,4 @@ export const flags = {
 };
 
 export { ApiError };
-export type { FlagWithConfig };
+export type { FlagListItem, FlagListResponse };

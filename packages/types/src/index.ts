@@ -60,6 +60,21 @@ export type FlagConfig = {
   denyList: string[];
 };
 
+// Admin API: GET /api/v1/environments/:envId/flags response
+export type FlagListItem = {
+  flagId: string;
+  key: string;
+  name: string;
+  description: string | null;
+  parentFlagId: string | null;
+  enabled: boolean;
+};
+
+export type FlagListResponse = {
+  data: FlagListItem[];
+  nextCursor: string | null;
+};
+
 // SDK Snapshot
 export type SnapshotFlag = {
   key: string;

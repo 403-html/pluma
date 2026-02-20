@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Project } from '@pluma/types';
 import { projects } from '@/lib/api';
 import styles from './page.module.css';
@@ -15,11 +15,7 @@ export default function ProjectsPage() {
   const [formName, setFormName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -30,7 +26,11 @@ export default function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +42,7 @@ export default function ProjectsPage() {
       setFormKey('');
       setFormName('');
       setShowForm(false);
-      loadProjects();
+      await loadProjects();
     } catch {
       setError('Failed to create project');
     } finally {
@@ -58,7 +58,7 @@ export default function ProjectsPage() {
       await projects.update(id, { name: formName });
       setEditingId(null);
       setFormName('');
-      loadProjects();
+      await loadProjects();
     } catch {
       setError('Failed to update project');
     } finally {
@@ -73,7 +73,7 @@ export default function ProjectsPage() {
 
     try {
       await projects.delete(id);
-      loadProjects();
+      await loadProjects();
     } catch {
       setError('Failed to delete project');
     }

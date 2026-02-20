@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { auth } from '@/lib/api';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const navItems = [
     { href: '/projects', label: 'Projects' },
@@ -14,6 +16,14 @@ export default function Sidebar() {
     { href: '/audit', label: 'Audit Log' },
     { href: '/settings', label: 'Settings' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await auth.logout();
+    } finally {
+      router.push('/login');
+    }
+  };
 
   return (
     <aside className={styles.sidebar}>
@@ -31,6 +41,13 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
+      <button
+        type="button"
+        className={styles.logoutButton}
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
     </aside>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { FlagListItem } from '@/lib/api';
+import type { FlagListItem } from '@pluma/types';
 import { flags } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
 import TopBar from '@/components/TopBar';
@@ -18,11 +18,11 @@ export default function FlagsPage() {
   const [formKey, setFormKey] = useState('');
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
+  const [formParentId, setFormParentId] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const loadFlags = useCallback(async () => {
     if (!selectedEnvironment) return;
-
     try {
       setLoading(true);
       setError('');
@@ -55,6 +55,22 @@ export default function FlagsPage() {
     );
   }, [flagList, searchQuery]);
 
+  const resetForm = useCallback(() => {
+    setFormKey('');
+    setFormName('');
+    setFormDesc('');
+    setFormParentId('');
+    setShowForm(false);
+  }, []);
+
+  const handleCreateFlagClick = useCallback(() => {
+    setFormKey('');
+    setFormName('');
+    setFormDesc('');
+    setFormParentId('');
+    setShowForm(true);
+  }, []);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
@@ -63,12 +79,15 @@ export default function FlagsPage() {
     setError('');
 
     try {
-      await flags.create(selectedProject.id, formKey, formName, formDesc);
-      setFormKey('');
-      setFormName('');
-      setFormDesc('');
-      setShowForm(false);
-      loadFlags();
+      await flags.create(
+        selectedProject.id,
+        formKey,
+        formName,
+        formDesc || undefined,
+        formParentId || undefined,
+      );
+      resetForm();
+      await loadFlags();
     } catch {
       setError('Failed to create flag');
     } finally {
@@ -79,13 +98,12 @@ export default function FlagsPage() {
   const handleEdit = async (id: string) => {
     setSubmitting(true);
     setError('');
-
     try {
       await flags.update(id, { name: formName, description: formDesc });
       setEditingId(null);
       setFormName('');
       setFormDesc('');
-      loadFlags();
+      await loadFlags();
     } catch {
       setError('Failed to update flag');
     } finally {
@@ -97,10 +115,9 @@ export default function FlagsPage() {
     if (!window.confirm('Delete this flag? This action cannot be undone.')) {
       return;
     }
-
     try {
       await flags.delete(id);
-      loadFlags();
+      await loadFlags();
     } catch {
       setError('Failed to delete flag');
     }
@@ -108,12 +125,11 @@ export default function FlagsPage() {
 
   const handleToggle = async (flag: FlagListItem) => {
     if (!selectedEnvironment) return;
-
     try {
       await flags.updateConfig(selectedEnvironment.id, flag.flagId, {
         enabled: !flag.enabled,
       });
-      loadFlags();
+      await loadFlags();
     } catch {
       setError('Failed to toggle flag');
     }
@@ -125,10 +141,30 @@ export default function FlagsPage() {
     setFormDesc(flag.description || '');
   };
 
+  const startAddSubFlag = (parentFlag: FlagListItem) => {
+    setFormParentId(parentFlag.flagId);
+    setFormKey('');
+    setFormName('');
+    setFormDesc('');
+    setShowForm(true);
+  };
+
+  // Lookup map: flagId → key, for showing parent key in sub-flag badge
+  const flagKeyById = useMemo(
+    () => new Map(flagList.map((f) => [f.flagId, f.key])),
+    [flagList],
+  );
+
+  // Only top-level flags are offered as parent choices
+  const topLevelFlags = useMemo(
+    () => flagList.filter((f) => !f.parentFlagId),
+    [flagList],
+  );
+
   if (!selectedProject || !selectedEnvironment) {
     return (
       <>
-        <TopBar onCreateFlag={() => setShowForm(true)} />
+        <TopBar onCreateFlag={handleCreateFlagClick} />
         <div className={styles.container}>
           <p className={styles.empty}>
             Select a project and environment to manage flags
@@ -140,7 +176,7 @@ export default function FlagsPage() {
 
   return (
     <>
-      <TopBar onCreateFlag={() => setShowForm(true)} />
+      <TopBar onCreateFlag={handleCreateFlagClick} />
       <div className={styles.container}>
         {error && <div className={styles.error}>{error}</div>}
 
@@ -171,6 +207,19 @@ export default function FlagsPage() {
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
               />
+              <select
+                className={styles.input}
+                value={formParentId}
+                onChange={(e) => setFormParentId(e.target.value)}
+                aria-label="Parent flag"
+              >
+                <option value="">No parent (top-level)</option>
+                {topLevelFlags.map((f) => (
+                  <option key={f.flagId} value={f.flagId}>
+                    {'\u21b3'} {f.key}
+                  </option>
+                ))}
+              </select>
               <div className={styles.formActions}>
                 <button
                   type="submit"
@@ -182,12 +231,7 @@ export default function FlagsPage() {
                 <button
                   type="button"
                   className={styles.cancelButton}
-                  onClick={() => {
-                    setShowForm(false);
-                    setFormKey('');
-                    setFormName('');
-                    setFormDesc('');
-                  }}
+                  onClick={resetForm}
                 >
                   Cancel
                 </button>
@@ -211,11 +255,17 @@ export default function FlagsPage() {
                 key={flag.flagId}
                 className={`${styles.flagCard} ${
                   flag.enabled ? styles.flagCardActive : ''
-                }`}
+                } ${flag.parentFlagId ? styles.flagCardChild : ''}`}
               >
                 <div className={styles.flagHeader}>
                   <div className={styles.flagInfo}>
                     <h3 className={styles.flagKey}>{flag.key}</h3>
+                    {flag.parentFlagId && (
+                      <p className={styles.parentBadge}>
+                        {'\u21b3'}{' '}
+                        {flagKeyById.get(flag.parentFlagId) ?? 'unknown parent'}
+                      </p>
+                    )}
                     {editingId === flag.flagId ? (
                       <div className={styles.editForm}>
                         <input
@@ -285,6 +335,14 @@ export default function FlagsPage() {
                       >
                         Edit
                       </button>
+                      {!flag.parentFlagId && (
+                        <button
+                          className={styles.actionButton}
+                          onClick={() => startAddSubFlag(flag)}
+                        >
+                          Add sub-flag
+                        </button>
+                      )}
                       <button
                         className={styles.deleteButton}
                         onClick={() => handleDelete(flag.flagId)}
