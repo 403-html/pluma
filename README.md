@@ -31,9 +31,35 @@ Services run at:
 - API: http://localhost:4000
 - PostgreSQL: localhost:5432
 
+## SDK Integration
+
+Install the SDK in your application:
+
+```bash
+npm install @pluma/sdk
+```
+
+```ts
+import { PlumaSnapshotCache } from '@pluma/sdk';
+
+const cache = PlumaSnapshotCache.create({
+  baseUrl: 'http://localhost:4000',
+  token: 'pluma_sdk_xxxxxxxxxxxx', // create in the UI under project → Tokens
+});
+
+const flags = await cache.evaluator({ subjectKey: user.id });
+
+if (flags.isEnabled('dark-mode')) {
+  // feature is on for this user
+}
+```
+
+See **[SDK Integration Guide](docs/integration.md)** for full usage, subject targeting, TTL configuration, and framework examples.
+
 ## Documentation
 
 - **[Getting Started](docs/getting-started.md)** — Full setup guide for Docker and local development
+- **[SDK Integration](docs/integration.md)** — Install and use the npm SDK in your application
 - **[Configuration](docs/configuration.md)** — Environment variables and port settings
 - **[Troubleshooting](docs/troubleshooting.md)** — Common issues and solutions
 - **[Security](docs/security.md)** — Production secrets management and best practices
