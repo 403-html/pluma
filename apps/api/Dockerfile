@@ -75,15 +75,16 @@ RUN pnpm --filter @pluma/api build
 FROM base AS runner
 WORKDIR /app
 
-# Copy workspace configuration
-COPY package.json pnpm-workspace.yaml ./
+# Copy workspace configuration and manifests
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 
-# Reuse the full dependency tree from the deps stage so that the prisma CLI
-# (a devDependency of @pluma/db) is available to run migrations at startup.
-COPY --from=deps /app/node_modules ./node_modules
+# Install production dependencies only.
+# prisma is now a production dependency of @pluma/db so it is included here,
+# making `prisma migrate deploy` available at container startup.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
 
 # Copy built application
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
