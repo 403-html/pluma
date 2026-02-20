@@ -41,7 +41,8 @@ const flagConfigUpdateBodySchema = z.object({
 ).refine(
   (body) => {
     if (body.allowList === undefined || body.denyList === undefined) return true;
-    return !body.allowList.some((s) => body.denyList!.includes(s));
+    const allowSet = new Set(body.allowList);
+    return !body.denyList.some((s) => allowSet.has(s));
   },
   { message: 'A subject key must not appear in both allowList and denyList', path: ['allowList'] },
 );
