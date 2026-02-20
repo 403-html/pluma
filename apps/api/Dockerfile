@@ -118,4 +118,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 # Run migrations and start server
 # NOTE: In production orchestration (K8s, Swarm), consider running migrations
 # as a separate init container/job for better control over failure handling
-CMD sh -c "pnpm --filter @pluma/db db:migrate:deploy && node apps/api/dist/index.js"
+CMD ["/bin/sh", "-c", "pnpm --filter @pluma/db db:migrate:deploy && node apps/api/dist/index.js"]
