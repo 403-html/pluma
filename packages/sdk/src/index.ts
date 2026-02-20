@@ -66,19 +66,24 @@ export class PlumaSnapshotCache {
     );
     const subjectKey = options.subjectKey;
 
+    // Maximum parent-chain depth per evaluation. Caps the loop bound so it is
+    // statically obvious (Rule 2). Chains deeper than this fall back to the
+    // last reachable flag's enabled state. Adjust if product requirements grow.
+    const MAX_PARENT_DEPTH = 32;
+
     // Evaluates a flag key following the precedence chain:
     //   denyList → allowList → parent inheritance → base enabled state.
     //
     // NOTE: Deep parent chains are supported by design. Traversal is iterative
     // (no recursion) so stack depth stays O(1). A single Set tracks visited keys
     // to detect cycles; each key is added once, so memory is O(chain length).
-    // Very long chains (e.g. 10+ parents) will perform proportionally more work
-    // per isEnabled() call — keep flag hierarchies shallow when latency is critical.
+    // Very long chains will perform proportionally more work per isEnabled() call
+    // — keep flag hierarchies shallow when latency is critical.
     function isEnabled(flagKey: string): boolean {
       const visited = new Set<string>();
       let currentKey: string = flagKey;
 
-      while (true) {
+      for (let depth = 0; depth <= MAX_PARENT_DEPTH; depth += 1) {
         if (visited.has(currentKey)) {
           // Cycle detected — fall back to raw enabled state to avoid infinite loop.
           const cycledFlag = flagMap.get(currentKey);
@@ -113,6 +118,10 @@ export class PlumaSnapshotCache {
         // 4. Base enabled state.
         return flag.enabled;
       }
+
+      // MAX_PARENT_DEPTH exceeded — fall back to the last reachable flag's enabled state.
+      const fallbackFlag = flagMap.get(currentKey);
+      return fallbackFlag?.enabled ?? false;
     }
 
     return {
