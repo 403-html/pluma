@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pluma-postgres-prod
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: pluma
+      POSTGRES_PASSWORD: pluma
+      POSTGRES_DB: pluma
+    volumes:
+      - pluma_postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pluma']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pluma-prod
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: prod
+    container_name: pluma-api-prod
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      DATABASE_URL: postgresql://pluma:pluma@postgres:5432/pluma?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pluma-prod
+
+  app:
+    build:
+      context: .
+      dockerfile: apps/app/Dockerfile
+      target: prod
+    container_name: pluma-app-prod
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pluma-prod
+
+volumes:
+  pluma_postgres_prod_data:
+    name: pluma_postgres_prod_data
+
+networks:
+  pluma-prod:
+    name: pluma-prod
+    driver: bridge

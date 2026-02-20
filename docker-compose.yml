@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pluma-postgres-dev
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: pluma
+      POSTGRES_PASSWORD: pluma
+      POSTGRES_DB: pluma
+    volumes:
+      - pluma_postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pluma']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pluma-dev
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: dev
+    container_name: pluma-api-dev
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      NODE_ENV: development
+      DATABASE_URL: postgresql://pluma:pluma@postgres:5432/pluma?schema=public
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - ./tooling:/app/tooling
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./package.json:/app/package.json
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/packages/db/node_modules
+      - /app/packages/types/node_modules
+      - /app/tooling/eslint/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pluma-dev
+
+  app:
+    build:
+      context: .
+      dockerfile: apps/app/Dockerfile
+      target: dev
+    container_name: pluma-app-dev
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/app:/app/apps/app
+      - ./packages:/app/packages
+      - ./tooling:/app/tooling
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./package.json:/app/package.json
+      # Prevent node_modules and .next from being overwritten
+      - /app/node_modules
+      - /app/apps/app/node_modules
+      - /app/packages/types/node_modules
+      - /app/tooling/eslint/node_modules
+      - /app/apps/app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pluma-dev
+
+volumes:
+  pluma_postgres_dev_data:
+    name: pluma_postgres_dev_data
+
+networks:
+  pluma-dev:
+    name: pluma-dev
+    driver: bridge
