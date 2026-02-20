@@ -312,14 +312,15 @@ describe("PlumaSnapshotCache", () => {
       expect(evaluator.isEnabled("a")).toBe(true);
     });
 
-    it("no subjectKey with non-empty allowList denies access", async () => {
+    it("no subjectKey with non-empty allowList falls through to base enabled state", async () => {
       stubFetch(makeSnapshot([
         { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["only-this"], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator(); // no subjectKey
-      // Non-empty allowList requires a subject — returns false when none provided
-      expect(evaluator.isEnabled("feat")).toBe(false);
+      // allowList/denyList are explicit overrides; without a subject they are skipped,
+      // so evaluation falls through to base enabled state.
+      expect(evaluator.isEnabled("feat")).toBe(true);
     });
 
     it("no subjectKey with empty allowList uses base enabled state", async () => {
@@ -337,10 +338,10 @@ describe("PlumaSnapshotCache", () => {
         { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: ["vip"], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
-      // vip subject: child's allowList grants access (ignores parent's enabled=false)
+      // vip subject: child's allowList grants explicit access (overrides parent's enabled=false)
       const vipEval = await cache.evaluator({ subjectKey: "vip" });
       expect(vipEval.isEnabled("child")).toBe(true);
-      // non-vip subject: allowList blocks, parent not reached
+      // non-vip subject: not in allowList, falls through to parent inheritance → parent.enabled=false
       const otherEval = await cache.evaluator({ subjectKey: "other" });
       expect(otherEval.isEnabled("child")).toBe(false);
     });

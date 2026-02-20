@@ -78,18 +78,16 @@ export class PlumaSnapshotCache {
         return false;
       }
 
-      // 1. Deny list: subject explicitly blocked.
+      // 1. Deny list: subject explicitly blocked regardless of enabled state.
       if (subjectKey !== undefined && flag.denyList.includes(subjectKey)) {
         return false;
       }
 
-      // 2. Allow list targeting: if non-empty, a subjectKey must be provided and listed.
-      if (flag.allowList.length > 0) {
-        if (subjectKey === undefined) {
-          // No subject provided but an allow list is configured: deny access.
-          return false;
-        }
-        return flag.allowList.includes(subjectKey);
+      // 2. Allow list: subject explicitly granted regardless of enabled state.
+      //    If the subject is not in the list (or no subjectKey), fall through to
+      //    parent inheritance and base enabled state.
+      if (subjectKey !== undefined && flag.allowList.includes(subjectKey)) {
+        return true;
       }
 
       // 3. Parent inheritance: delegate to parent flag.
