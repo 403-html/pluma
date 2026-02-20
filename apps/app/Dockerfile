@@ -23,10 +23,6 @@ COPY tooling/eslint/package.json ./tooling/eslint/
 RUN pnpm fetch
 
 # Install dependencies
-COPY apps/app/package.json ./apps/app/
-COPY packages/types/package.json ./packages/types/
-COPY tooling/eslint/package.json ./tooling/eslint/
-
 RUN pnpm install --frozen-lockfile --offline
 
 # Development stage - hot reload with next dev

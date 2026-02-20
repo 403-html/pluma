@@ -24,11 +24,6 @@ COPY tooling/eslint/package.json ./tooling/eslint/
 RUN pnpm fetch
 
 # Install dependencies
-COPY apps/api/package.json ./apps/api/
-COPY packages/db/package.json ./packages/db/
-COPY packages/types/package.json ./packages/types/
-COPY tooling/eslint/package.json ./tooling/eslint/
-
 RUN pnpm install --frozen-lockfile --offline
 
 # Development stage - hot reload with tsx watch

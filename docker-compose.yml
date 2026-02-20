@@ -8,9 +8,9 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: pluma
-      POSTGRES_PASSWORD: pluma
-      POSTGRES_DB: pluma
+      POSTGRES_USER: ${POSTGRES_USER:-pluma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pluma}
+      POSTGRES_DB: ${POSTGRES_DB:-pluma}
     volumes:
       - pluma_postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +34,7 @@ services:
       PORT: 3000
       HOST: 0.0.0.0
       NODE_ENV: development
-      DATABASE_URL: postgresql://pluma:pluma@postgres:5432/pluma?schema=public
+      DATABASE_URL: ${DATABASE_URL:-postgresql://pluma:pluma@postgres:5432/pluma?schema=public}
     volumes:
       # Mount source code for hot reload
       - ./apps/api:/app/apps/api

@@ -123,18 +123,32 @@ This is useful when you want to run the database in Docker but run API/App local
 ## Environment Variables
 
 ### Development
-Uses defaults from `.env.example` files. Override by creating `.env` files:
-- `apps/api/.env` - API environment variables
-- `apps/app/.env` - App environment variables
-
-### Production
-Pass environment variables via `docker-compose.prod.yml` or use an `.env` file at repo root:
+Uses defaults from `.env.example` files. Override by creating a `.env` file at repo root or in specific app directories:
 
 ```bash
-# .env file example
-POSTGRES_PASSWORD=secure_password
-DATABASE_URL=postgresql://pluma:secure_password@postgres:5432/pluma?schema=public
+# .env file example (optional for dev)
+POSTGRES_USER=pluma
+POSTGRES_PASSWORD=pluma
+POSTGRES_DB=pluma
+DATABASE_URL=postgresql://pluma:pluma@postgres:5432/pluma?schema=public
 ```
+
+Individual app env files:
+- `apps/api/.env` - API-specific environment variables
+- `apps/app/.env` - App-specific environment variables
+
+### Production
+**Required:** You MUST provide environment variables for production. Create a `.env` file at repo root:
+
+```bash
+# .env file (REQUIRED for production)
+POSTGRES_USER=your_db_user
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_DB=pluma
+DATABASE_URL=postgresql://your_db_user:your_secure_password@postgres:5432/pluma?schema=public
+```
+
+**Security Note:** Never use default credentials in production. Always set strong, unique passwords.
 
 ## Troubleshooting
 
