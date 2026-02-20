@@ -10,8 +10,8 @@ const mockSnapshot: Snapshot = {
   projectKey: "my-project",
   envKey: "staging",
   flags: [
-    { key: "dark-mode", parentKey: null, enabled: true, inheritParent: false },
-    { key: "new-ui", parentKey: null, enabled: false, inheritParent: false },
+    { key: "dark-mode", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+    { key: "new-ui", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
   ],
 };
 
@@ -129,8 +129,8 @@ describe("PlumaSnapshotCache", () => {
         projectKey: "my-project",
         envKey: "staging",
         flags: [
-          { key: "dark-mode", parentKey: null, enabled: false, inheritParent: false },
-          { key: "new-ui", parentKey: null, enabled: true, inheritParent: false },
+          { key: "dark-mode", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
+          { key: "new-ui", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
         ],
       };
 
@@ -308,17 +308,52 @@ describe("PlumaSnapshotCache", () => {
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator();
-      // Should not throw; resolves to base state
-      expect(() => evaluator.isEnabled("a")).not.toThrow();
+      // Should not throw and should resolve to base enabled state (true for "a")
+      expect(evaluator.isEnabled("a")).toBe(true);
     });
 
-    it("no subjectKey falls back to base enabled state ignoring allow/deny lists", async () => {
+    it("no subjectKey with non-empty allowList denies access", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["only-this"], denyList: ["other"] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["only-this"], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator(); // no subjectKey
+      // Non-empty allowList requires a subject — returns false when none provided
+      expect(evaluator.isEnabled("feat")).toBe(false);
+    });
+
+    it("no subjectKey with empty allowList uses base enabled state", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator(); // no subjectKey
       expect(evaluator.isEnabled("feat")).toBe(true);
+    });
+
+    it("child allowList takes precedence over parent inheritance", async () => {
+      stubFetch(makeSnapshot([
+        { key: "parent", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
+        { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: ["vip"], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      // vip subject: child's allowList grants access (ignores parent's enabled=false)
+      const vipEval = await cache.evaluator({ subjectKey: "vip" });
+      expect(vipEval.isEnabled("child")).toBe(true);
+      // non-vip subject: allowList blocks, parent not reached
+      const otherEval = await cache.evaluator({ subjectKey: "other" });
+      expect(otherEval.isEnabled("child")).toBe(false);
+    });
+
+    it("child denyList takes precedence over parent inheritance", async () => {
+      stubFetch(makeSnapshot([
+        { key: "parent", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+        { key: "child", parentKey: "parent", enabled: true, inheritParent: true, allowList: [], denyList: ["blocked"] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator({ subjectKey: "blocked" });
+      // blocked is in child's denyList, so access is denied even though parent is enabled
+      expect(evaluator.isEnabled("child")).toBe(false);
     });
   });
 });

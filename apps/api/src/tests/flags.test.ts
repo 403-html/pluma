@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  PROJECT_ID, FLAG_ID, AUTH_COOKIE,
+  PROJECT_ID, OTHER_PROJECT_ID, FLAG_ID, AUTH_COOKIE,
   mockSession, mockProject, mockFlag,
 } from './fixtures';
 
@@ -154,6 +154,7 @@ describe('Feature Flag routes', () => {
     it('should create a sub-flag with parentFlagId', async () => {
       const subFlag = { ...mockFlag, id: 'flag-child', key: 'payments-v2', parentFlagId: FLAG_ID };
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag); // parent flag lookup
       prismaMock.featureFlag.create.mockResolvedValue(subFlag);
 
       const response = await app.inject({
@@ -166,6 +167,34 @@ describe('Feature Flag routes', () => {
       expect(response.statusCode).toBe(201);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('parentFlagId', FLAG_ID);
+    });
+
+    it('should return 404 when parentFlagId does not exist', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.findUnique.mockResolvedValue(null);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        payload: { key: 'payments-v2', name: 'Payments V2', parentFlagId: FLAG_ID },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 when parentFlagId belongs to a different project', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.findUnique.mockResolvedValue({ ...mockFlag, projectId: OTHER_PROJECT_ID });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        payload: { key: 'payments-v2', name: 'Payments V2', parentFlagId: FLAG_ID },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 

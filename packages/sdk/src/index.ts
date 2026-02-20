@@ -83,8 +83,12 @@ export class PlumaSnapshotCache {
         return false;
       }
 
-      // 2. Allow list targeting: if non-empty, only listed subjects are enabled.
-      if (subjectKey !== undefined && flag.allowList.length > 0) {
+      // 2. Allow list targeting: if non-empty, a subjectKey must be provided and listed.
+      if (flag.allowList.length > 0) {
+        if (subjectKey === undefined) {
+          // No subject provided but an allow list is configured: deny access.
+          return false;
+        }
         return flag.allowList.includes(subjectKey);
       }
 

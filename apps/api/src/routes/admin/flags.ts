@@ -84,6 +84,25 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
+    if (parsedBody.data.parentFlagId !== undefined) {
+      const parentFlag = await prisma.featureFlag.findUnique({
+        where: { id: parsedBody.data.parentFlagId },
+      });
+
+      if (!parentFlag) {
+        request.log.warn({ parentFlagId: parsedBody.data.parentFlagId }, 'POST /projects/:projectId/flags rejected: parent flag not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
+      }
+
+      if (parentFlag.projectId !== parsedParams.data.projectId) {
+        request.log.warn(
+          { parentFlagId: parsedBody.data.parentFlagId, parentProjectId: parentFlag.projectId, projectId: parsedParams.data.projectId },
+          'POST /projects/:projectId/flags rejected: parent flag belongs to a different project',
+        );
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
+      }
+    }
+
     try {
       const flag = await prisma.$transaction(async (tx) => {
         const created = await tx.featureFlag.create({

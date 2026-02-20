@@ -51,11 +51,14 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
 
     const snapshotFlags = flags.map((flag) => {
       const config = configMap.get(flag.id);
+      // Resolve parent key; if parentFlagId is set but the parent is no longer in this
+      // project's flag set (e.g. deleted), treat as no parent to keep the snapshot consistent.
+      const resolvedParentKey = flag.parentFlagId ? (keyMap.get(flag.parentFlagId) ?? null) : null;
       return {
         key: flag.key,
-        parentKey: flag.parentFlagId ? (keyMap.get(flag.parentFlagId) ?? null) : null,
+        parentKey: resolvedParentKey,
         enabled: config?.enabled ?? false,
-        inheritParent: flag.parentFlagId !== null,
+        inheritParent: resolvedParentKey !== null,
         allowList: config?.allowList ?? [],
         denyList: config?.denyList ?? [],
       };

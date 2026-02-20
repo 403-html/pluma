@@ -74,7 +74,7 @@ model FeatureFlag {
   name         String
   description  String?
   parentFlagId String?
-  parentFlag   FeatureFlag?  @relation("SubFlags", fields: [parentFlagId], references: [id])
+  parentFlag   FeatureFlag?  @relation("SubFlags", fields: [parentFlagId], references: [id], onDelete: Restrict)
   subFlags     FeatureFlag[] @relation("SubFlags")
   createdAt    DateTime      @default(now())
   flagConfigs  FlagConfig[]

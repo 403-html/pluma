@@ -21,8 +21,8 @@ const flagConfigParamsSchema = z.object({
 
 const flagConfigUpdateBodySchema = z.object({
   enabled: z.boolean().optional(),
-  allowList: z.array(z.string()).optional(),
-  denyList: z.array(z.string()).optional(),
+  allowList: z.array(z.string().min(1)).optional(),
+  denyList: z.array(z.string().min(1)).optional(),
 }).refine(
   (body) => body.enabled !== undefined || body.allowList !== undefined || body.denyList !== undefined,
   { message: 'At least one of enabled, allowList, or denyList must be provided' },
