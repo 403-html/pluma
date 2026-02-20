@@ -56,10 +56,14 @@ docker compose down
 # Stop and remove volumes (fresh database)
 docker compose down -v
 
-# Rebuild a specific service
+# Rebuild a specific service (needed if dependencies or Dockerfile changed)
 docker compose build api
 
-# Restart a specific service
+# Rebuild and restart (after dependency changes)
+docker compose up --build
+
+# Restart a specific service (for config changes, not code changes)
+# Note: Code changes are auto-detected via hot reload, no restart needed
 docker compose restart api
 
 # Execute commands in running containers
@@ -70,6 +74,11 @@ docker compose exec app pnpm lint
 docker compose exec api sh
 docker compose exec postgres psql -U pluma -d pluma
 ```
+
+**Note:** In development mode, code changes are automatically detected via hot reload. You only need to rebuild if you:
+- Modified `package.json` dependencies
+- Changed Dockerfile or docker-compose.yml
+- Added new packages to the workspace
 
 ## Production Mode
 
