@@ -1,0 +1,87 @@
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:16-alpine
+    container_name: pluma-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pluma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pluma}
+      POSTGRES_DB: ${POSTGRES_DB:-pluma}
+    volumes:
+      - pluma_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pluma-network
+
+  # Fastify API server - development mode with hot reload
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: dev
+    container_name: pluma-api-dev
+    ports:
+      - '4000:4000'
+    environment:
+      PORT: 4000
+      HOST: 0.0.0.0
+      NODE_ENV: development
+      # Development: plaintext credentials in DATABASE_URL are acceptable
+      # Production: Use Docker secrets pattern (see README Security section)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pluma}:${POSTGRES_PASSWORD:-pluma}@postgres:5432/${POSTGRES_DB:-pluma}?schema=public
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/api/src:/app/apps/api/src
+      - ./packages:/app/packages
+      # Prevent overwriting node_modules
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pluma-network
+
+  # Next.js UI - development mode with hot reload
+  app:
+    build:
+      context: .
+      dockerfile: apps/app/Dockerfile
+      target: dev
+    container_name: pluma-app-dev
+    ports:
+      - '3000:3000'
+    environment:
+      # Browser-side API URL - localhost works because browser runs on host, not in container
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      WATCHPACK_POLLING: 'true'
+      NODE_ENV: development
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/app/src:/app/apps/app/src
+      - ./apps/app/public:/app/apps/app/public
+      - ./apps/app/next.config.ts:/app/apps/app/next.config.ts
+      - ./packages:/app/packages
+      # Prevent overwriting node_modules and .next
+      - /app/node_modules
+      - /app/apps/app/node_modules
+      - /app/apps/app/.next
+    depends_on:
+      - api
+    networks:
+      - pluma-network
+
+networks:
+  pluma-network:
+    driver: bridge
+
+volumes:
+  pluma_postgres_data:
+    name: pluma_postgres_data

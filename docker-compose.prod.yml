@@ -1,0 +1,71 @@
+services:
+  # PostgreSQL database
+  # REQUIRED: Set POSTGRES_USER and POSTGRES_PASSWORD in .env for production
+  postgres:
+    image: postgres:16-alpine
+    container_name: pluma-postgres-prod
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env for production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env for production}
+      POSTGRES_DB: ${POSTGRES_DB:-pluma}
+    volumes:
+      - pluma_postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pluma-network
+
+  # Fastify API server - production mode
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    container_name: pluma-api-prod
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    environment:
+      PORT: 4000
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pluma}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pluma-network
+
+  # Next.js UI - production mode
+  # REQUIRED: Set NEXT_PUBLIC_API_URL in .env before building (e.g., https://api.yourdomain.com)
+  app:
+    build:
+      context: .
+      dockerfile: apps/app/Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set in .env for production build}
+    container_name: pluma-app-prod
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - api
+    networks:
+      - pluma-network
+
+networks:
+  pluma-network:
+    driver: bridge
+
+volumes:
+  pluma_postgres_data_prod:
+    name: pluma_postgres_data_prod
