@@ -2,12 +2,14 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
+import { MAX_PARENT_DEPTH } from '@pluma/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
 const flagBodySchema = z.object({
   key: z.string().min(1).max(100),
   name: z.string().min(1).max(200),
   description: z.string().max(500).optional(),
+  parentFlagId: z.uuid().optional(),
 });
 
 const flagUpdateBodySchema = z
@@ -83,6 +85,54 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
 
+    if (parsedBody.data.parentFlagId !== undefined) {
+      const parentFlag = await prisma.featureFlag.findUnique({
+        where: { id: parsedBody.data.parentFlagId },
+      });
+
+      if (!parentFlag) {
+        request.log.warn({ parentFlagId: parsedBody.data.parentFlagId }, 'POST /projects/:projectId/flags rejected: parent flag not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
+      }
+
+      if (parentFlag.projectId !== parsedParams.data.projectId) {
+        request.log.warn(
+          { parentFlagId: parsedBody.data.parentFlagId, parentProjectId: parentFlag.projectId, projectId: parsedParams.data.projectId },
+          'POST /projects/:projectId/flags rejected: parent flag belongs to a different project',
+        );
+        return reply.badRequest(ReasonPhrases.BAD_REQUEST);
+      }
+
+      // Walk up the parent chain to enforce the depth limit. A new flag at depth
+      // D means its parent is already at depth D-1. Reject if the parent is
+      // already at depth MAX_PARENT_DEPTH (the new child would exceed the limit).
+      let chainDepth = 1;
+      let cursor: { parentFlagId: string | null } = parentFlag;
+
+      for (let hop = 0; hop < MAX_PARENT_DEPTH; hop += 1) {
+        if (cursor.parentFlagId === null) {
+          break;
+        }
+        chainDepth += 1;
+        if (chainDepth >= MAX_PARENT_DEPTH) {
+          request.log.warn(
+            { parentFlagId: parsedBody.data.parentFlagId, chainDepth },
+            `POST /projects/:projectId/flags rejected: parent chain exceeds MAX_PARENT_DEPTH (${MAX_PARENT_DEPTH})`,
+          );
+          return reply.badRequest(`Parent chain depth would exceed the maximum of ${MAX_PARENT_DEPTH}.`);
+        }
+        // eslint-disable-next-line no-await-in-loop
+        const ancestor = await prisma.featureFlag.findUnique({
+          where: { id: cursor.parentFlagId },
+          select: { parentFlagId: true },
+        });
+        if (!ancestor) {
+          break;
+        }
+        cursor = ancestor;
+      }
+    }
+
     try {
       const flag = await prisma.$transaction(async (tx) => {
         const created = await tx.featureFlag.create({
@@ -91,6 +141,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
             key: parsedBody.data.key,
             name: parsedBody.data.name,
             description: parsedBody.data.description,
+            parentFlagId: parsedBody.data.parentFlagId,
           },
         });
 

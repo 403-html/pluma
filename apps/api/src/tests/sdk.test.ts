@@ -138,11 +138,11 @@ describe('SDK snapshot', () => {
     prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
     prismaMock.environment.findUnique.mockResolvedValue({ ...mockEnvironmentWithProject, configVersion: 3 });
     prismaMock.featureFlag.findMany.mockResolvedValue([
-      { id: 'flag-1', key: 'dark-mode', projectId: PROJECT_ID },
-      { id: 'flag-2', key: 'new-ui', projectId: PROJECT_ID },
+      { id: 'flag-1', key: 'dark-mode', projectId: PROJECT_ID, parentFlagId: null },
+      { id: 'flag-2', key: 'new-ui', projectId: PROJECT_ID, parentFlagId: null },
     ]);
     prismaMock.flagConfig.findMany.mockResolvedValue([
-      { envId: ENV_ID, flagId: 'flag-1', enabled: true },
+      { envId: ENV_ID, flagId: 'flag-1', enabled: true, allowList: [], denyList: [] },
     ]);
 
     const response = await app.inject({
@@ -157,8 +157,12 @@ describe('SDK snapshot', () => {
     expect(payload).toHaveProperty('projectKey', mockProject.key);
     expect(payload).toHaveProperty('envKey', mockEnvironmentWithProject.key);
     expect(payload.flags).toHaveLength(2);
-    expect(payload.flags.find((f: { key: string }) => f.key === 'dark-mode')).toMatchObject({ key: 'dark-mode', enabled: true });
-    expect(payload.flags.find((f: { key: string }) => f.key === 'new-ui')).toMatchObject({ key: 'new-ui', enabled: false });
+    expect(payload.flags.find((f: { key: string }) => f.key === 'dark-mode')).toMatchObject({
+      key: 'dark-mode', enabled: true, parentKey: null, inheritParent: false, allowList: [], denyList: [],
+    });
+    expect(payload.flags.find((f: { key: string }) => f.key === 'new-ui')).toMatchObject({
+      key: 'new-ui', enabled: false, parentKey: null, inheritParent: false, allowList: [], denyList: [],
+    });
     expect(response.headers['etag']).toBe('3');
   });
 
@@ -194,5 +198,31 @@ describe('SDK snapshot', () => {
     expect(prismaMock.sdkToken.findUnique).toHaveBeenCalledWith({
       where: { tokenHash: SDK_TOKEN_HASH },
     });
+  });
+
+  it('should populate parentKey and inheritParent for sub-flags', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue({ ...mockEnvironmentWithProject, configVersion: 5 });
+    prismaMock.featureFlag.findMany.mockResolvedValue([
+      { id: 'flag-parent', key: 'payments', projectId: PROJECT_ID, parentFlagId: null },
+      { id: 'flag-child', key: 'payments-v2', projectId: PROJECT_ID, parentFlagId: 'flag-parent' },
+    ]);
+    prismaMock.flagConfig.findMany.mockResolvedValue([
+      { envId: ENV_ID, flagId: 'flag-parent', enabled: true, allowList: [], denyList: [] },
+      { envId: ENV_ID, flagId: 'flag-child', enabled: false, allowList: ['user-1'], denyList: ['user-2'] },
+    ]);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const payload = JSON.parse(response.payload);
+    const parent = payload.flags.find((f: { key: string }) => f.key === 'payments');
+    const child = payload.flags.find((f: { key: string }) => f.key === 'payments-v2');
+    expect(parent).toMatchObject({ parentKey: null, inheritParent: false });
+    expect(child).toMatchObject({ parentKey: 'payments', inheritParent: true, allowList: ['user-1'], denyList: ['user-2'] });
   });
 });

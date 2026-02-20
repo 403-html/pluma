@@ -1,4 +1,5 @@
 import type { Snapshot, SnapshotFlag } from '@pluma/types';
+import { MAX_PARENT_DEPTH } from '@pluma/types';
 
 export type { Snapshot, SnapshotFlag };
 
@@ -57,21 +58,74 @@ export class PlumaSnapshotCache {
    * Returns an Evaluator for the current snapshot.
    * Fetches or refreshes the snapshot if the TTL has expired.
    */
-  async evaluator(_options: EvaluatorOptions = {}): Promise<Evaluator> {
+  async evaluator(options: EvaluatorOptions = {}): Promise<Evaluator> {
     await this.refreshIfStale();
 
     const snap = this.snapshot;
     const flagMap = new Map<string, SnapshotFlag>(
       (snap?.flags ?? []).map((f) => [f.key, f]),
     );
+    const subjectKey = options.subjectKey;
 
-    return {
-      isEnabled(flagKey: string): boolean {
-        const flag = flagMap.get(flagKey);
+    // Maximum parent-chain depth per evaluation. Shared with the API's creation
+    // guard via MAX_PARENT_DEPTH from @pluma/types so both sides use the same limit.
+
+    // Evaluates a flag key following the precedence chain:
+    //   denyList → allowList → parent inheritance → base enabled state.
+    //
+    // NOTE: Deep parent chains are supported by design. Traversal is iterative
+    // (no recursion) so stack depth stays O(1). A single Set tracks visited keys
+    // to detect cycles; each key is added once, so memory is O(chain length).
+    // Very long chains will perform proportionally more work per isEnabled() call
+    // — keep flag hierarchies shallow when latency is critical.
+    function isEnabled(flagKey: string): boolean {
+      const visited = new Set<string>();
+      let currentKey: string = flagKey;
+
+      for (let depth = 0; depth <= MAX_PARENT_DEPTH; depth += 1) {
+        if (visited.has(currentKey)) {
+          // Cycle detected — fall back to raw enabled state to avoid infinite loop.
+          const cycledFlag = flagMap.get(currentKey);
+          return cycledFlag?.enabled ?? false;
+        }
+
+        const flag = flagMap.get(currentKey);
         if (!flag) {
           return false;
         }
+
+        visited.add(currentKey);
+
+        // 1. Deny list: subject explicitly blocked regardless of enabled state.
+        if (subjectKey !== undefined && flag.denyList.includes(subjectKey)) {
+          return false;
+        }
+
+        // 2. Allow list: subject explicitly granted regardless of enabled state.
+        //    If the subject is not in the list (or no subjectKey), fall through to
+        //    parent inheritance and base enabled state.
+        if (subjectKey !== undefined && flag.allowList.includes(subjectKey)) {
+          return true;
+        }
+
+        // 3. Parent inheritance: walk up to the parent flag on the next iteration.
+        if (flag.inheritParent && flag.parentKey !== null) {
+          currentKey = flag.parentKey;
+          continue;
+        }
+
+        // 4. Base enabled state.
         return flag.enabled;
+      }
+
+      // MAX_PARENT_DEPTH exceeded — fall back to the last reachable flag's enabled state.
+      const fallbackFlag = flagMap.get(currentKey);
+      return fallbackFlag?.enabled ?? false;
+    }
+
+    return {
+      isEnabled(flagKey: string): boolean {
+        return isEnabled(flagKey);
       },
     };
   }

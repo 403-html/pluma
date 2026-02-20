@@ -258,5 +258,79 @@ describe('Flag Config routes', () => {
 
       expect(response.statusCode).toBe(401);
     });
+
+    it('should update allowList and denyList for a flag config', async () => {
+      const updatedConfig = { ...mockFlagConfig, allowList: ['user-a', 'user-b'], denyList: ['user-c'] };
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag);
+      prismaMock.flagConfig.upsert.mockResolvedValue(updatedConfig);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { allowList: ['user-a', 'user-b'], denyList: ['user-c'] },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('allowList', ['user-a', 'user-b']);
+      expect(payload).toHaveProperty('denyList', ['user-c']);
+    });
+
+    it('should return 400 when allowList contains duplicates', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { allowList: ['user-a', 'user-a'] },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when denyList contains duplicates', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { denyList: ['user-x', 'user-x'] },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when the same subject appears in both allowList and denyList', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { allowList: ['user-a'], denyList: ['user-a'] },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when allowList contains an empty string', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { allowList: [''] },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when denyList contains an empty string', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { denyList: [''] },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 });

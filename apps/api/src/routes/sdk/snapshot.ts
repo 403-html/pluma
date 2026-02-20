@@ -45,14 +45,24 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
       where: { envId, flagId: { in: flagIds } },
     });
 
-    const configMap = new Map(configs.map((c) => [c.flagId, c.enabled]));
+    // Build maps for O(1) lookups
+    const configMap = new Map(configs.map((c) => [c.flagId, c]));
+    const keyMap = new Map(flags.map((f) => [f.id, f.key]));
 
-    const snapshotFlags = flags.map((flag) => ({
-      key: flag.key,
-      parentKey: null,
-      enabled: configMap.get(flag.id) ?? false,
-      inheritParent: false,
-    }));
+    const snapshotFlags = flags.map((flag) => {
+      const config = configMap.get(flag.id);
+      // Resolve parent key; if parentFlagId is set but the parent is no longer in this
+      // project's flag set (e.g. deleted), treat as no parent to keep the snapshot consistent.
+      const resolvedParentKey = flag.parentFlagId ? (keyMap.get(flag.parentFlagId) ?? null) : null;
+      return {
+        key: flag.key,
+        parentKey: resolvedParentKey,
+        enabled: config?.enabled ?? false,
+        inheritParent: resolvedParentKey !== null,
+        allowList: config?.allowList ?? [],
+        denyList: config?.denyList ?? [],
+      };
+    });
 
     void reply.header('ETag', etag);
 

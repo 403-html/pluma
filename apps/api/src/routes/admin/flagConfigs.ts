@@ -20,8 +20,32 @@ const flagConfigParamsSchema = z.object({
 });
 
 const flagConfigUpdateBodySchema = z.object({
-  enabled: z.boolean(),
-});
+  enabled: z.boolean().optional(),
+  allowList: z.array(z.string().min(1)).optional(),
+  denyList: z.array(z.string().min(1)).optional(),
+}).refine(
+  (body) => body.enabled !== undefined || body.allowList !== undefined || body.denyList !== undefined,
+  { message: 'At least one of enabled, allowList, or denyList must be provided' },
+).refine(
+  (body) => {
+    if (body.allowList === undefined) return true;
+    return new Set(body.allowList).size === body.allowList.length;
+  },
+  { message: 'allowList must not contain duplicate entries', path: ['allowList'] },
+).refine(
+  (body) => {
+    if (body.denyList === undefined) return true;
+    return new Set(body.denyList).size === body.denyList.length;
+  },
+  { message: 'denyList must not contain duplicate entries', path: ['denyList'] },
+).refine(
+  (body) => {
+    if (body.allowList === undefined || body.denyList === undefined) return true;
+    const allowSet = new Set(body.allowList);
+    return !body.denyList.some((s) => allowSet.has(s));
+  },
+  { message: 'A subject key must not appear in both allowList and denyList', path: ['allowList'] },
+);
 
 /**
  * Validates that the environment and flag exist and belong to the same project.
@@ -165,13 +189,22 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
       }
 
       const config = await prisma.$transaction(async (tx) => {
+        const { enabled, allowList, denyList } = parsedBody.data;
+        const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[] } = {};
+
+        if (enabled !== undefined) updates.enabled = enabled;
+        if (allowList !== undefined) updates.allowList = allowList;
+        if (denyList !== undefined) updates.denyList = denyList;
+
         const upserted = await tx.flagConfig.upsert({
           where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
-          update: { enabled: parsedBody.data.enabled },
+          update: updates,
           create: {
             envId: validated.envId,
             flagId: validated.flagId,
-            enabled: parsedBody.data.enabled,
+            enabled: enabled ?? false,
+            allowList: allowList ?? [],
+            denyList: denyList ?? [],
           },
         });
 
