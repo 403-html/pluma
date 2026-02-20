@@ -32,7 +32,7 @@ docker compose build --no-cache
 ### Database connection errors
 Verify Docker is running and PostgreSQL container is healthy:
 ```bash
-cd packages/db && docker-compose ps
+cd packages/db && docker compose ps
 ```
 
 ### Prisma type/client drift

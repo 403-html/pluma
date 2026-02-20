@@ -5,8 +5,10 @@ services:
     image: postgres:16-alpine
     container_name: pluma-postgres-prod
     restart: unless-stopped
-    ports:
-      - '5432:5432'
+    # Note: Postgres is not exposed on the host in production.
+    # If host access is needed for maintenance, temporarily add:
+    # ports:
+    #   - '127.0.0.1:5432:5432'
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env for production}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env for production}

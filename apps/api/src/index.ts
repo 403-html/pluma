@@ -5,7 +5,7 @@ const start = async () => {
   const fastify = await buildApp();
   
   try {
-    const port = Number(process.env.PORT) || 3000;
+    const port = Number(process.env.PORT) || 4000;
     const host = process.env.HOST || '0.0.0.0';
     
     await fastify.listen({ port, host });

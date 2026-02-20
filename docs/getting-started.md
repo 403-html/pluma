@@ -76,7 +76,7 @@ If you prefer to run services directly on your host:
 
     ```bash
     cd packages/db
-    docker-compose up -d
+    docker compose up -d
     cp .env.example .env
     pnpm db:generate
     pnpm db:migrate
