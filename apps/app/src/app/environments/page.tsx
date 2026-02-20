@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Environment } from '@pluma/types';
 import { environments } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
@@ -17,17 +17,7 @@ export default function EnvironmentsPage() {
   const [formName, setFormName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (selectedProject) {
-      loadEnvironments();
-    } else {
-      setEnvList([]);
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProject]);
-
-  const loadEnvironments = async () => {
+  const loadEnvironments = useCallback(async () => {
     if (!selectedProject) return;
 
     try {
@@ -40,7 +30,16 @@ export default function EnvironmentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedProject]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      loadEnvironments();
+    } else {
+      setEnvList([]);
+      setLoading(false);
+    }
+  }, [selectedProject, loadEnvironments]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

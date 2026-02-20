@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { FlagWithConfig } from '@/lib/api';
 import { flags } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
@@ -20,17 +20,7 @@ export default function FlagsPage() {
   const [formDesc, setFormDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (selectedEnvironment) {
-      loadFlags();
-    } else {
-      setFlagList([]);
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEnvironment]);
-
-  const loadFlags = async () => {
+  const loadFlags = useCallback(async () => {
     if (!selectedEnvironment) return;
 
     try {
@@ -43,7 +33,16 @@ export default function FlagsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEnvironment]);
+
+  useEffect(() => {
+    if (selectedEnvironment) {
+      loadFlags();
+    } else {
+      setFlagList([]);
+      setLoading(false);
+    }
+  }, [selectedEnvironment, loadFlags]);
 
   const filteredFlags = useMemo(() => {
     if (!searchQuery) return flagList;

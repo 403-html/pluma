@@ -24,22 +24,7 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
   const [envList, setEnvList] = useState<Environment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (selectedProject) {
-      loadEnvironments(selectedProject.id);
-    } else {
-      setEnvList([]);
-      setSelectedEnvironment(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProject]);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
       const data = await projects.list();
@@ -50,9 +35,9 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedProject, setSelectedProject]);
 
-  const loadEnvironments = async (projectId: string) => {
+  const loadEnvironments = useCallback(async (projectId: string) => {
     try {
       const data = await environments.list(projectId);
       setEnvList(data);
@@ -65,7 +50,20 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
       setEnvList([]);
       setSelectedEnvironment(null);
     }
-  };
+  }, [selectedEnvironment, setSelectedEnvironment]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      loadEnvironments(selectedProject.id);
+    } else {
+      setEnvList([]);
+      setSelectedEnvironment(null);
+    }
+  }, [selectedProject, loadEnvironments, setSelectedEnvironment]);
 
   const handleSearchChange = useCallback(
     (value: string) => {

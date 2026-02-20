@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from '@/lib/api';
 
@@ -12,12 +12,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
 
-  useEffect(() => {
-    checkAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     if (PUBLIC_PATHS.includes(pathname)) {
       setIsAuthorized(true);
       setIsChecking(false);
@@ -32,7 +27,11 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
     } finally {
       setIsChecking(false);
     }
-  };
+  }, [pathname, router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   if (isChecking) {
     return (
