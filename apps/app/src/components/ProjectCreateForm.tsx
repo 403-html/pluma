@@ -1,10 +1,12 @@
+import type { FormEvent } from 'react';
+
 type ProjectCreateFormProps = {
   formKey: string;
   formName: string;
   submitting: boolean;
   onFormKey: (v: string) => void;
   onFormName: (v: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   onCancel: () => void;
 };
 

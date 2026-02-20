@@ -1,3 +1,5 @@
+import type { FormEvent } from 'react';
+
 type FlagCreateFormProps = {
   formKey: string;
   formName: string;
@@ -6,7 +8,7 @@ type FlagCreateFormProps = {
   onFormKey: (v: string) => void;
   onFormName: (v: string) => void;
   onFormDesc: (v: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   onCancel: () => void;
 };
 

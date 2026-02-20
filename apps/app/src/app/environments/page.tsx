@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import type { Environment } from '@pluma/types';
 import { environments, ApiError } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
@@ -40,7 +40,7 @@ export default function EnvironmentsPage() {
     }
   }, [selectedProject, loadEnvironments]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
 

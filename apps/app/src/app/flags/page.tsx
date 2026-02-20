@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, type FormEvent } from 'react';
 import type { FlagListItem } from '@pluma/types';
 import { flags, ApiError } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
@@ -49,7 +49,7 @@ export default function FlagsPage() {
     return () => { setCreateFlagFn(null); };
   }, [handleCreateFlagClick, setCreateFlagFn]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
     setSubmitting(true); setError('');

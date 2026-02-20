@@ -15,7 +15,7 @@ import type {
 const API_URL =
   typeof window !== 'undefined'
     ? '/api'
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2137';
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 class ApiError extends Error {
   constructor(

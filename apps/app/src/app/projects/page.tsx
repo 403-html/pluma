@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import type { Project } from '@pluma/types';
 import { projects, ApiError } from '@/lib/api';
 import ProjectCreateForm from '@/components/ProjectCreateForm';
@@ -31,7 +31,7 @@ export default function ProjectsPage() {
 
   useEffect(() => { loadProjects(); }, [loadProjects]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');

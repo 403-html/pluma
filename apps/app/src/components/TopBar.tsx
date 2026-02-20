@@ -33,6 +33,9 @@ export default function TopBar() {
       if (data.length > 0) {
         setSelectedProject((current) => current || data[0]);
       }
+    } catch {
+      setProjectList([]);
+      setSelectedProject(null);
     } finally {
       setLoading(false);
     }
@@ -68,6 +71,12 @@ export default function TopBar() {
   }, [selectedProject, loadEnvironments, setSelectedEnvironment]);
 
   const debounceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current !== null) window.clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleSearchChange = useCallback(
     (value: string) => {

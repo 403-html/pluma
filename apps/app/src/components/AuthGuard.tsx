@@ -8,8 +8,8 @@ import { PUBLIC_PATHS } from '@/lib/constants';
 export default function AuthGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(() => PUBLIC_PATHS.includes(pathname));
+  const [isChecking, setIsChecking] = useState(() => !PUBLIC_PATHS.includes(pathname));
 
   const checkAuth = useCallback(async () => {
     if (PUBLIC_PATHS.includes(pathname)) {
