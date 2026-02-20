@@ -41,11 +41,13 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
     try {
       const data = await environments.list(projectId);
       setEnvList(data);
-      if (data.length > 0 && !selectedEnvironment) {
-        setSelectedEnvironment(data[0]);
-      } else if (!data.some((e) => e.id === selectedEnvironment?.id)) {
-        setSelectedEnvironment(data[0] || null);
+      
+      const currentEnvStillExists = data.some((e) => e.id === selectedEnvironment?.id);
+      if (currentEnvStillExists) {
+        return;
       }
+      
+      setSelectedEnvironment(data[0] || null);
     } catch {
       setEnvList([]);
       setSelectedEnvironment(null);

@@ -4,9 +4,8 @@ import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import AuthGuard from '@/components/AuthGuard';
 import { AppProvider } from '@/lib/context/AppContext';
+import { PUBLIC_PATHS } from '@/lib/constants';
 import './globals.css';
-
-const PUBLIC_PATHS = ['/login', '/register'];
 
 export default function RootLayout({
   children,

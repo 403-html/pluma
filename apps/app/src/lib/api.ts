@@ -5,11 +5,12 @@ import type {
   FeatureFlag,
   FlagConfig,
 } from '@pluma/types';
+import { DEFAULT_API_URL } from './constants';
 
 const API_URL =
   typeof window !== 'undefined'
-    ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    : 'http://localhost:3001';
+    ? process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL
+    : DEFAULT_API_URL;
 
 class ApiError extends Error {
   constructor(

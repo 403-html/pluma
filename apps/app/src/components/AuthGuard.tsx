@@ -3,8 +3,7 @@
 import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from '@/lib/api';
-
-const PUBLIC_PATHS = ['/login', '/register'];
+import { PUBLIC_PATHS } from '@/lib/constants';
 
 export default function AuthGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
