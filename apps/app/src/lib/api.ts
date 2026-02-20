@@ -134,9 +134,26 @@ export const environments = {
 // Flags
 type FlagWithConfig = FeatureFlag & { config: FlagConfig };
 
+/** Shape returned by GET /api/v1/environments/:envId/flags */
+export type FlagListItem = {
+  flagId: string;
+  key: string;
+  name: string;
+  description: string | null;
+  enabled: boolean;
+};
+
+type FlagListResponse = {
+  data: FlagListItem[];
+  nextCursor: string | null;
+};
+
 export const flags = {
-  async list(envId: string): Promise<FlagWithConfig[]> {
-    return fetchApi<FlagWithConfig[]>(`/api/v1/environments/${envId}/flags`);
+  async list(envId: string): Promise<FlagListItem[]> {
+    const res = await fetchApi<FlagListResponse>(
+      `/api/v1/environments/${envId}/flags`,
+    );
+    return res.data;
   },
 
   async create(

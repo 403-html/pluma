@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { FlagWithConfig } from '@/lib/api';
+import type { FlagListItem } from '@/lib/api';
 import { flags } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
 import TopBar from '@/components/TopBar';
@@ -10,7 +10,7 @@ import styles from './page.module.css';
 export default function FlagsPage() {
   const { selectedProject, selectedEnvironment, searchQuery } =
     useAppContext();
-  const [flagList, setFlagList] = useState<FlagWithConfig[]>([]);
+  const [flagList, setFlagList] = useState<FlagListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -106,12 +106,12 @@ export default function FlagsPage() {
     }
   };
 
-  const handleToggle = async (flag: FlagWithConfig) => {
+  const handleToggle = async (flag: FlagListItem) => {
     if (!selectedEnvironment) return;
 
     try {
-      await flags.updateConfig(selectedEnvironment.id, flag.id, {
-        enabled: !flag.config.enabled,
+      await flags.updateConfig(selectedEnvironment.id, flag.flagId, {
+        enabled: !flag.enabled,
       });
       loadFlags();
     } catch {
@@ -119,8 +119,8 @@ export default function FlagsPage() {
     }
   };
 
-  const startEdit = (flag: FlagWithConfig) => {
-    setEditingId(flag.id);
+  const startEdit = (flag: FlagListItem) => {
+    setEditingId(flag.flagId);
     setFormName(flag.name);
     setFormDesc(flag.description || '');
   };
@@ -208,15 +208,15 @@ export default function FlagsPage() {
           <div className={styles.flagsGrid}>
             {filteredFlags.map((flag) => (
               <div
-                key={flag.id}
+                key={flag.flagId}
                 className={`${styles.flagCard} ${
-                  flag.config.enabled ? styles.flagCardActive : ''
+                  flag.enabled ? styles.flagCardActive : ''
                 }`}
               >
                 <div className={styles.flagHeader}>
                   <div className={styles.flagInfo}>
                     <h3 className={styles.flagKey}>{flag.key}</h3>
-                    {editingId === flag.id ? (
+                    {editingId === flag.flagId ? (
                       <div className={styles.editForm}>
                         <input
                           type="text"
@@ -246,22 +246,22 @@ export default function FlagsPage() {
                   <label className={styles.toggle}>
                     <input
                       type="checkbox"
-                      checked={flag.config.enabled}
+                      checked={flag.enabled}
                       onChange={() => handleToggle(flag)}
                       className={styles.toggleInput}
                     />
                     <span className={styles.toggleSlider} />
                     <span className={styles.toggleLabel}>
-                      {flag.config.enabled ? 'Enabled' : 'Disabled'}
+                      {flag.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
                 </div>
                 <div className={styles.flagActions}>
-                  {editingId === flag.id ? (
+                  {editingId === flag.flagId ? (
                     <>
                       <button
                         className={styles.actionButton}
-                        onClick={() => handleEdit(flag.id)}
+                        onClick={() => handleEdit(flag.flagId)}
                         disabled={submitting}
                       >
                         Save
@@ -287,7 +287,7 @@ export default function FlagsPage() {
                       </button>
                       <button
                         className={styles.deleteButton}
-                        onClick={() => handleDelete(flag.id)}
+                        onClick={() => handleDelete(flag.flagId)}
                       >
                         Delete
                       </button>

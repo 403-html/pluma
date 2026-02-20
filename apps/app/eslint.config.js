@@ -7,7 +7,6 @@ export default [
       globals: {
         window: "readonly",
         fetch: "readonly",
-        RequestInit: "readonly",
       },
     },
   },
