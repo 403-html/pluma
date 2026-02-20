@@ -38,13 +38,14 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
   }, [setSelectedProject]);
 
   const loadEnvironments = useCallback(async (projectId: string) => {
+    if (!projectId) return;
     try {
       const data = await environments.list(projectId);
-      setEnvList(data);
-      
+      const list = Array.isArray(data) ? data : [];
+      setEnvList(list);
       setSelectedEnvironment((current) => {
-        const currentStillExists = data.some((env) => env.id === current?.id);
-        return currentStillExists ? current : data[0] || null;
+        const currentStillExists = list.some((env) => env.id === current?.id);
+        return currentStillExists ? current : list[0] || null;
       });
     } catch {
       setEnvList([]);

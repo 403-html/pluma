@@ -26,7 +26,8 @@ export default function Sidebar() {
 
   return (
     <aside className="w-[220px] h-screen bg-card flex flex-col py-8 fixed left-0 top-0">
-      <div className="w-10 h-10 bg-accent mx-auto mb-12" role="img" aria-label="Pluma" />
+      {/* TODO: replace with a proper <img> once a logo asset is available */}
+      <div className="w-10 h-10 bg-accent mx-auto mb-12" role="img" aria-label="Pluma logo" />
       <nav className="flex flex-col gap-1">
         {navItems.map(({ href, label }) => (
           <Link

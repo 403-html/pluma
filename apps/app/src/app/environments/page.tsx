@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Environment } from '@pluma/types';
-import { environments } from '@/lib/api';
+import { environments, ApiError } from '@/lib/api';
 import { useAppContext } from '@/lib/context/AppContext';
 
 export default function EnvironmentsPage() {
@@ -24,8 +24,8 @@ export default function EnvironmentsPage() {
       setError('');
       const data = await environments.list(selectedProject.id);
       setEnvList(data);
-    } catch {
-      setError('Failed to load environments');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load environments');
     } finally {
       setLoading(false);
     }
@@ -53,8 +53,8 @@ export default function EnvironmentsPage() {
       setFormName('');
       setShowForm(false);
       await loadEnvironments();
-    } catch {
-      setError('Failed to create environment');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to create environment');
     } finally {
       setSubmitting(false);
     }
@@ -69,8 +69,8 @@ export default function EnvironmentsPage() {
       setEditingId(null);
       setFormName('');
       await loadEnvironments();
-    } catch {
-      setError('Failed to update environment');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to update environment');
     } finally {
       setSubmitting(false);
     }
@@ -86,8 +86,8 @@ export default function EnvironmentsPage() {
     try {
       await environments.delete(id);
       await loadEnvironments();
-    } catch {
-      setError('Failed to delete environment');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to delete environment');
     }
   };
 
