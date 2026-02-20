@@ -1,34 +1,23 @@
-'use client';
-
-import { usePathname } from 'next/navigation';
-import Sidebar from '@/components/Sidebar';
+import type { Metadata } from 'next';
 import AuthGuard from '@/components/AuthGuard';
-import { AppProvider } from '@/lib/context/AppContext';
-import { PUBLIC_PATHS } from '@/lib/constants';
+import AppShell from '@/components/AppShell';
 import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Pluma',
+  description: 'Feature flag management dashboard',
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const isPublic = PUBLIC_PATHS.includes(pathname);
-
   return (
     <html lang="en">
       <body>
         <AuthGuard>
-          {isPublic ? (
-            children
-          ) : (
-            <AppProvider>
-              <div className="app-layout">
-                <Sidebar />
-                <main className="app-main">{children}</main>
-              </div>
-            </AppProvider>
-          )}
+          <AppShell>{children}</AppShell>
         </AuthGuard>
       </body>
     </html>

@@ -42,7 +42,7 @@ export default function TopBar({ onCreateFlag }: TopBarProps) {
       const data = await environments.list(projectId);
       setEnvList(data);
       
-      const currentEnvStillExists = data.some((e) => e.id === selectedEnvironment?.id);
+      const currentEnvStillExists = data.some((env) => env.id === selectedEnvironment?.id);
       if (currentEnvStillExists) {
         return;
       }
