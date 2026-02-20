@@ -92,10 +92,9 @@ COPY packages/db/prisma ./packages/db/prisma
 # making `prisma migrate deploy` available at container startup.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
 
-# Copy built application and workspace package dist outputs
+# Copy built application.
+# @pluma/db and @pluma/types are bundled into this file — no separate dist needed.
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/packages/db/dist ./packages/db/dist
-COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \

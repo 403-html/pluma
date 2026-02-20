@@ -44,6 +44,11 @@ const packages = parseArgValue(args, '--packages', 'external');
 const sourcemap = hasFlag(args, '--sourcemap', true);
 const clean = hasFlag(args, '--clean', true);
 
+// Collect any --external:packagename flags into an explicit externals list.
+const external = args
+  .filter((a) => a.startsWith('--external:'))
+  .map((a) => a.slice('--external:'.length));
+
 const entryPoint = resolve(cwd, entry);
 const outputFile = resolve(cwd, outfile);
 
@@ -60,6 +65,7 @@ try {
     format,
     target,
     packages,
+    ...(external.length > 0 ? { external } : {}),
     sourcemap,
   });
 } catch (error) {
