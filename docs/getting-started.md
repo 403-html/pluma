@@ -58,7 +58,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 **Note**: In production, always:
-1. Set strong `POSTGRES_USER` and `POSTGRES_PASSWORD` in `.env` (use `openssl rand -base64 32` to generate)
+1. Set strong `POSTGRES_USER` and `POSTGRES_PASSWORD` in `.env` (use `openssl rand -hex 32` to generate a URL-safe password)
 2. Override `NEXT_PUBLIC_API_URL` with your actual API domain
 3. Use proper secrets management (see [Security](security.md))
 

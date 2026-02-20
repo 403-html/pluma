@@ -68,8 +68,10 @@ COPY tooling ./tooling
 COPY apps/api ./apps/api
 COPY packages ./packages
 
-# Build the application
-RUN pnpm --filter @pluma/api build
+# Build all workspace packages required by the API
+RUN pnpm --filter @pluma/types build && \
+    pnpm --filter @pluma/db build && \
+    pnpm --filter @pluma/api build
 
 # Production runner stage
 FROM base AS runner
@@ -81,16 +83,19 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 
+# Copy Prisma schema before install so the @prisma/client postinstall hook
+# can generate the client with the correct schema.
+COPY packages/db/prisma ./packages/db/prisma
+
 # Install production dependencies only.
 # prisma is now a production dependency of @pluma/db so it is included here,
 # making `prisma migrate deploy` available at container startup.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
 
-# Copy built application
+# Copy built application and workspace package dist outputs
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-
-# Copy Prisma schema and migrations for runtime
-COPY packages/db/prisma ./packages/db/prisma
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \

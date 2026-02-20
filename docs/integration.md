@@ -134,7 +134,8 @@ const flagCache = PlumaSnapshotCache.create({
 const app = express();
 
 app.get('/checkout', async (req, res) => {
-  const flags = await flagCache.evaluator({ subjectKey: req.user?.id });
+  const userId = req.params.userId; // replace with your auth middleware's user ID
+  const flags = await flagCache.evaluator({ subjectKey: userId });
 
   if (flags.isEnabled('new-checkout')) {
     return res.redirect('/checkout/v2');
@@ -157,7 +158,8 @@ const flagCache = PlumaSnapshotCache.create({
 const fastify = Fastify();
 
 fastify.get('/feature', async (request, reply) => {
-  const flags = await flagCache.evaluator({ subjectKey: request.user?.id });
+  const userId = 'anonymous'; // replace with user ID from your auth layer
+  const flags = await flagCache.evaluator({ subjectKey: userId });
   return { enabled: flags.isEnabled('my-feature') };
 });
 ```
