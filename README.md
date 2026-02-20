@@ -19,9 +19,32 @@ Pluma has two API planes:
 
 - Node.js (current LTS recommended)
 - pnpm `10.29.3+`
-- Docker (for local PostgreSQL)
+- Docker (for local PostgreSQL or full Docker Compose workflow)
 
-## First-Time Setup
+## Getting Started
+
+### Docker (Recommended)
+
+The standardized development approach uses Docker Compose for all services (PostgreSQL, API, App) with hot reload support.
+
+**Development mode** (hot reload enabled):
+```bash
+docker compose up
+```
+
+**Production mode** (optimized builds):
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+
+**Database-only** (backward compatibility):
+```bash
+cd packages/db && docker compose up -d
+```
+
+See **[DOCKER.md](DOCKER.md)** for comprehensive Docker documentation, troubleshooting, and advanced workflows.
+
+### Manual / Local Setup
 
 1. Install dependencies at repo root:
 

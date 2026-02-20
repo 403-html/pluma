@@ -36,7 +36,6 @@ out
 .gitmessage
 
 # Docker
-Dockerfile
 .dockerignore
 docker-compose*.yml
 
