@@ -13,7 +13,9 @@ function isSafeReturnUrl(url: string | null): url is string {
   // Reject encoded control characters (e.g. %0a newline, %00 null byte).
   try {
     const decoded = decodeURIComponent(url);
-    return !/[\x00-\x1f\x7f]/.test(decoded);
+    if (/[\x00-\x1f\x7f]/.test(decoded)) return false;
+    // Reject path traversal sequences that could escape the app root.
+    return !decoded.split('?')[0].split('/').includes('..');
   } catch {
     // decodeURIComponent throws on malformed percent-encoding — reject it.
     return false;
