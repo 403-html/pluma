@@ -18,7 +18,7 @@ export default function LanguageSwitcher() {
     router.push(parts.join('/'));
   }
 
-  if (SUPPORTED_LOCALES.length < 2) return null;
+  const canSwitch = SUPPORTED_LOCALES.length >= 2;
 
   return (
     <div className="lang-switcher">
@@ -30,6 +30,7 @@ export default function LanguageSwitcher() {
         className="lang-switcher__select"
         value={locale}
         onChange={(e) => handleChange(e.target.value)}
+        disabled={!canSwitch}
       >
         {SUPPORTED_LOCALES.map((l) => (
           <option key={l} value={l}>
