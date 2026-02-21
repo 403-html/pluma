@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { DEFAULT_LOCALE, isValidLocale } from '@/i18n';
+import type { Locale } from '@/i18n';
 
 if (typeof process.env.NEXT_PUBLIC_API_URL !== 'string' || process.env.NEXT_PUBLIC_API_URL.length === 0) {
   throw new Error('NEXT_PUBLIC_API_URL environment variable is required and cannot be empty');
@@ -20,6 +22,15 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_ROUTES.some((rule) =>
     rule.match === 'exact' ? pathname === rule.path : pathname.startsWith(rule.path),
   );
+}
+
+function detectLocale(request: NextRequest): Locale {
+  const acceptLang = request.headers.get('accept-language') ?? '';
+  for (const tag of acceptLang.split(',')) {
+    const code = tag.split(';')[0].trim().split('-')[0].toLowerCase();
+    if (isValidLocale(code)) return code;
+  }
+  return DEFAULT_LOCALE;
 }
 
 async function checkSetup(): Promise<boolean> {
@@ -58,7 +69,23 @@ async function checkAuth(request: NextRequest): Promise<boolean> {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (isPublicPath(pathname)) {
+  // Determine the locale from the first path segment.
+  const firstSegment = pathname.split('/')[1] ?? '';
+
+  if (!isValidLocale(firstSegment)) {
+    // No valid locale prefix — detect from Accept-Language and redirect.
+    const locale = detectLocale(request);
+    const redirectUrl = new URL(`/${locale}${pathname}`, request.url);
+    redirectUrl.search = request.nextUrl.search;
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  const locale: Locale = firstSegment;
+  // Strip the locale prefix to get the logical path used for route matching.
+  const pathParts = pathname.split('/').slice(2);
+  const localePath = '/' + pathParts.join('/');
+
+  if (isPublicPath(localePath)) {
     return NextResponse.next();
   }
 
@@ -69,11 +96,11 @@ export async function proxy(request: NextRequest) {
 
   const isConfigured = await checkSetup();
   if (!isConfigured) {
-    return NextResponse.redirect(new URL('/register', request.url));
+    return NextResponse.redirect(new URL(`/${locale}/register`, request.url));
   }
 
-  const loginUrl = new URL('/login', request.url);
-  loginUrl.searchParams.set('returnUrl', pathname);
+  const loginUrl = new URL(`/${locale}/login`, request.url);
+  loginUrl.searchParams.set('returnUrl', localePath);
   return NextResponse.redirect(loginUrl);
 }
 

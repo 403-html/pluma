@@ -1,27 +1,20 @@
 'use client';
 
-import { useState, FormEvent, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { login } from '@/lib/api/auth';
-import { getMessages } from '@/i18n';
+import { register } from '@/lib/api/auth';
+import { StatusCodes } from 'http-status-codes';
+import type { Messages } from '@/i18n';
 
-function isSafeReturnUrl(url: string | null): url is string {
-  return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//');
-}
+type Props = { t: Messages; lang: string };
 
-function LoginForm() {
-  const t = getMessages();
+export default function RegisterForm({ t, lang }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const returnUrl = searchParams.get('returnUrl');
-  const msg = searchParams.get('msg');
-  const notice = msg === 'already-configured' ? t.login.noticeAlreadyConfigured : null;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,14 +22,18 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await register(email, password);
       if (!result.ok) {
+        if (result.status === StatusCodes.CONFLICT) {
+          router.push(`/${lang}/login?msg=already-configured`);
+          return;
+        }
         setError(result.message);
         return;
       }
-      router.push(isSafeReturnUrl(returnUrl) ? returnUrl : '/');
+      router.push(`/${lang}/login`);
     } catch {
-      setError(t.login.errorFallback);
+      setError(t.register.errorFallback);
     } finally {
       setLoading(false);
     }
@@ -45,12 +42,14 @@ function LoginForm() {
   return (
     <main className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">{t.login.title}</h1>
-        {notice && <p className="auth-notice">{notice}</p>}
+        <h1 className="auth-title">{t.register.title}</h1>
+        <p className="auth-description">
+          {t.register.description}
+        </p>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              {t.login.emailLabel}
+              {t.register.emailLabel}
             </label>
             <input
               id="email"
@@ -59,12 +58,12 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="form-input"
-              placeholder={t.login.emailPlaceholder}
+              placeholder={t.register.emailPlaceholder}
             />
           </div>
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              {t.login.passwordLabel}
+              {t.register.passwordLabel}
             </label>
             <input
               id="password"
@@ -73,29 +72,21 @@ function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="form-input"
-              placeholder={t.login.passwordPlaceholder}
+              placeholder={t.register.passwordPlaceholder}
             />
           </div>
           {error && <div className="form-error">{error}</div>}
           <button type="submit" disabled={loading} className="form-button">
-            {loading ? t.login.submitLoading : t.login.submitIdle}
+            {loading ? t.register.submitLoading : t.register.submitIdle}
           </button>
         </form>
         <p className="auth-footer">
-          {t.login.footerText}{' '}
-          <Link href="/register" className="auth-link">
-            {t.login.footerLink}
+          {t.register.footerText}{' '}
+          <Link href={`/${lang}/login`} className="auth-link">
+            {t.register.footerLink}
           </Link>
         </p>
       </div>
     </main>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div>Loading…</div>}>
-      <LoginForm />
-    </Suspense>
   );
 }

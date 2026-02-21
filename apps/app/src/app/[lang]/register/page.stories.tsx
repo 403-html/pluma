@@ -1,14 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import LoginPage from "./page";
+import RegisterForm from "./RegisterForm";
+import { en } from "@/i18n";
 
 const meta = {
-  title: "App/Login",
-  component: LoginPage,
+  title: "App/Register",
+  component: RegisterForm,
   parameters: {
     layout: "fullscreen",
   },
   tags: ["autodocs"],
-} satisfies Meta<typeof LoginPage>;
+  args: {
+    t: en,
+    lang: "en",
+  },
+} satisfies Meta<typeof RegisterForm>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
