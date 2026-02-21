@@ -24,6 +24,7 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       count: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
     sdkToken: {
       findUnique: vi.fn(),
@@ -236,6 +237,146 @@ describe('Auth routes', () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe('POST /api/v1/auth/change-password', () => {
+    it('should change password with valid credentials', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'old_hashed_pw' });
+      // First call verifies old password is correct, second call checks if new password is different
+      bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      bcryptMock.hash.mockResolvedValue('new_hashed_pw');
+      prismaMock.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_hashed_pw' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'oldpassword', newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toEqual({ message: 'Password updated' });
+      expect(bcryptMock.compare).toHaveBeenCalledWith('oldpassword', 'old_hashed_pw');
+      expect(bcryptMock.compare).toHaveBeenCalledWith('newpassword123', 'old_hashed_pw');
+      expect(bcryptMock.hash).toHaveBeenCalledWith('newpassword123', 12);
+      expect(prismaMock.user.update).toHaveBeenCalledWith({
+        where: { id: USER_ID },
+        data: { passwordHash: 'new_hashed_pw' },
+      });
+    });
+
+    it('should return 401 when not authenticated', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        payload: { oldPassword: 'oldpassword', newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return 401 when old password is incorrect', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'old_hashed_pw' });
+      bcryptMock.compare.mockResolvedValue(false);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'wrongpassword', newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(prismaMock.user.update).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 for missing oldPassword', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 for missing newPassword', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'oldpassword' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when newPassword is too short', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'oldpassword', newPassword: 'short' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 for empty oldPassword', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: '', newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 401 when user is not found in database', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'oldpassword', newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(prismaMock.user.update).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when new password is same as old password', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw' });
+      // First call verifies old password, second call checks if new password matches old hash
+      bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(true);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'samepassword', newPassword: 'samepassword' },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(bcryptMock.compare).toHaveBeenCalledTimes(2);
+      expect(prismaMock.user.update).not.toHaveBeenCalled();
     });
   });
 });

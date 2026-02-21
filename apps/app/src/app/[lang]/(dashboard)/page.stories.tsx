@@ -1,13 +1,13 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import Home from "./page";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import Home from './page';
 
 const meta = {
-  title: "App/Home",
+  title: 'App/Home',
   component: Home,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
 } satisfies Meta<typeof Home>;
 
 export default meta;

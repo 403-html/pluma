@@ -80,3 +80,60 @@ export async function register(email: string, password: string, locale: Locale):
     return { ok: false, message: t.errors.networkError, status: 0 };
   }
 }
+
+export async function logout(locale: Locale): Promise<{ ok: boolean; message?: string }> {
+  const t = getDictionary(locale);
+  try {
+    const response = await fetch('/api/v1/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      return { ok: false, message: t.errors.logoutFailed };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, message: t.errors.networkError };
+  }
+}
+
+export async function changePassword(
+  oldPassword: string,
+  newPassword: string,
+  locale: Locale
+): Promise<{ ok: boolean; message?: string }> {
+  const t = getDictionary(locale);
+  if (
+    typeof oldPassword !== 'string' ||
+    oldPassword.length === 0 ||
+    oldPassword.length > MAX_PASSWORD_LENGTH
+  ) {
+    return { ok: false, message: t.settings.oldPasswordInvalid };
+  }
+  if (
+    typeof newPassword !== 'string' ||
+    newPassword.length === 0 ||
+    newPassword.length > MAX_PASSWORD_LENGTH
+  ) {
+    return { ok: false, message: t.settings.newPasswordInvalid };
+  }
+  try {
+    const response = await fetch('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldPassword, newPassword }),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response, t.settings.changePasswordError);
+      return { ok: false, message };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, message: t.errors.networkError };
+  }
+}

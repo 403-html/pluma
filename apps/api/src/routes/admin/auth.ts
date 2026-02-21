@@ -24,6 +24,11 @@ const registerBodySchema = z.object({
   password: z.string().min(8),
 });
 
+const changePasswordBodySchema = z.object({
+  oldPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+});
+
 export async function registerAuthRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/v1/auth/setup
@@ -132,6 +137,54 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     reply.clearCookie(COOKIE_NAME, { path: '/' });
 
     return reply.code(StatusCodes.NO_CONTENT).send();
+  });
+
+  /**
+   * POST /api/v1/auth/change-password
+   * Changes the password for the currently authenticated user.
+   * Requires authentication via adminAuthHook.
+   */
+  fastify.post('/change-password', { preHandler: [adminAuthHook] }, async (request, reply) => {
+    const parsedBody = changePasswordBodySchema.safeParse(request.body);
+
+    if (!parsedBody.success) {
+      request.log.warn({ issues: parsedBody.error.flatten() }, 'Change password rejected: invalid payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: request.sessionUser.id },
+    });
+
+    if (!user) {
+      request.log.error({ userId: request.sessionUser.id }, 'Change password rejected: user not found');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
+    const oldPasswordValid = await compare(parsedBody.data.oldPassword, user.passwordHash);
+
+    if (!oldPasswordValid) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: incorrect old password');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
+    const newPasswordMatchesOld = await compare(parsedBody.data.newPassword, user.passwordHash);
+
+    if (newPasswordMatchesOld) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: new password must be different');
+      return reply.badRequest('New password must be different from old password');
+    }
+
+    const newPasswordHash = await hash(parsedBody.data.newPassword, BCRYPT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    request.log.info({ userId: user.id }, 'Password changed successfully');
+
+    return reply.code(StatusCodes.OK).send({ message: 'Password updated' });
   });
 
   /**

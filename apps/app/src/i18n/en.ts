@@ -41,12 +41,31 @@ export const en = {
   },
   errors: {
     networkError: 'Unable to reach the server. Check your connection.',
+    logoutFailed: 'Failed to logout',
   },
   ui: {
     languageSelectorLabel: 'Language',
   },
   common: {
     loading: 'Loading…',
+  },
+  sidebar: {
+    settings: 'Settings',
+    logout: 'Logout',
+  },
+  settings: {
+    title: 'Settings',
+    close: 'Close',
+    languageSection: 'Language',
+    passwordSection: 'Change Password',
+    oldPassword: 'Current Password',
+    newPassword: 'New Password',
+    changePassword: 'Change Password',
+    changePasswordLoading: 'Changing password…',
+    changePasswordSuccess: 'Password changed successfully',
+    changePasswordError: 'Failed to change password',
+    oldPasswordInvalid: 'Current password is required',
+    newPasswordInvalid: 'New password is required',
   },
 } as const;
 
