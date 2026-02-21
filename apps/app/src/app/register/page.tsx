@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { register, HTTP_CONFLICT } from '@/lib/api/auth';
+import { register, StatusCodes } from '@/lib/api/auth';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -20,7 +20,7 @@ export default function RegisterPage() {
     try {
       const result = await register(email, password);
       if (!result.ok) {
-        if (result.status === HTTP_CONFLICT) {
+        if (result.status === StatusCodes.CONFLICT) {
           router.push('/login?msg=already-configured');
           return;
         }

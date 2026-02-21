@@ -1,4 +1,5 @@
 import type { AuthUser } from '@pluma/types';
+import { StatusCodes } from 'http-status-codes';
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
@@ -10,8 +11,7 @@ export type AuthResult =
   | { ok: true; user: AuthUserResponse }
   | { ok: false; message: string; status: number };
 
-/** HTTP Conflict status code — returned by /register when an admin already exists. */
-export const HTTP_CONFLICT = 409;
+export { StatusCodes };
 
 async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
   try {
