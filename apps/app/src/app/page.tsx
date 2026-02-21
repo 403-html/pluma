@@ -1,8 +1,7 @@
 import { getMessages } from '@/i18n';
 
-const t = getMessages();
-
 export default function Home() {
+  const t = getMessages();
   return (
     <main>
       <h1>{t.home.heading}</h1>

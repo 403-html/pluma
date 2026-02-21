@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { getMessages } from '@/i18n';
 
-const t = getMessages();
-
 export default function NotFound() {
+  const t = getMessages();
   return (
     <main className="not-found-container">
       <div className="not-found-content">

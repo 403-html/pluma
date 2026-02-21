@@ -7,9 +7,8 @@ import { register } from '@/lib/api/auth';
 import { StatusCodes } from 'http-status-codes';
 import { getMessages } from '@/i18n';
 
-const t = getMessages();
-
 export default function RegisterPage() {
+  const t = getMessages();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

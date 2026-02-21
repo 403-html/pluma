@@ -6,17 +6,12 @@ import Link from 'next/link';
 import { login } from '@/lib/api/auth';
 import { getMessages } from '@/i18n';
 
-const t = getMessages();
-
-const MESSAGES: Record<string, string> = {
-  'already-configured': t.login.noticeAlreadyConfigured,
-};
-
 function isSafeReturnUrl(url: string | null): url is string {
   return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//');
 }
 
 function LoginForm() {
+  const t = getMessages();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -26,7 +21,7 @@ function LoginForm() {
 
   const returnUrl = searchParams.get('returnUrl');
   const msg = searchParams.get('msg');
-  const notice = msg !== null ? (MESSAGES[msg] ?? null) : null;
+  const notice = msg === 'already-configured' ? t.login.noticeAlreadyConfigured : null;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,7 +94,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>{t.common.loading}</div>}>
+    <Suspense fallback={<div>Loading…</div>}>
       <LoginForm />
     </Suspense>
   );
