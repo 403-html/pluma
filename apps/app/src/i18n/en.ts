@@ -42,6 +42,9 @@ export const en = {
   errors: {
     networkError: 'Unable to reach the server. Check your connection.',
   },
+  ui: {
+    languageSelectorLabel: 'Language',
+  },
 } as const;
 
 export type Messages = typeof en;

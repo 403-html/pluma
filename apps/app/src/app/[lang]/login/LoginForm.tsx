@@ -4,9 +4,7 @@ import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/api/auth';
-import type { Messages, Locale } from '@/i18n';
-
-type Props = { t: Messages; lang: Locale };
+import { useLocale } from '@/i18n/LocaleContext';
 
 function isSafeReturnUrl(url: string | null): url is string {
   if (typeof url !== 'string') return false;
@@ -22,7 +20,8 @@ function isSafeReturnUrl(url: string | null): url is string {
   }
 }
 
-function LoginFormContent({ t, lang }: Props) {
+function LoginFormContent() {
+  const { locale, t } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,12 +39,12 @@ function LoginFormContent({ t, lang }: Props) {
     setLoading(true);
 
     try {
-      const result = await login(email, password, lang);
+      const result = await login(email, password, locale);
       if (!result.ok) {
         setError(result.message);
         return;
       }
-      router.push(isSafeReturnUrl(returnUrl) ? `/${lang}${returnUrl}` : `/${lang}`);
+      router.push(isSafeReturnUrl(returnUrl) ? `/${locale}${returnUrl}` : `/${locale}`);
     } catch {
       setError(t.login.errorFallback);
     } finally {
@@ -94,7 +93,7 @@ function LoginFormContent({ t, lang }: Props) {
         </form>
         <p className="auth-footer">
           {t.login.footerText}{' '}
-          <Link href={`/${lang}/register`} className="auth-link">
+          <Link href={`/${locale}/register`} className="auth-link">
             {t.login.footerLink}
           </Link>
         </p>
@@ -103,10 +102,11 @@ function LoginFormContent({ t, lang }: Props) {
   );
 }
 
-export default function LoginForm({ t, lang }: Props) {
+export default function LoginForm() {
   return (
     <Suspense fallback={<div>Loading…</div>}>
-      <LoginFormContent t={t} lang={lang} />
+      <LoginFormContent />
     </Suspense>
   );
 }
+

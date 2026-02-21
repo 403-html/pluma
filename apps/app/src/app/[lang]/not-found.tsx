@@ -1,13 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { getDictionary, resolveLocale } from '@/i18n';
+import { useLocale } from '@/i18n/LocaleContext';
 
 export default function NotFound() {
-  const params = useParams();
-  const locale = resolveLocale(typeof params?.lang === 'string' ? params.lang : '');
-  const t = getDictionary(locale);
+  const { locale, t } = useLocale();
   return (
     <main className="not-found-container">
       <div className="not-found-content">

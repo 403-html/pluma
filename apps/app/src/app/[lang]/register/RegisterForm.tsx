@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { register } from '@/lib/api/auth';
 import { StatusCodes } from 'http-status-codes';
-import type { Messages, Locale } from '@/i18n';
+import { useLocale } from '@/i18n/LocaleContext';
 
-type Props = { t: Messages; lang: Locale };
-
-export default function RegisterForm({ t, lang }: Props) {
+export default function RegisterForm() {
+  const { locale, t } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,16 +21,16 @@ export default function RegisterForm({ t, lang }: Props) {
     setLoading(true);
 
     try {
-      const result = await register(email, password, lang);
+      const result = await register(email, password, locale);
       if (!result.ok) {
         if (result.status === StatusCodes.CONFLICT) {
-          router.push(`/${lang}/login?msg=already-configured`);
+          router.push(`/${locale}/login?msg=already-configured`);
           return;
         }
         setError(result.message);
         return;
       }
-      router.push(`/${lang}/login`);
+      router.push(`/${locale}/login`);
     } catch {
       setError(t.register.errorFallback);
     } finally {
@@ -82,7 +81,7 @@ export default function RegisterForm({ t, lang }: Props) {
         </form>
         <p className="auth-footer">
           {t.register.footerText}{' '}
-          <Link href={`/${lang}/login`} className="auth-link">
+          <Link href={`/${locale}/login`} className="auth-link">
             {t.register.footerLink}
           </Link>
         </p>
@@ -90,3 +89,4 @@ export default function RegisterForm({ t, lang }: Props) {
     </main>
   );
 }
+

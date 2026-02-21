@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import RegisterForm from "./RegisterForm";
-import { en } from "@/i18n";
+import { LocaleProvider } from "@/i18n/LocaleContext";
 
 const meta = {
   title: "App/Register",
@@ -9,10 +9,13 @@ const meta = {
     layout: "fullscreen",
   },
   tags: ["autodocs"],
-  args: {
-    t: en,
-    lang: "en",
-  },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <LocaleProvider locale="en">
+        <Story />
+      </LocaleProvider>
+    ),
+  ],
 } satisfies Meta<typeof RegisterForm>;
 
 export default meta;

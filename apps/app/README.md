@@ -56,6 +56,10 @@ The app uses a custom i18n system with locale-based routing.
   - `isValidLocale(value: string)` - type guard to check if a string is a valid locale
   - `resolveLocale(lang: string)` - resolves a raw route param to a valid `Locale`, falling back to `DEFAULT_LOCALE`; used by every page so locale validation lives in one place
   - `getDictionary(locale: Locale)` - returns the messages object for the given locale
+- `src/i18n/LocaleContext.tsx` provides a React context for client components:
+  - `<LocaleProvider locale={locale}>` - wraps the root layout body; resolved once server-side
+  - `useLocale()` - returns `{ locale, t }` from context; use in any client component instead of prop drilling `lang`/`t`
+- `src/components/LanguageSwitcher.tsx` - fixed top-left selector; reads the current locale from context and navigates to the same path under the new locale; hidden when only one locale is configured
 - All pages live under `src/app/[lang]/` - the `[lang]` segment is the locale code (e.g., `/en/login`)
 - The proxy (`src/proxy.ts`) detects the locale from the `Accept-Language` header and redirects bare URLs (e.g., `/login`) to locale-prefixed URLs (e.g., `/en/login`)
 
