@@ -59,7 +59,6 @@ export const en = {
   },
   settings: {
     title: 'Settings',
-    close: 'Close',
     generalSection: 'General',
     passwordSection: 'Change Password',
     oldPassword: 'Current Password',
