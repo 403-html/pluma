@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import type { StorybookConfig } from "@storybook/react-vite";
+import type { Plugin } from 'vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,8 +14,24 @@ const config: StorybookConfig = {
     options: {},
   },
   async viteFinal(config) {
+    // Vite in Storybook will bundle files from the Next app. Next's
+    // top-level "use client" directive is meaningful for Next's RSC runtime
+    // but causes bundling errors in Storybook/Vite. Strip it from app
+    // source modules when building Storybook.
+    const removeUseClientPlugin: Plugin = {
+      name: 'remove-use-client-directive',
+      enforce: 'pre',
+      transform(code, id) {
+        if (!id.includes('/app/src/') && !id.includes('\\app\\src\\')) return null;
+        if (!/\.(ts|tsx|js|jsx)$/.test(id)) return null;
+        const modified = code.replace(/^(['"])use client\1;\s*/m, '');
+        if (modified === code) return null;
+        return { code: modified, map: null };
+      },
+    };
     return {
       ...config,
+      plugins: [...(config.plugins ?? []), removeUseClientPlugin],
       resolve: {
         ...config.resolve,
         alias: {

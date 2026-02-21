@@ -7,9 +7,9 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "paths": {
-      "@/*": ["../../apps/app/src/*"]
+      "@/*": ["../app/src/*"]
     }
   },
-  "include": [".storybook/**/*"],
+  "include": [".storybook/**/*", "../app/src/**/*"],
   "exclude": ["node_modules", "storybook-static"]
 }

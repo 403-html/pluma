@@ -4,6 +4,7 @@ import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, MAX_EMAIL_LENGTH } from '@pluma/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -15,13 +16,18 @@ const TOKEN_BYTES = 32;
 const DUMMY_HASH = '$2a$12$dummyhashforpreventingtimingattacks.placeholder000000';
 
 const loginBodySchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().email().max(MAX_EMAIL_LENGTH),
+  password: z.string().min(MIN_PASSWORD_LENGTH),
 });
 
 const registerBodySchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().email().max(MAX_EMAIL_LENGTH),
+  password: z.string().min(MIN_PASSWORD_LENGTH),
+});
+
+const changePasswordBodySchema = z.object({
+  oldPassword: z.string().min(1),
+  newPassword: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH),
 });
 
 export async function registerAuthRoutes(fastify: FastifyInstance) {
@@ -135,10 +141,60 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
   });
 
   /**
+   * POST /api/v1/auth/change-password
+   * Changes the password for the currently authenticated user.
+   * Requires authentication via adminAuthHook.
+   */
+  fastify.post('/change-password', { preHandler: [adminAuthHook] }, async (request, reply) => {
+    const parsedBody = changePasswordBodySchema.safeParse(request.body);
+
+    if (!parsedBody.success) {
+      request.log.warn({ issues: parsedBody.error.flatten() }, 'Change password rejected: invalid payload');
+      return reply.badRequest(ReasonPhrases.BAD_REQUEST);
+    }
+
+    const sessionUser = request.sessionUser!;
+
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUser.id },
+    });
+
+    if (!user) {
+      request.log.error({ userId: sessionUser.id }, 'Change password rejected: user not found');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
+    const oldPasswordValid = await compare(parsedBody.data.oldPassword, user.passwordHash);
+
+    if (!oldPasswordValid) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: incorrect old password');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
+    const newPasswordMatchesOld = await compare(parsedBody.data.newPassword, user.passwordHash);
+
+    if (newPasswordMatchesOld) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: new password must be different');
+      return reply.badRequest('New password must be different from old password');
+    }
+
+    const newPasswordHash = await hash(parsedBody.data.newPassword, BCRYPT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    request.log.info({ userId: user.id }, 'Password changed successfully');
+
+    return reply.code(StatusCodes.OK).send({ message: 'Password updated' });
+  });
+
+  /**
    * GET /api/v1/auth/me
    * Returns the currently authenticated user.
    */
-  fastify.get('/me', { preHandler: [adminAuthHook] }, async (request) => {
-    return request.sessionUser;
+  fastify.get('/me', { preHandler: [adminAuthHook] }, async (request, reply) => {
+    return reply.code(StatusCodes.OK).send(request.sessionUser!);
   });
 }

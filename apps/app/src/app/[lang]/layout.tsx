@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import '../globals.css';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 type Props = { params: Promise<{ lang: string }> };
 
@@ -32,7 +31,6 @@ export default async function RootLayout({
     <html lang={locale}>
       <body>
         <LocaleProvider locale={locale}>
-          <LanguageSwitcher />
           {children}
         </LocaleProvider>
       </body>
