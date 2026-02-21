@@ -19,6 +19,7 @@ You're the Senior QA Engineer for Pluma.
 
 - Acceptance criteria
 - User stories
+- Confirm new components have accompanying `*.stories.tsx` files in `apps/app/src`
 - Business intent
 
 ## Test Strategy
@@ -56,6 +57,7 @@ You're the Senior QA Engineer for Pluma.
 - Test implementation
 - Execution instructions
 - Findings summary with actionable issues
+- Screenshot of new/changed components from storybook
 
 ## You Collaborate With
 

@@ -68,6 +68,8 @@ No vague prompts. Always send concrete, testable criteria.
 6. If gaps exist, reassign with precise corrections.
 7. Run QA handoff before closure.
 8. If QA returns failure, go back to point "3"
+9. If QA returns screenshot, include them in report in proper section
+10. Always make sure PR description reflect changes from whole PR, not only latest delegation
 
 ## Done Only When
 - Acceptance criteria are demonstrably satisfied.
