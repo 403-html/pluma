@@ -82,7 +82,23 @@ describe('API Projects', () => {
 
   it('should list projects', async () => {
     prismaMock.project.findMany.mockResolvedValue([
-      { id: PROJECT_ID, key: 'alpha', name: 'Alpha' },
+      {
+        id: PROJECT_ID,
+        key: 'alpha',
+        name: 'Alpha',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        environments: [
+          { id: 'env-1', key: 'dev', name: 'Development' },
+          { id: 'env-2', key: 'prod', name: 'Production' },
+        ],
+        _count: { featureFlags: 3 },
+        featureFlags: [
+          { _count: { flagConfigs: 1 } },
+          { _count: { flagConfigs: 0 } },
+          { _count: { flagConfigs: 2 } },
+        ],
+      },
     ]);
 
     const response = await app.inject({
@@ -93,7 +109,13 @@ describe('API Projects', () => {
 
     expect(response.statusCode).toBe(200);
     expect(prismaMock.project.findMany).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(response.payload)).toHaveLength(1);
+    const projects = JSON.parse(response.payload);
+    expect(projects).toHaveLength(1);
+    expect(projects[0]).toHaveProperty('environments');
+    expect(projects[0].environments).toHaveLength(2);
+    expect(projects[0]).toHaveProperty('flagStats');
+    expect(projects[0].flagStats).toEqual({ total: 3, enabled: 2 });
+    expect(projects[0]).not.toHaveProperty('featureFlags');
   });
 
   it('should create a project', async () => {
