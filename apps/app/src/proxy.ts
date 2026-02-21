@@ -24,9 +24,14 @@ function isPublicPath(pathname: string): boolean {
   );
 }
 
+const MAX_ACCEPT_LANG_LENGTH = 256;
+const MAX_LOCALE_TAGS = 10;
+
 function detectLocale(request: NextRequest): Locale {
-  const acceptLang = request.headers.get('accept-language') ?? '';
-  for (const tag of acceptLang.split(',')) {
+  const raw = request.headers.get('accept-language') ?? '';
+  const acceptLang = raw.slice(0, MAX_ACCEPT_LANG_LENGTH);
+  const tags = acceptLang.split(',').slice(0, MAX_LOCALE_TAGS);
+  for (const tag of tags) {
     const code = tag.split(';')[0].trim().split('-')[0].toLowerCase();
     if (isValidLocale(code)) return code;
   }

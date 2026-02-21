@@ -9,7 +9,15 @@ import type { Messages } from '@/i18n';
 type Props = { t: Messages; lang: string };
 
 function isSafeReturnUrl(url: string | null): url is string {
-  return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//');
+  if (typeof url !== 'string') return false;
+  if (!url.startsWith('/') || url.startsWith('//')) return false;
+  try {
+    // Parse against a dummy base to validate the path structure.
+    const parsed = new URL(url, 'http://localhost');
+    return parsed.pathname === url.split('?')[0].split('#')[0];
+  } catch {
+    return false;
+  }
 }
 
 function LoginFormContent({ t, lang }: Props) {
