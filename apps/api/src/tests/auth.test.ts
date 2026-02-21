@@ -26,6 +26,12 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    passwordHistory: {
+      findMany: vi.fn(),
+      create: vi.fn(),
+      count: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     sdkToken: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -51,6 +57,7 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    $transaction: vi.fn(),
   },
   bcryptMock: {
     compare: vi.fn(),
@@ -244,10 +251,28 @@ describe('Auth routes', () => {
     it('should change password with valid credentials', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession);
       prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'old_hashed_pw' });
-      // First call verifies old password is correct, second call checks if new password is different
+      // First call verifies old password is correct, second call checks if new password matches current
       bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
       bcryptMock.hash.mockResolvedValue('new_hashed_pw');
-      prismaMock.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_hashed_pw' });
+      
+      // Mock password history check (no matches)
+      prismaMock.passwordHistory.findMany.mockResolvedValue([]);
+      
+      // Mock transaction
+      prismaMock.$transaction.mockImplementation(async (callback: any) => {
+        const tx = {
+          user: {
+            update: vi.fn().mockResolvedValue({ ...mockUser, passwordHash: 'new_hashed_pw' }),
+          },
+          passwordHistory: {
+            create: vi.fn().mockResolvedValue({ id: 'hist1', userId: USER_ID, passwordHash: 'old_hashed_pw', createdAt: new Date() }),
+            count: vi.fn().mockResolvedValue(1),
+            findMany: vi.fn().mockResolvedValue([]),
+            deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+          },
+        };
+        return callback(tx);
+      });
 
       const response = await app.inject({
         method: 'POST',
@@ -262,9 +287,10 @@ describe('Auth routes', () => {
       expect(bcryptMock.compare).toHaveBeenCalledWith('oldpassword', 'old_hashed_pw');
       expect(bcryptMock.compare).toHaveBeenCalledWith('newpassword123', 'old_hashed_pw');
       expect(bcryptMock.hash).toHaveBeenCalledWith('newpassword123', 12);
-      expect(prismaMock.user.update).toHaveBeenCalledWith({
-        where: { id: USER_ID },
-        data: { passwordHash: 'new_hashed_pw' },
+      expect(prismaMock.passwordHistory.findMany).toHaveBeenCalledWith({
+        where: { userId: USER_ID },
+        orderBy: { createdAt: 'desc' },
+        take: 4,
       });
     });
 
@@ -364,7 +390,7 @@ describe('Auth routes', () => {
     it('should return 400 when new password is same as old password', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession);
       prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw' });
-      // First call verifies old password, second call checks if new password matches old hash
+      // First call verifies old password, second call checks if new password matches current hash
       bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(true);
 
       const response = await app.inject({
@@ -375,8 +401,138 @@ describe('Auth routes', () => {
       });
 
       expect(response.statusCode).toBe(400);
+      expect(response.payload).toContain('New password was recently used');
       expect(bcryptMock.compare).toHaveBeenCalledTimes(2);
-      expect(prismaMock.user.update).not.toHaveBeenCalled();
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should reject reusing the immediately previous password', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'current_hash' });
+      
+      // Old password valid, new password doesn't match current
+      bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      
+      // Mock password history with one previous password
+      const historyEntry = {
+        id: 'hist1',
+        userId: USER_ID,
+        passwordHash: 'previous_hash',
+        createdAt: new Date('2025-01-15'),
+      };
+      prismaMock.passwordHistory.findMany.mockResolvedValue([historyEntry]);
+      
+      // New password matches the previous password in history
+      bcryptMock.compare.mockResolvedValueOnce(true); // Third call checks against history
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'currentpassword', newPassword: 'previouspassword' },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.payload).toContain('New password was recently used');
+      expect(prismaMock.passwordHistory.findMany).toHaveBeenCalledWith({
+        where: { userId: USER_ID },
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+      });
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should reject reusing a password from the last 5', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'current_hash' });
+      
+      // Old password valid, new password doesn't match current
+      bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      
+      // Mock password history with 4 previous passwords
+      const historyEntries = [
+        { id: 'hist1', userId: USER_ID, passwordHash: 'hash1', createdAt: new Date('2025-01-20') },
+        { id: 'hist2', userId: USER_ID, passwordHash: 'hash2', createdAt: new Date('2025-01-15') },
+        { id: 'hist3', userId: USER_ID, passwordHash: 'hash3', createdAt: new Date('2025-01-10') },
+        { id: 'hist4', userId: USER_ID, passwordHash: 'hash4', createdAt: new Date('2025-01-05') },
+      ];
+      prismaMock.passwordHistory.findMany.mockResolvedValue(historyEntries);
+      
+      // New password doesn't match first 2, but matches the 3rd historical password
+      bcryptMock.compare
+        .mockResolvedValueOnce(false) // history[0]
+        .mockResolvedValueOnce(false) // history[1]
+        .mockResolvedValueOnce(true);  // history[2] - match!
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'currentpassword', newPassword: 'oldpassword3' },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.payload).toContain('New password was recently used');
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should allow using a password outside the 5-entry history', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'current_hash' });
+      
+      // Old password valid, new password doesn't match current
+      bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      
+      // Mock password history with 4 previous passwords
+      const historyEntries = [
+        { id: 'hist1', userId: USER_ID, passwordHash: 'hash1', createdAt: new Date('2025-01-20') },
+        { id: 'hist2', userId: USER_ID, passwordHash: 'hash2', createdAt: new Date('2025-01-15') },
+        { id: 'hist3', userId: USER_ID, passwordHash: 'hash3', createdAt: new Date('2025-01-10') },
+        { id: 'hist4', userId: USER_ID, passwordHash: 'hash4', createdAt: new Date('2025-01-05') },
+      ];
+      prismaMock.passwordHistory.findMany.mockResolvedValue(historyEntries);
+      
+      // New password doesn't match any in history
+      bcryptMock.compare
+        .mockResolvedValueOnce(false) // history[0]
+        .mockResolvedValueOnce(false) // history[1]
+        .mockResolvedValueOnce(false) // history[2]
+        .mockResolvedValueOnce(false); // history[3]
+      
+      bcryptMock.hash.mockResolvedValue('new_unique_hash');
+      
+      // Mock transaction
+      prismaMock.$transaction.mockImplementation(async (callback: any) => {
+        const tx = {
+          user: {
+            update: vi.fn().mockResolvedValue({ ...mockUser, passwordHash: 'new_unique_hash' }),
+          },
+          passwordHistory: {
+            create: vi.fn().mockResolvedValue({ 
+              id: 'hist5', 
+              userId: USER_ID, 
+              passwordHash: 'current_hash', 
+              createdAt: new Date() 
+            }),
+            count: vi.fn().mockResolvedValue(5),
+            findMany: vi.fn().mockResolvedValue([]),
+            deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+          },
+        };
+        return callback(tx);
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'currentpassword', newPassword: 'brandnewpassword123' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toEqual({ message: 'Password updated' });
+      expect(prismaMock.$transaction).toHaveBeenCalled();
     });
   });
 });

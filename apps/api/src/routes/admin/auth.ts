@@ -11,6 +11,7 @@ const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const BCRYPT_ROUNDS = 12;
 const COOKIE_NAME = 'pluma_session';
 const TOKEN_BYTES = 32;
+const MAX_PASSWORD_HISTORY = 5;
 
 // Pre-computed dummy hash used in constant-time login to prevent user enumeration via timing.
 const DUMMY_HASH = '$2a$12$dummyhashforpreventingtimingattacks.placeholder000000';
@@ -144,6 +145,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * POST /api/v1/auth/change-password
    * Changes the password for the currently authenticated user.
    * Requires authentication via adminAuthHook.
+   * Prevents reuse of the last 5 passwords (current + 4 historical).
    */
   fastify.post('/change-password', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const parsedBody = changePasswordBodySchema.safeParse(request.body);
@@ -171,18 +173,74 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
-    const newPasswordMatchesOld = await compare(parsedBody.data.newPassword, user.passwordHash);
+    // Check if new password matches the current password
+    const newPasswordMatchesCurrent = await compare(parsedBody.data.newPassword, user.passwordHash);
 
-    if (newPasswordMatchesOld) {
-      request.log.warn({ userId: user.id }, 'Change password rejected: new password must be different');
-      return reply.badRequest('New password must be different from old password');
+    if (newPasswordMatchesCurrent) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: new password was recently used');
+      return reply.badRequest('New password was recently used');
+    }
+
+    // Check if new password matches any of the last 4 passwords in history
+    // Combined with current password check above, this enforces a total of 5 unique passwords
+    const passwordHistory = await prisma.passwordHistory.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: MAX_PASSWORD_HISTORY - 1, // Get last 4 entries (current is the 5th)
+    });
+
+    for (const entry of passwordHistory) {
+      const matchesHistorical = await compare(parsedBody.data.newPassword, entry.passwordHash);
+      if (matchesHistorical) {
+        request.log.warn({ userId: user.id }, 'Change password rejected: new password was recently used');
+        return reply.badRequest('New password was recently used');
+      }
     }
 
     const newPasswordHash = await hash(parsedBody.data.newPassword, BCRYPT_ROUNDS);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash: newPasswordHash },
+    // Use a transaction to:
+    // 1. Update user's password
+    // 2. Insert old password hash to history
+    // 3. Prune history to keep only the most recent 5 entries
+    await prisma.$transaction(async (tx) => {
+      // Update user's password
+      await tx.user.update({
+        where: { id: user.id },
+        data: { passwordHash: newPasswordHash },
+      });
+
+      // Insert the old password hash to history
+      await tx.passwordHistory.create({
+        data: {
+          userId: user.id,
+          passwordHash: user.passwordHash,
+        },
+      });
+
+      // Count total history entries
+      const historyCount = await tx.passwordHistory.count({
+        where: { userId: user.id },
+      });
+
+      // If we have more than MAX_PASSWORD_HISTORY entries, delete the oldest ones
+      if (historyCount > MAX_PASSWORD_HISTORY) {
+        const entriesToDelete = historyCount - MAX_PASSWORD_HISTORY;
+        
+        // Get the oldest entries to delete
+        const oldestEntries = await tx.passwordHistory.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'asc' },
+          take: entriesToDelete,
+          select: { id: true },
+        });
+
+        const idsToDelete = oldestEntries.map((entry) => entry.id);
+
+        await tx.passwordHistory.deleteMany({
+          where: { id: { in: idsToDelete } },
+        });
+      }
     });
 
     request.log.info({ userId: user.id }, 'Password changed successfully');
