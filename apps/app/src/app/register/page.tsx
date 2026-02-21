@@ -3,7 +3,8 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { register, StatusCodes } from '@/lib/api/auth';
+import { register } from '@/lib/api/auth';
+import { StatusCodes } from 'http-status-codes';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
