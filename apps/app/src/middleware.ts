@@ -37,12 +37,17 @@ async function checkSetup(): Promise<boolean> {
 async function checkAuth(request: NextRequest): Promise<boolean> {
   try {
     const cookie = request.cookies.get('pluma_session')?.value;
-    if (!cookie) return false;
+    if (typeof cookie !== 'string' || cookie.length === 0) return false;
 
     const response = await fetch(`${API_URL}/api/v1/auth/me`, {
       headers: { Cookie: `pluma_session=${cookie}` },
     });
-    return response.ok;
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    if (typeof data !== 'object' || data === null) return false;
+    if (typeof data.id !== 'string' || typeof data.email !== 'string') return false;
+    return true;
   } catch {
     return false;
   }
