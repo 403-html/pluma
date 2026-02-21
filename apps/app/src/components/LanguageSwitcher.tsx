@@ -31,8 +31,8 @@ export default function LanguageSwitcher() {
         value={locale}
         onChange={(e) => handleChange(e.target.value)}
         disabled={!canSwitch}
-        title={!canSwitch ? t.ui.languageSelectorDisabledTitle : undefined}
-        aria-label={!canSwitch ? t.ui.languageSelectorDisabledAriaLabel : undefined}
+        title={canSwitch ? t.ui.languageSelectorTitle : t.ui.languageSelectorDisabledTitle}
+        aria-label={canSwitch ? t.ui.languageSelectorAriaLabel : t.ui.languageSelectorDisabledAriaLabel}
       >
         {SUPPORTED_LOCALES.map((l) => (
           <option key={l} value={l}>

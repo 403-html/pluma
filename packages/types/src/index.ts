@@ -5,6 +5,11 @@ export type AuthUser = {
   createdAt: Date;
 };
 
+/** Minimum password length — enforced by both API (Zod) and client-side validation. */
+export const MIN_PASSWORD_LENGTH = 8;
+/** Maximum password length — enforced by both API (Zod) and client-side validation. */
+export const MAX_PASSWORD_LENGTH = 128;
+
 /**
  * Maximum nesting depth for sub-flag parent chains.
  * Enforced at the API level on flag creation and respected by the SDK

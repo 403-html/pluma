@@ -4,6 +4,7 @@ import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '@pluma/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -16,17 +17,17 @@ const DUMMY_HASH = '$2a$12$dummyhashforpreventingtimingattacks.placeholder000000
 
 const loginBodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(MIN_PASSWORD_LENGTH),
 });
 
 const registerBodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(MIN_PASSWORD_LENGTH),
 });
 
 const changePasswordBodySchema = z.object({
   oldPassword: z.string().min(1),
-  newPassword: z.string().min(8),
+  newPassword: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH),
 });
 
 export async function registerAuthRoutes(fastify: FastifyInstance) {

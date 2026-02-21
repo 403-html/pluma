@@ -1,10 +1,9 @@
 import type { AuthUser } from '@pluma/types';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '@pluma/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
 
 const MAX_EMAIL_LENGTH = 320;
-const MAX_PASSWORD_LENGTH = 128;
-const MIN_PASSWORD_LENGTH = 8;
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.

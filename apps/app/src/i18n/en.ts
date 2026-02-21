@@ -45,8 +45,10 @@ export const en = {
   },
   ui: {
     languageSelectorLabel: 'Language',
-    languageSelectorDisabledTitle: 'Only one language is currently configured',
-    languageSelectorDisabledAriaLabel: 'Language selection is disabled because only one language is currently configured',
+    languageSelectorTitle: 'Switch app language',
+    languageSelectorDisabledTitle: 'Only one language is currently set up',
+    languageSelectorAriaLabel: 'Switch app language',
+    languageSelectorDisabledAriaLabel: 'Language selection is disabled because only one language is currently set up',
   },
   common: {
     loading: 'Loading…',
