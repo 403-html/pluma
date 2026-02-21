@@ -1,12 +1,6 @@
-export type ProjectSummary = {
-  id: string;
-  key: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  environments: Array<{ id: string; key: string; name: string }>;
-  flagStats: { enabled: number; total: number };
-};
+import type { ProjectSummary } from '@pluma/types';
+
+export type { ProjectSummary };
 
 async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
   try {

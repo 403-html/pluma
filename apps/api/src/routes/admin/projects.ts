@@ -28,26 +28,22 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
       include: {
         environments: { select: { id: true, key: true, name: true } },
+        _count: { select: { featureFlags: true } },
         featureFlags: {
           select: {
-            id: true,
-            flagConfigs: {
-              where: { enabled: true },
-              select: { enabled: true },
-              take: 1,
-            },
+            _count: { select: { flagConfigs: { where: { enabled: true } } } },
           },
         },
       },
     });
 
     return projects.map((project) => {
-      const { featureFlags, ...rest } = project;
+      const { featureFlags, _count, ...rest } = project;
       return {
         ...rest,
         flagStats: {
-          total: featureFlags.length,
-          enabled: featureFlags.filter((f) => f.flagConfigs.length > 0).length,
+          total: _count.featureFlags,
+          enabled: featureFlags.filter((f) => f._count.flagConfigs > 0).length,
         },
       };
     });

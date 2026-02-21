@@ -92,10 +92,11 @@ describe('API Projects', () => {
           { id: 'env-1', key: 'dev', name: 'Development' },
           { id: 'env-2', key: 'prod', name: 'Production' },
         ],
+        _count: { featureFlags: 3 },
         featureFlags: [
-          { id: 'flag-1', flagConfigs: [{ enabled: true }] },
-          { id: 'flag-2', flagConfigs: [] },
-          { id: 'flag-3', flagConfigs: [{ enabled: true }] },
+          { _count: { flagConfigs: 1 } },
+          { _count: { flagConfigs: 0 } },
+          { _count: { flagConfigs: 2 } },
         ],
       },
     ]);

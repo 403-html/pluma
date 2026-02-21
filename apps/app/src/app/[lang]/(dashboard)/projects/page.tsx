@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
   listProjects,
@@ -23,7 +23,7 @@ export default function ProjectsPage() {
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     const result = await listProjects();
@@ -33,12 +33,11 @@ export default function ProjectsPage() {
       setError(result.message);
     }
     setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     loadProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadProjects]);
 
   async function handleDelete(id: string) {
     const result = await deleteProject(id);
