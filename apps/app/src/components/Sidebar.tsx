@@ -18,6 +18,7 @@ export default function Sidebar() {
     } else {
       // Re-enable button on failure - user can retry
       setIsLoggingOut(false);
+      console.error('[Sidebar] logout failed', result.message);
     }
   }
 

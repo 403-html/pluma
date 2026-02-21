@@ -26,7 +26,8 @@ async function checkAuth(): Promise<boolean> {
     });
 
     return response.ok;
-  } catch {
+  } catch (error) {
+    console.error('[DashboardLayout] checkAuth failed', error);
     return false;
   }
 }

@@ -45,6 +45,8 @@ export const en = {
   },
   ui: {
     languageSelectorLabel: 'Language',
+    languageSelectorDisabledTitle: 'Only one language is currently configured',
+    languageSelectorDisabledAriaLabel: 'Language selection is disabled because only one language is currently configured',
   },
   common: {
     loading: 'Loading…',
@@ -66,6 +68,7 @@ export const en = {
     changePasswordError: 'Failed to change password',
     oldPasswordInvalid: 'Current password is required',
     newPasswordInvalid: 'New password is required',
+    newPasswordTooShort: 'New password must be at least 8 characters',
   },
 } as const;
 

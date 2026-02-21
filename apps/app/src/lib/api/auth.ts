@@ -4,6 +4,7 @@ import { getDictionary } from '@/i18n';
 
 const MAX_EMAIL_LENGTH = 320;
 const MAX_PASSWORD_LENGTH = 128;
+const MIN_PASSWORD_LENGTH = 8;
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
@@ -112,12 +113,11 @@ export async function changePassword(
   ) {
     return { ok: false, message: t.settings.oldPasswordInvalid };
   }
-  if (
-    typeof newPassword !== 'string' ||
-    newPassword.length === 0 ||
-    newPassword.length > MAX_PASSWORD_LENGTH
-  ) {
+  if (typeof newPassword !== 'string' || newPassword.length === 0 || newPassword.length > MAX_PASSWORD_LENGTH) {
     return { ok: false, message: t.settings.newPasswordInvalid };
+  }
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, message: t.settings.newPasswordTooShort };
   }
   try {
     const response = await fetch('/api/v1/auth/change-password', {
