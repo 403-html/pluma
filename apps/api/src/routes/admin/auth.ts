@@ -204,7 +204,8 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     // Use a transaction to:
     // 1. Update user's password
     // 2. Insert old password hash to history
-    // 3. Prune history to keep only the most recent 5 entries
+    // 3. Prune history to keep at most MAX_PASSWORD_HISTORY - 1 entries
+    //    (current password occupies the remaining slot in the reuse check)
     await prisma.$transaction(async (tx) => {
       // Update user's password
       await tx.user.update({
@@ -225,10 +226,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
         where: { userId: user.id },
       });
 
-      // If we have more than MAX_PASSWORD_HISTORY entries, delete the oldest ones
-      // to maintain exactly MAX_PASSWORD_HISTORY entries
-      if (historyCount > MAX_PASSWORD_HISTORY) {
-        const entriesToDelete = historyCount - MAX_PASSWORD_HISTORY;
+      // History must hold at most MAX_PASSWORD_HISTORY - 1 entries because the
+      // current password already counts as the 5th slot in the reuse check.
+      const maxHistoryEntries = MAX_PASSWORD_HISTORY - 1;
+      if (historyCount >= MAX_PASSWORD_HISTORY) {
+        const entriesToDelete = historyCount - maxHistoryEntries;
         
         // Get the oldest entries to delete
         const oldestEntries = await tx.passwordHistory.findMany({
