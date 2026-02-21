@@ -153,12 +153,18 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
+    const sessionUser = request.sessionUser;
+    if (!sessionUser) {
+      request.log.warn('Change password rejected: missing session user');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: request.sessionUser.id },
+      where: { id: sessionUser.id },
     });
 
     if (!user) {
-      request.log.error({ userId: request.sessionUser.id }, 'Change password rejected: user not found');
+      request.log.error({ userId: sessionUser.id }, 'Change password rejected: user not found');
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
@@ -192,7 +198,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * GET /api/v1/auth/me
    * Returns the currently authenticated user.
    */
-  fastify.get('/me', { preHandler: [adminAuthHook] }, async (request) => {
-    return request.sessionUser;
+  fastify.get('/me', { preHandler: [adminAuthHook] }, async (request, reply) => {
+    if (!request.sessionUser) {
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
+    return reply.code(StatusCodes.OK).send(request.sessionUser);
   });
 }
