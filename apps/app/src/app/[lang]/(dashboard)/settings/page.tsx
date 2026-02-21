@@ -40,7 +40,7 @@ export default function SettingsPage() {
       <h1 className="settings-page-title">{t.settings.title}</h1>
 
       <section className="settings-section">
-        <h2 className="settings-section-title">{t.settings.languageSection}</h2>
+        <h2 className="settings-section-title">{t.settings.generalSection}</h2>
         <LanguageSwitcher />
       </section>
 

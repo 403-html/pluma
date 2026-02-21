@@ -60,7 +60,7 @@ export const en = {
   settings: {
     title: 'Settings',
     close: 'Close',
-    languageSection: 'General',
+    generalSection: 'General',
     passwordSection: 'Change Password',
     oldPassword: 'Current Password',
     newPassword: 'New Password',
