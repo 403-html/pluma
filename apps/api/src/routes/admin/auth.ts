@@ -26,6 +26,21 @@ const registerBodySchema = z.object({
 
 export async function registerAuthRoutes(fastify: FastifyInstance) {
   /**
+   * GET /api/v1/auth/setup
+   * Returns whether the system has been configured (i.e., at least one user exists).
+   * No authentication required.
+   */
+  fastify.get('/setup', async (request, reply) => {
+    const userCount = await prisma.user.count();
+
+    if (userCount === 0) {
+      return reply.code(StatusCodes.NOT_FOUND).send({ configured: false });
+    }
+
+    return reply.code(StatusCodes.OK).send({ configured: true });
+  });
+
+  /**
    * POST /api/v1/auth/register
    * Creates the first admin user. Returns 409 if any user already exists.
    */

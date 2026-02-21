@@ -20,6 +20,8 @@ const config: StorybookConfig = {
         alias: {
           ...config.resolve?.alias,
           "@": resolve(__dirname, "../../app/src"),
+          "next/navigation": resolve(__dirname, "./mocks/next-navigation.ts"),
+          "next/link": resolve(__dirname, "./mocks/next-link.tsx"),
         },
       },
     };

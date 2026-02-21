@@ -78,6 +78,34 @@ describe('Auth routes', () => {
     vi.clearAllMocks();
   });
 
+  describe('GET /api/v1/auth/setup', () => {
+    it('should return 200 with configured: true when a user exists', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/setup',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toEqual({ configured: true });
+    });
+
+    it('should return 404 with configured: false when no users exist', async () => {
+      prismaMock.user.count.mockResolvedValue(0);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/setup',
+      });
+
+      expect(response.statusCode).toBe(404);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toEqual({ configured: false });
+    });
+  });
+
   describe('POST /api/v1/auth/register', () => {
     it('should create the first admin user', async () => {
       prismaMock.user.count.mockResolvedValue(0);

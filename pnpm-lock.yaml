@@ -35,6 +35,9 @@ importers:
       eslint-plugin-react-hooks:
         specifier: ^7.0.1
         version: 7.0.1(eslint@10.0.0(jiti@2.6.1))
+      globals:
+        specifier: ^17.3.0
+        version: 17.3.0
 
   apps/api:
     dependencies:
@@ -90,6 +93,9 @@ importers:
       '@pluma/types':
         specifier: workspace:*
         version: link:../../packages/types
+      http-status-codes:
+        specifier: 2.3.0
+        version: 2.3.0
       next:
         specifier: ^16.1.6
         version: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -204,6 +210,12 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  tooling/eslint:
+    devDependencies:
+      globals:
+        specifier: ^17.3.0
+        version: 17.3.0
 
 packages:
 
@@ -2048,6 +2060,10 @@ packages:
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
+    engines: {node: '>=18'}
+
+  globals@17.3.0:
+    resolution: {integrity: sha512-yMqGUQVVCkD4tqjOJf3TnrvaaHDMYp4VlUSObbkIiuCPe/ofdMBFIAcBbCSRFWOnos6qRiTVStDwqPLUclaxIw==}
     engines: {node: '>=18'}
 
   graceful-fs@4.2.11:
@@ -4933,6 +4949,8 @@ snapshots:
   global-directory@4.0.1:
     dependencies:
       ini: 4.1.1
+
+  globals@17.3.0: {}
 
   graceful-fs@4.2.11: {}
 
