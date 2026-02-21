@@ -153,11 +153,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       return reply.badRequest(ReasonPhrases.BAD_REQUEST);
     }
 
-    const sessionUser = request.sessionUser;
-    if (!sessionUser) {
-      request.log.warn('Change password rejected: missing session user');
-      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
-    }
+    const sessionUser = request.sessionUser!;
 
     const user = await prisma.user.findUnique({
       where: { id: sessionUser.id },
@@ -199,10 +195,6 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * Returns the currently authenticated user.
    */
   fastify.get('/me', { preHandler: [adminAuthHook] }, async (request, reply) => {
-    if (!request.sessionUser) {
-      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
-    }
-
-    return reply.code(StatusCodes.OK).send(request.sessionUser);
+    return reply.code(StatusCodes.OK).send(request.sessionUser!);
   });
 }
