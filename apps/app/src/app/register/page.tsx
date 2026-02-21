@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { register } from '@/lib/api/auth';
 import { StatusCodes } from 'http-status-codes';
+import { getMessages } from '@/i18n';
+
+const t = getMessages();
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -30,7 +33,7 @@ export default function RegisterPage() {
       }
       router.push('/login');
     } catch {
-      setError('Registration failed');
+      setError(t.register.errorFallback);
     } finally {
       setLoading(false);
     }
@@ -39,14 +42,14 @@ export default function RegisterPage() {
   return (
     <main className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Set up Pluma</h1>
+        <h1 className="auth-title">{t.register.title}</h1>
         <p className="auth-description">
-          Create the first admin account to get started.
+          {t.register.description}
         </p>
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              Email
+              {t.register.emailLabel}
             </label>
             <input
               id="email"
@@ -55,12 +58,12 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="form-input"
-              placeholder="you@example.com"
+              placeholder={t.register.emailPlaceholder}
             />
           </div>
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Password
+              {t.register.passwordLabel}
             </label>
             <input
               id="password"
@@ -69,18 +72,18 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="form-input"
-              placeholder="••••••••"
+              placeholder={t.register.passwordPlaceholder}
             />
           </div>
           {error && <div className="form-error">{error}</div>}
           <button type="submit" disabled={loading} className="form-button">
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? t.register.submitLoading : t.register.submitIdle}
           </button>
         </form>
         <p className="auth-footer">
-          Already have an account?{' '}
+          {t.register.footerText}{' '}
           <Link href="/login" className="auth-link">
-            Sign in
+            {t.register.footerLink}
           </Link>
         </p>
       </div>

@@ -12,8 +12,6 @@ type RouteRule = { path: string; match: 'exact' | 'prefix' };
 const PUBLIC_ROUTES: RouteRule[] = [
   { path: '/login', match: 'exact' },
   { path: '/register', match: 'exact' },
-  { path: '/api/', match: 'prefix' },
-  { path: '/sdk/', match: 'prefix' },
   { path: '/_next/', match: 'prefix' },
   { path: '/favicon.ico', match: 'exact' },
 ];
@@ -57,7 +55,7 @@ async function checkAuth(request: NextRequest): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
@@ -80,5 +78,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/|sdk/).*)'],
 };

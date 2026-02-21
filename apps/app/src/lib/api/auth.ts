@@ -1,4 +1,5 @@
 import type { AuthUser } from '@pluma/types';
+import { getMessages } from '@/i18n';
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
@@ -21,6 +22,7 @@ async function parseErrorMessage(response: Response, fallback: string): Promise<
 }
 
 export async function login(email: string, password: string): Promise<AuthResult> {
+  const t = getMessages();
   try {
     const response = await fetch('/api/v1/auth/login', {
       method: 'POST',
@@ -30,18 +32,19 @@ export async function login(email: string, password: string): Promise<AuthResult
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response, 'Login failed');
+      const message = await parseErrorMessage(response, t.login.errorFallback);
       return { ok: false, message, status: response.status };
     }
 
     const user: AuthUserResponse = await response.json();
     return { ok: true, user };
   } catch {
-    return { ok: false, message: 'Unable to reach the server. Check your connection.', status: 0 };
+    return { ok: false, message: t.errors.networkError, status: 0 };
   }
 }
 
 export async function register(email: string, password: string): Promise<AuthResult> {
+  const t = getMessages();
   try {
     const response = await fetch('/api/v1/auth/register', {
       method: 'POST',
@@ -51,13 +54,13 @@ export async function register(email: string, password: string): Promise<AuthRes
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response, 'Registration failed');
+      const message = await parseErrorMessage(response, t.register.errorFallback);
       return { ok: false, message, status: response.status };
     }
 
     const user: AuthUserResponse = await response.json();
     return { ok: true, user };
   } catch {
-    return { ok: false, message: 'Unable to reach the server. Check your connection.', status: 0 };
+    return { ok: false, message: t.errors.networkError, status: 0 };
   }
 }

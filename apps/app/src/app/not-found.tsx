@@ -1,16 +1,19 @@
 import Link from 'next/link';
+import { getMessages } from '@/i18n';
+
+const t = getMessages();
 
 export default function NotFound() {
   return (
     <main className="not-found-container">
       <div className="not-found-content">
-        <h1 className="not-found-title">404</h1>
-        <h2 className="not-found-subtitle">Page Not Found</h2>
+        <h1 className="not-found-title">{t.notFound.code}</h1>
+        <h2 className="not-found-subtitle">{t.notFound.title}</h2>
         <p className="not-found-description">
-          The page you're looking for doesn't exist or has been moved.
+          {t.notFound.description}
         </p>
         <Link href="/" className="not-found-link">
-          Go back home
+          {t.notFound.backLink}
         </Link>
       </div>
     </main>

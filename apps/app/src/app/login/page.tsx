@@ -1,19 +1,22 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/api/auth';
+import { getMessages } from '@/i18n';
+
+const t = getMessages();
 
 const MESSAGES: Record<string, string> = {
-  'already-configured': 'An admin account already exists. Please sign in.',
+  'already-configured': t.login.noticeAlreadyConfigured,
 };
 
 function isSafeReturnUrl(url: string | null): url is string {
   return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//');
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,7 +41,7 @@ export default function LoginPage() {
       }
       router.push(isSafeReturnUrl(returnUrl) ? returnUrl : '/');
     } catch {
-      setError('Login failed');
+      setError(t.login.errorFallback);
     } finally {
       setLoading(false);
     }
@@ -47,12 +50,12 @@ export default function LoginPage() {
   return (
     <main className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Sign in to Pluma</h1>
+        <h1 className="auth-title">{t.login.title}</h1>
         {notice && <p className="auth-notice">{notice}</p>}
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              Email
+              {t.login.emailLabel}
             </label>
             <input
               id="email"
@@ -61,12 +64,12 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="form-input"
-              placeholder="you@example.com"
+              placeholder={t.login.emailPlaceholder}
             />
           </div>
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Password
+              {t.login.passwordLabel}
             </label>
             <input
               id="password"
@@ -75,21 +78,29 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="form-input"
-              placeholder="••••••••"
+              placeholder={t.login.passwordPlaceholder}
             />
           </div>
           {error && <div className="form-error">{error}</div>}
           <button type="submit" disabled={loading} className="form-button">
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? t.login.submitLoading : t.login.submitIdle}
           </button>
         </form>
         <p className="auth-footer">
-          Need to set up Pluma?{' '}
+          {t.login.footerText}{' '}
           <Link href="/register" className="auth-link">
-            Register
+            {t.login.footerLink}
           </Link>
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>{t.common.loading}</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
