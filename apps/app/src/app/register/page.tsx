@@ -20,6 +20,10 @@ export default function RegisterPage() {
     try {
       const result = await register(email, password);
       if (!result.ok) {
+        if (result.status === 409) {
+          router.push('/login');
+          return;
+        }
         setError(result.message);
         return;
       }

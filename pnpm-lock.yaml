@@ -35,6 +35,9 @@ importers:
       eslint-plugin-react-hooks:
         specifier: ^7.0.1
         version: 7.0.1(eslint@10.0.0(jiti@2.6.1))
+      globals:
+        specifier: ^17.3.0
+        version: 17.3.0
 
   apps/api:
     dependencies:

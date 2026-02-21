@@ -23,11 +23,12 @@ function isPublicPath(pathname: string): boolean {
 async function checkSetup(): Promise<boolean> {
   try {
     const response = await fetch(`${API_URL}/api/v1/auth/setup`);
-    if (!response.ok) return false;
+    if (response.status === 404) return false;
+    if (!response.ok) return true;
     const data = await response.json();
     return data.configured === true;
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -52,17 +53,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const isAuthenticated = await checkAuth(request);
+  if (isAuthenticated) {
+    return NextResponse.next();
+  }
+
   const isConfigured = await checkSetup();
   if (!isConfigured) {
     return NextResponse.redirect(new URL('/register', request.url));
   }
 
-  const isAuthenticated = await checkAuth(request);
-  if (!isAuthenticated) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  return NextResponse.next();
+  return NextResponse.redirect(new URL('/login', request.url));
 }
 
 export const config = {
