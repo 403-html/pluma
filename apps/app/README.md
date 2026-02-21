@@ -107,14 +107,12 @@ export const fr = {
     code: '404',
     title: 'Page non trouvée',
     description: "La page que vous recherchez n'existe pas ou a été déplacée.",
-    backLink: 'Retour à l'accueil',
+    backLink: "Retour à l'accueil",
   },
   errors: {
     networkError: 'Impossible de joindre le serveur. Vérifiez votre connexion.',
   },
 } as const;
-
-export type Messages = typeof fr;
 ```
 
 #### 2. Register the locale in `src/i18n/index.ts`
