@@ -32,7 +32,16 @@ export default function Sidebar() {
 
         {/* Main navigation - can be expanded with more menu items */}
         <nav className="sidebar-nav">
-          {/* Future navigation items go here */}
+          <button
+            type="button"
+            className="sidebar-btn sidebar-nav-btn"
+            onClick={() => router.push(`/${locale}/projects`)}
+          >
+            <span className="sidebar-btn-icon" aria-hidden="true">
+              ⚑
+            </span>
+            <span className="sidebar-btn-text">{t.sidebar.projects}</span>
+          </button>
         </nav>
       </div>
 

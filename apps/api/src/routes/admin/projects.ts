@@ -24,7 +24,33 @@ const projectParamsSchema = z.object({
 
 export async function registerProjectRoutes(fastify: FastifyInstance) {
   fastify.get('/projects', { preHandler: [adminAuthHook] }, async () => {
-    return prisma.project.findMany({ orderBy: { createdAt: 'desc' } });
+    const projects = await prisma.project.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        environments: { select: { id: true, key: true, name: true } },
+        featureFlags: {
+          select: {
+            id: true,
+            flagConfigs: {
+              where: { enabled: true },
+              select: { enabled: true },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    return projects.map((project) => {
+      const { featureFlags, ...rest } = project;
+      return {
+        ...rest,
+        flagStats: {
+          total: featureFlags.length,
+          enabled: featureFlags.filter((f) => f.flagConfigs.length > 0).length,
+        },
+      };
+    });
   });
 
   fastify.get('/projects/:id', { preHandler: [adminAuthHook] }, async (request, reply) => {
