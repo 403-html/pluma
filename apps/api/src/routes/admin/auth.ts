@@ -225,10 +225,10 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
         where: { userId: user.id },
       });
 
-      // If we have MAX_PASSWORD_HISTORY or more entries, delete the oldest ones
+      // If we have more than MAX_PASSWORD_HISTORY entries, delete the oldest ones
       // to maintain exactly MAX_PASSWORD_HISTORY entries
-      if (historyCount >= MAX_PASSWORD_HISTORY) {
-        const entriesToDelete = historyCount - MAX_PASSWORD_HISTORY + 1;
+      if (historyCount > MAX_PASSWORD_HISTORY) {
+        const entriesToDelete = historyCount - MAX_PASSWORD_HISTORY;
         
         // Get the oldest entries to delete
         const oldestEntries = await tx.passwordHistory.findMany({
