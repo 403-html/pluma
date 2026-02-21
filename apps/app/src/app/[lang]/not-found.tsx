@@ -2,13 +2,11 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { getDictionary, DEFAULT_LOCALE, isValidLocale } from '@/i18n';
-import type { Locale } from '@/i18n';
+import { getDictionary, resolveLocale } from '@/i18n';
 
 export default function NotFound() {
   const params = useParams();
-  const lang = params?.lang;
-  const locale: Locale = isValidLocale(typeof lang === 'string' ? lang : '') ? (lang as Locale) : DEFAULT_LOCALE;
+  const locale = resolveLocale(typeof params?.lang === 'string' ? params.lang : '');
   const t = getDictionary(locale);
   return (
     <main className="not-found-container">

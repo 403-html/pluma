@@ -54,6 +54,7 @@ The app uses a custom i18n system with locale-based routing.
   - `DEFAULT_LOCALE` - fallback locale (currently `'en'`)
   - `Locale` - TypeScript type for valid locale codes
   - `isValidLocale(value: string)` - type guard to check if a string is a valid locale
+  - `resolveLocale(lang: string)` - resolves a raw route param to a valid `Locale`, falling back to `DEFAULT_LOCALE`; used by every page so locale validation lives in one place
   - `getDictionary(locale: Locale)` - returns the messages object for the given locale
 - All pages live under `src/app/[lang]/` - the `[lang]` segment is the locale code (e.g., `/en/login`)
 - The proxy (`src/proxy.ts`) detects the locale from the `Accept-Language` header and redirects bare URLs (e.g., `/login`) to locale-prefixed URLs (e.g., `/en/login`)
