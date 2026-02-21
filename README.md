@@ -9,7 +9,7 @@ Pluma has two API planes:
 
 ## Monorepo Architecture
 
-- `apps/app` - Next.js UI for operators
+- `apps/app` - Next.js UI for operators ([README](apps/app/README.md))
 - `apps/api` - Fastify API server (Admin + SDK routes)
 - `packages/db` - Prisma + PostgreSQL schema, migrations, and client package
 - `packages/sdk` - npm SDK package
