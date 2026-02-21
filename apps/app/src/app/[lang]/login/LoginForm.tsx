@@ -10,12 +10,14 @@ type Props = { t: Messages; lang: Locale };
 
 function isSafeReturnUrl(url: string | null): url is string {
   if (typeof url !== 'string') return false;
+  // Must be a relative path — starts with '/' but not '//' (protocol-relative).
   if (!url.startsWith('/') || url.startsWith('//')) return false;
+  // Reject encoded control characters (e.g. %0a newline, %00 null byte).
   try {
-    // Parse against a dummy base to validate the path structure.
-    const parsed = new URL(url, 'http://localhost');
-    return parsed.pathname === url.split('?')[0].split('#')[0];
+    const decoded = decodeURIComponent(url);
+    return !/[\x00-\x1f\x7f]/.test(decoded);
   } catch {
+    // decodeURIComponent throws on malformed percent-encoding — reject it.
     return false;
   }
 }
