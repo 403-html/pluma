@@ -10,6 +10,6 @@
       "@/*": ["../../apps/app/src/*"]
     }
   },
-  "include": [".storybook/**/*", "../../apps/app/src/**/*.stories.ts", "../../apps/app/src/**/*.stories.tsx"],
+  "include": [".storybook/**/*"],
   "exclude": ["node_modules", "storybook-static"]
 }
