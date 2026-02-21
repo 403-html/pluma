@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { register } from '@/lib/api/auth';
 import { StatusCodes } from 'http-status-codes';
 import { useLocale } from '@/i18n/LocaleContext';
+import FormField from '@/components/FormField';
 
 export default function RegisterForm() {
   const { locale, t } = useLocale();
@@ -19,7 +20,6 @@ export default function RegisterForm() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const result = await register(email, password, locale);
       if (!result.ok) {
@@ -42,38 +42,10 @@ export default function RegisterForm() {
     <main className="auth-container">
       <div className="auth-card">
         <h1 className="auth-title">{t.register.title}</h1>
-        <p className="auth-description">
-          {t.register.description}
-        </p>
+        <p className="auth-description">{t.register.description}</p>
         <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              {t.register.emailLabel}
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="form-input"
-              placeholder={t.register.emailPlaceholder}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              {t.register.passwordLabel}
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="form-input"
-              placeholder={t.register.passwordPlaceholder}
-            />
-          </div>
+          <FormField id="email" label={t.register.emailLabel} type="email" value={email} onChange={setEmail} placeholder={t.register.emailPlaceholder} />
+          <FormField id="password" label={t.register.passwordLabel} type="password" value={password} onChange={setPassword} placeholder={t.register.passwordPlaceholder} />
           {error && <div className="form-error">{error}</div>}
           <button type="submit" disabled={loading} className="form-button">
             {loading ? t.register.submitLoading : t.register.submitIdle}
@@ -81,9 +53,7 @@ export default function RegisterForm() {
         </form>
         <p className="auth-footer">
           {t.register.footerText}{' '}
-          <Link href={`/${locale}/login`} className="auth-link">
-            {t.register.footerLink}
-          </Link>
+          <Link href={`/${locale}/login`} className="auth-link">{t.register.footerLink}</Link>
         </p>
       </div>
     </main>

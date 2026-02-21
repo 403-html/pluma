@@ -88,7 +88,7 @@ export async function proxy(request: NextRequest) {
   const locale: Locale = firstSegment;
   // Strip the locale prefix to get the logical path used for route matching.
   const pathParts = pathname.split('/').slice(2);
-  const localePath = '/' + pathParts.join('/');
+  const localePath = ('/' + pathParts.join('/')).replace(/\/+$/, '') || '/';
 
   if (isPublicPath(localePath)) {
     return NextResponse.next();

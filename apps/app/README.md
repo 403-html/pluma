@@ -117,6 +117,12 @@ export const fr = {
   errors: {
     networkError: 'Impossible de joindre le serveur. Vérifiez votre connexion.',
   },
+  ui: {
+    languageSelectorLabel: 'Langue',
+  },
+  common: {
+    loading: 'Chargement…',
+  },
 } as const;
 ```
 

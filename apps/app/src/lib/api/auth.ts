@@ -2,6 +2,9 @@ import type { AuthUser } from '@pluma/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
 
+const MAX_EMAIL_LENGTH = 320;
+const MAX_PASSWORD_LENGTH = 128;
+
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
  * Derived from the shared `AuthUser` type to stay in sync.
@@ -24,6 +27,12 @@ async function parseErrorMessage(response: Response, fallback: string): Promise<
 
 export async function login(email: string, password: string, locale: Locale): Promise<AuthResult> {
   const t = getDictionary(locale);
+  if (typeof email !== 'string' || email.length === 0 || email.length > MAX_EMAIL_LENGTH) {
+    return { ok: false, message: t.login.errorFallback, status: 400 };
+  }
+  if (typeof password !== 'string' || password.length === 0 || password.length > MAX_PASSWORD_LENGTH) {
+    return { ok: false, message: t.login.errorFallback, status: 400 };
+  }
   try {
     const response = await fetch('/api/v1/auth/login', {
       method: 'POST',
@@ -46,6 +55,12 @@ export async function login(email: string, password: string, locale: Locale): Pr
 
 export async function register(email: string, password: string, locale: Locale): Promise<AuthResult> {
   const t = getDictionary(locale);
+  if (typeof email !== 'string' || email.length === 0 || email.length > MAX_EMAIL_LENGTH) {
+    return { ok: false, message: t.register.errorFallback, status: 400 };
+  }
+  if (typeof password !== 'string' || password.length === 0 || password.length > MAX_PASSWORD_LENGTH) {
+    return { ok: false, message: t.register.errorFallback, status: 400 };
+  }
   try {
     const response = await fetch('/api/v1/auth/register', {
       method: 'POST',

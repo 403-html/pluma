@@ -45,6 +45,9 @@ export const en = {
   ui: {
     languageSelectorLabel: 'Language',
   },
+  common: {
+    loading: 'Loading…',
+  },
 } as const;
 
 export type Messages = typeof en;
