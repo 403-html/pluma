@@ -1,9 +1,7 @@
 import type { AuthUser } from '@pluma/types';
-import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '@pluma/types';
+import { MAX_EMAIL_LENGTH, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '@pluma/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
-
-const MAX_EMAIL_LENGTH = 320;
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
@@ -134,5 +132,27 @@ export async function changePassword(
     return { ok: true };
   } catch {
     return { ok: false, message: t.errors.networkError };
+  }
+}
+
+/**
+ * Server-side only: verifies the current session by calling GET /api/v1/auth/me
+ * with a forwarded Cookie header. Requires NEXT_PUBLIC_API_URL to be set.
+ */
+export async function checkSession(cookieHeader: string): Promise<boolean> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) {
+    console.error('[checkSession] NEXT_PUBLIC_API_URL is not set');
+    return false;
+  }
+  try {
+    const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
+      method: 'GET',
+      headers: { Cookie: cookieHeader },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('[checkSession] failed', error);
+    return false;
   }
 }

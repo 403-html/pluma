@@ -5,6 +5,8 @@ export type AuthUser = {
   createdAt: Date;
 };
 
+/** Maximum email address length per RFC 5321. */
+export const MAX_EMAIL_LENGTH = 320;
 /** Minimum password length — enforced by both API (Zod) and client-side validation. */
 export const MIN_PASSWORD_LENGTH = 8;
 /** Maximum password length — enforced by both API (Zod) and client-side validation. */

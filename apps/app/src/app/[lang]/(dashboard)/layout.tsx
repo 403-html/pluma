@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import Sidebar from '@/components/Sidebar';
 import { resolveLocale } from '@/i18n';
+import { checkSession } from '@/lib/api/auth';
 
 async function checkAuth(): Promise<boolean> {
   const cookieStore = await cookies();
@@ -9,27 +10,7 @@ async function checkAuth(): Promise<boolean> {
     .getAll()
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join('; ');
-
-  try {
-    // In server-side context, we need to use the full API URL
-    // NEXT_PUBLIC_API_URL is required by next.config.ts
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
-      throw new Error('NEXT_PUBLIC_API_URL is required');
-    }
-    const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
-      method: 'GET',
-      headers: {
-        Cookie: cookieHeader,
-      },
-      credentials: 'include',
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('[DashboardLayout] checkAuth failed', error);
-    return false;
-  }
+  return checkSession(cookieHeader);
 }
 
 export default async function DashboardLayout({
