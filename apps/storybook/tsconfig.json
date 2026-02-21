@@ -1,0 +1,15 @@
+{
+  "extends": "../../tooling/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "paths": {
+      "@/*": ["../../apps/app/src/*"]
+    }
+  },
+  "include": [".storybook/**/*"],
+  "exclude": ["node_modules", "storybook-static"]
+}

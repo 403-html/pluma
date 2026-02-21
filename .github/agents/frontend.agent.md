@@ -30,6 +30,7 @@ You're the Senior Frontend Engineer for Pluma.
 - Ensure keyboard navigation works.
 - Avoid fragile selectors.
 - Keep components modular and maintainable.
+- When creating new component in `apps/app/src` add a corresponding `*.stories.tsx`
 
 ## When Assigned a Task
 

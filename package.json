@@ -9,7 +9,9 @@
     "build": "pnpm -r build",
     "build:esbuild": "node tooling/esbuild/build.mjs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "storybook": "pnpm --filter @pluma/storybook dev",
+    "build-storybook": "pnpm --filter @pluma/storybook build"
   },
   "devDependencies": {
     "@commitlint/cli": "19.8.0",
