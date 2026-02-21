@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { register } from '@/lib/api/auth';
 import { StatusCodes } from 'http-status-codes';
-import type { Messages } from '@/i18n';
+import type { Messages, Locale } from '@/i18n';
 
-type Props = { t: Messages; lang: string };
+type Props = { t: Messages; lang: Locale };
 
 export default function RegisterForm({ t, lang }: Props) {
   const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ export default function RegisterForm({ t, lang }: Props) {
     setLoading(true);
 
     try {
-      const result = await register(email, password);
+      const result = await register(email, password, lang);
       if (!result.ok) {
         if (result.status === StatusCodes.CONFLICT) {
           router.push(`/${lang}/login?msg=already-configured`);

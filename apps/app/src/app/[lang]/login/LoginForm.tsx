@@ -4,9 +4,9 @@ import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/api/auth';
-import type { Messages } from '@/i18n';
+import type { Messages, Locale } from '@/i18n';
 
-type Props = { t: Messages; lang: string };
+type Props = { t: Messages; lang: Locale };
 
 function isSafeReturnUrl(url: string | null): url is string {
   if (typeof url !== 'string') return false;
@@ -38,7 +38,7 @@ function LoginFormContent({ t, lang }: Props) {
     setLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, lang);
       if (!result.ok) {
         setError(result.message);
         return;

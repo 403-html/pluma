@@ -1,5 +1,6 @@
 import type { AuthUser } from '@pluma/types';
-import { getDictionary, DEFAULT_LOCALE } from '@/i18n';
+import type { Locale } from '@/i18n';
+import { getDictionary } from '@/i18n';
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
@@ -21,8 +22,8 @@ async function parseErrorMessage(response: Response, fallback: string): Promise<
   }
 }
 
-export async function login(email: string, password: string): Promise<AuthResult> {
-  const t = getDictionary(DEFAULT_LOCALE);
+export async function login(email: string, password: string, locale: Locale): Promise<AuthResult> {
+  const t = getDictionary(locale);
   try {
     const response = await fetch('/api/v1/auth/login', {
       method: 'POST',
@@ -43,8 +44,8 @@ export async function login(email: string, password: string): Promise<AuthResult
   }
 }
 
-export async function register(email: string, password: string): Promise<AuthResult> {
-  const t = getDictionary(DEFAULT_LOCALE);
+export async function register(email: string, password: string, locale: Locale): Promise<AuthResult> {
+  const t = getDictionary(locale);
   try {
     const response = await fetch('/api/v1/auth/register', {
       method: 'POST',
