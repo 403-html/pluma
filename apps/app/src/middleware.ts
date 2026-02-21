@@ -26,7 +26,9 @@ async function checkSetup(): Promise<boolean> {
     if (response.status === 404) return false;
     if (!response.ok) return true;
     const data = await response.json();
-    return data.configured === true;
+    if (typeof data !== 'object' || data === null) return true;
+    if (typeof data.configured !== 'boolean') return true;
+    return data.configured;
   } catch {
     return true;
   }
@@ -63,7 +65,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/register', request.url));
   }
 
-  return NextResponse.redirect(new URL('/login', request.url));
+  const loginUrl = new URL('/login', request.url);
+  loginUrl.searchParams.set('returnUrl', pathname);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {

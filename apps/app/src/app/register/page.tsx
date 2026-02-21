@@ -21,7 +21,7 @@ export default function RegisterPage() {
       const result = await register(email, password);
       if (!result.ok) {
         if (result.status === 409) {
-          router.push('/login');
+          router.push('/login?msg=already-configured');
           return;
         }
         setError(result.message);
