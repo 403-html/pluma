@@ -189,12 +189,14 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       take: MAX_PASSWORD_HISTORY - 1, // Get last 4 entries (current is the 5th)
     });
 
-    for (const entry of passwordHistory) {
-      const matchesHistorical = await compare(parsedBody.data.newPassword, entry.passwordHash);
-      if (matchesHistorical) {
-        request.log.warn({ userId: user.id }, 'Change password rejected: new password was recently used');
-        return reply.badRequest('New password was recently used');
-      }
+    // Check all historical passwords in parallel for better performance
+    const historicalComparisons = await Promise.all(
+      passwordHistory.map((entry) => compare(parsedBody.data.newPassword, entry.passwordHash))
+    );
+
+    if (historicalComparisons.some((matches) => matches)) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: new password was recently used');
+      return reply.badRequest('New password was recently used');
     }
 
     const newPasswordHash = await hash(parsedBody.data.newPassword, BCRYPT_ROUNDS);
@@ -223,9 +225,10 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
         where: { userId: user.id },
       });
 
-      // If we have more than MAX_PASSWORD_HISTORY entries, delete the oldest ones
-      if (historyCount > MAX_PASSWORD_HISTORY) {
-        const entriesToDelete = historyCount - MAX_PASSWORD_HISTORY;
+      // If we have MAX_PASSWORD_HISTORY or more entries, delete the oldest ones
+      // to maintain exactly MAX_PASSWORD_HISTORY entries
+      if (historyCount >= MAX_PASSWORD_HISTORY) {
+        const entriesToDelete = historyCount - MAX_PASSWORD_HISTORY + 1;
         
         // Get the oldest entries to delete
         const oldestEntries = await tx.passwordHistory.findMany({

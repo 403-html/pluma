@@ -422,8 +422,8 @@ describe('Auth routes', () => {
       };
       prismaMock.passwordHistory.findMany.mockResolvedValue([historyEntry]);
       
-      // New password matches the previous password in history
-      bcryptMock.compare.mockResolvedValueOnce(true); // Third call checks against history
+      // New password matches the previous password in history (Promise.all check)
+      bcryptMock.compare.mockResolvedValueOnce(true);
 
       const response = await app.inject({
         method: 'POST',
@@ -458,11 +458,13 @@ describe('Auth routes', () => {
       ];
       prismaMock.passwordHistory.findMany.mockResolvedValue(historyEntries);
       
-      // New password doesn't match first 2, but matches the 3rd historical password
+      // All 4 historical comparisons run in parallel via Promise.all
+      // One of them matches (doesn't matter which one for the test)
       bcryptMock.compare
         .mockResolvedValueOnce(false) // history[0]
         .mockResolvedValueOnce(false) // history[1]
-        .mockResolvedValueOnce(true);  // history[2] - match!
+        .mockResolvedValueOnce(true)  // history[2] - match!
+        .mockResolvedValueOnce(false); // history[3]
 
       const response = await app.inject({
         method: 'POST',
