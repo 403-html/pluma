@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { register } from '@/lib/api/auth';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -17,23 +18,14 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Registration failed');
+      const result = await register(email, password);
+      if (!result.ok) {
+        setError(result.message);
+        return;
       }
-
       router.push('/login');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+    } catch {
+      setError('Registration failed');
     } finally {
       setLoading(false);
     }

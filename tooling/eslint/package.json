@@ -8,5 +8,8 @@
     "./base": "./base.js",
     "./typescript": "./typescript.js",
     "./next-app": "./next-app.js"
+  },
+  "devDependencies": {
+    "globals": "^17.3.0"
   }
 }

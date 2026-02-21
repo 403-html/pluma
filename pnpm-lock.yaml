@@ -205,6 +205,12 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  tooling/eslint:
+    devDependencies:
+      globals:
+        specifier: ^17.3.0
+        version: 17.3.0
+
 packages:
 
   '@adobe/css-tools@4.4.4':
@@ -2048,6 +2054,10 @@ packages:
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
+    engines: {node: '>=18'}
+
+  globals@17.3.0:
+    resolution: {integrity: sha512-yMqGUQVVCkD4tqjOJf3TnrvaaHDMYp4VlUSObbkIiuCPe/ofdMBFIAcBbCSRFWOnos6qRiTVStDwqPLUclaxIw==}
     engines: {node: '>=18'}
 
   graceful-fs@4.2.11:
@@ -4933,6 +4943,8 @@ snapshots:
   global-directory@4.0.1:
     dependencies:
       ini: 4.1.1
+
+  globals@17.3.0: {}
 
   graceful-fs@4.2.11: {}
 

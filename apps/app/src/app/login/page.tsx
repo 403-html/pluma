@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { login } from '@/lib/api/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,23 +18,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Login failed');
+      const result = await login(email, password);
+      if (!result.ok) {
+        setError(result.message);
+        return;
       }
-
       router.push('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+    } catch {
+      setError('Login failed');
     } finally {
       setLoading(false);
     }

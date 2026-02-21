@@ -1,25 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const API_URL = process.env.API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-// Paths that don't require authentication
-const PUBLIC_PATHS = ['/login', '/register'];
-const STATIC_PATHS = ['/api/', '/sdk/', '/_next/', '/favicon.ico'];
+type RouteRule = { path: string; match: 'exact' | 'prefix' };
+
+const PUBLIC_ROUTES: RouteRule[] = [
+  { path: '/login', match: 'exact' },
+  { path: '/register', match: 'exact' },
+  { path: '/api/', match: 'prefix' },
+  { path: '/sdk/', match: 'prefix' },
+  { path: '/_next/', match: 'prefix' },
+  { path: '/favicon.ico', match: 'exact' },
+];
 
 function isPublicPath(pathname: string): boolean {
-  return (
-    PUBLIC_PATHS.includes(pathname) ||
-    STATIC_PATHS.some((path) => pathname.startsWith(path))
+  return PUBLIC_ROUTES.some((rule) =>
+    rule.match === 'exact' ? pathname === rule.path : pathname.startsWith(rule.path),
   );
 }
 
 async function checkSetup(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/auth/setup`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const response = await fetch(`${API_URL}/api/v1/auth/setup`);
+    if (!response.ok) return false;
     const data = await response.json();
     return data.configured === true;
   } catch {
@@ -33,11 +37,7 @@ async function checkAuth(request: NextRequest): Promise<boolean> {
     if (!cookie) return false;
 
     const response = await fetch(`${API_URL}/api/v1/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `pluma_session=${cookie}`,
-      },
+      headers: { Cookie: `pluma_session=${cookie}` },
     });
     return response.ok;
   } catch {

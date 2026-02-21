@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import globals from "globals";
 
 export default [
   {
@@ -10,38 +11,9 @@ export default [
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        // Node.js globals
-        console: "readonly",
-        process: "readonly",
-        Buffer: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
-        module: "readonly",
-        require: "readonly",
-        // Browser globals
-        window: "readonly",
-        document: "readonly",
-        fetch: "readonly",
-        FormData: "readonly",
-        Headers: "readonly",
-        Request: "readonly",
-        Response: "readonly",
-        URL: "readonly",
-        URLSearchParams: "readonly",
-        HTMLElement: "readonly",
-        HTMLFormElement: "readonly",
-        Event: "readonly",
-        MouseEvent: "readonly",
-        KeyboardEvent: "readonly",
-        // ES globals
-        Promise: "readonly",
-        Set: "readonly",
-        Map: "readonly",
-        WeakSet: "readonly",
-        WeakMap: "readonly",
-        Proxy: "readonly",
-        Reflect: "readonly",
-        Symbol: "readonly",
+        ...globals.node,
+        ...globals.browser,
+        ...globals.es2021,
       },
     },
     rules: {

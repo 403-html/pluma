@@ -32,9 +32,12 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    */
   fastify.get('/setup', async (request, reply) => {
     const userCount = await prisma.user.count();
-    const configured = userCount > 0;
 
-    return reply.code(StatusCodes.OK).send({ configured });
+    if (userCount === 0) {
+      return reply.code(StatusCodes.NOT_FOUND).send({ configured: false });
+    }
+
+    return reply.code(StatusCodes.OK).send({ configured: true });
   });
 
   /**
