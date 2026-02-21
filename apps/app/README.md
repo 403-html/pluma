@@ -192,3 +192,4 @@ The proxy auto-detects the locale from `Accept-Language` and `generateStaticPara
 | `register` | Register form (`/register`) |
 | `notFound` | 404 page |
 | `errors` | API error messages (network failures, etc.) |
+| `ui` | UI components (language switcher, etc.) |
