@@ -1,4 +1,4 @@
-import type { ProjectSummary } from '@pluma/db';
+import type { ProjectSummary } from '@pluma/types';
 
 export type { ProjectSummary };
 
