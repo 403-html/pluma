@@ -106,18 +106,17 @@ export default function ProjectsPage() {
             {projects.map((project) => (
               <tr
                 key={project.id}
-                onClick={(e) => {
-                  if (e.detail >= 2) return;
+                onClick={() => {
                   if (window.getSelection()?.toString()) return;
                   router.push(`/${locale}/projects/${project.id}/environments`);
                 }}
               >
-                <td><span className="projects-table-cell-text">{project.name}</span></td>
+                <td><span className="projects-table-cell-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
                 <td>
-                  <span className="project-key-badge">{project.key}</span>
+                  <span className="project-key-badge" onClick={(e) => e.stopPropagation()}>{project.key}</span>
                 </td>
                 <td>
-                  <span className="projects-table-cell-text">{project.flagStats.enabled}/{project.flagStats.total} on</span>
+                  <span className="projects-table-cell-text" onClick={(e) => e.stopPropagation()}>{project.flagStats.enabled}/{project.flagStats.total} on</span>
                 </td>
                 <td onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (
