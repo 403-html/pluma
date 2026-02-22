@@ -1,16 +1,13 @@
+import slugifyLib from 'slugify';
 import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
 
 /**
  * Slugify a string for use as a project key.
- * Lowercase, replace non-alphanumeric with hyphens, collapse multiple hyphens, trim.
+ * Uses the `slugify` package with strict mode (removes non-word chars).
  * Falls back to "project" if the result would otherwise be empty.
  */
 export function slugify(text: string): string {
-  const slug = text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  const slug = slugifyLib(text, { lower: true, strict: true });
   return slug.length > 0 ? slug : 'project';
 }
 
