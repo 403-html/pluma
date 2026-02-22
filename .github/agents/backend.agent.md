@@ -21,6 +21,7 @@ You're the Senior Backend Engineer for Pluma.
 
 - Strict input validation.
 - If migration is needed, you do it via db:migrate command, not manually.
+- **Database migrations**: When any schema change is required, MUST invoke the `creating-migrations` skill to follow the mandatory Prisma migration workflow.
 - Consistent status codes.
 - Predictable error format.
 - No silent failures.
