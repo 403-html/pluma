@@ -34,9 +34,8 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         environments: { select: { id: true, key: true, name: true } },
         _count: { select: { featureFlags: true } },
         featureFlags: {
-          select: {
-            _count: { select: { flagConfigs: { where: { enabled: true } } } },
-          },
+          where: { flagConfigs: { some: { enabled: true } } },
+          select: { id: true },
         },
       },
     });
@@ -47,7 +46,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         ...rest,
         flagStats: {
           total: _count.featureFlags,
-          enabled: featureFlags.filter((f) => f._count.flagConfigs > 0).length,
+          enabled: featureFlags.length,
         },
       };
     });

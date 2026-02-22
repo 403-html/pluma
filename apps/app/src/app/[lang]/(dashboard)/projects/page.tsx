@@ -41,12 +41,11 @@ export default function ProjectsPage() {
 
   async function handleDelete(id: string) {
     const result = await deleteProject(id);
+    setDeletingId(null);
     if (result.ok) {
-      setDeletingId(null);
       await loadProjects();
     } else {
       setError(result.message);
-      setDeletingId(null);
     }
   }
 
@@ -79,7 +78,7 @@ export default function ProjectsPage() {
         <button
           type="button"
           className="btn-primary"
-          onClick={() => setModalState({ type: 'add' })}
+          onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.projects.newProject}
         </button>
@@ -109,7 +108,7 @@ export default function ProjectsPage() {
                 </td>
                 <td>
                   {project.environments.length > 0
-                    ? project.environments.map((env) => env.name).join(', ')
+                    ? project.environments.slice(0, 256).map((env) => env.name).join(', ')
                     : t.projects.noEnvironments}
                 </td>
                 <td>
@@ -139,7 +138,7 @@ export default function ProjectsPage() {
                       <button
                         type="button"
                         className="btn-sm btn-sm--edit"
-                        onClick={() => setModalState({ type: 'edit', project })}
+                        onClick={() => { setError(null); setModalState({ type: 'edit', project }); }}
                       >
                         {t.projects.editBtn}
                       </button>

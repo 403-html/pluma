@@ -94,9 +94,8 @@ describe('API Projects', () => {
         ],
         _count: { featureFlags: 3 },
         featureFlags: [
-          { _count: { flagConfigs: 1 } },
-          { _count: { flagConfigs: 0 } },
-          { _count: { flagConfigs: 2 } },
+          { id: 'flag-1' },
+          { id: 'flag-3' },
         ],
       },
     ]);
