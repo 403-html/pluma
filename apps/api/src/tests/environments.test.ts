@@ -37,6 +37,7 @@ const { prismaMock } = vi.hoisted(() => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
     environment: {
       findMany: vi.fn(),
@@ -77,10 +78,10 @@ describe('Environment routes', () => {
       prismaMock.environment.findMany.mockResolvedValue([
         {
           ...mockEnvironment,
-          _count: { flagConfigs: 3 },
           flagConfigs: [{ flagId: FLAG_ID }],
         },
       ]);
+      prismaMock.featureFlag.count.mockResolvedValue(5);
 
       const response = await app.inject({
         method: 'GET',
@@ -92,7 +93,28 @@ describe('Environment routes', () => {
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveLength(1);
       expect(payload[0]).toHaveProperty('key', mockEnvironment.key);
-      expect(payload[0]).toHaveProperty('flagStats', { total: 3, enabled: 1 });
+      expect(payload[0]).toHaveProperty('flagStats', { total: 5, enabled: 1 });
+    });
+
+    it('should reflect total as project flag count even when no FlagConfigs exist', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.findMany.mockResolvedValue([
+        {
+          ...mockEnvironment,
+          flagConfigs: [],
+        },
+      ]);
+      prismaMock.featureFlag.count.mockResolvedValue(3);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload[0]).toHaveProperty('flagStats', { total: 3, enabled: 0 });
     });
 
     it('should return 404 when project not found', async () => {

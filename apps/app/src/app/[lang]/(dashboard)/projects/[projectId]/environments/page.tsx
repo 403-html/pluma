@@ -104,13 +104,6 @@ export default function EnvironmentsPage() {
         <h1 className="projects-page-title">{t.environments.title}</h1>
         <button
           type="button"
-          className="btn-sm btn-sm--edit"
-          onClick={() => router.push(`/${locale}/projects/${projectId}/flags`)}
-        >
-          {t.environments.manageFlags}
-        </button>
-        <button
-          type="button"
           className="btn-primary"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
@@ -141,14 +134,6 @@ export default function EnvironmentsPage() {
                 </td>
                 <td>
                   {env.flagStats.enabled}/{env.flagStats.total} on
-                  <button
-                    type="button"
-                    className="btn-sm btn-sm--edit"
-                    onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
-                    style={{ marginLeft: '8px' }}
-                  >
-                    {t.environments.flags}
-                  </button>
                 </td>
                 <td>
                   {deletingId === env.id ? (
