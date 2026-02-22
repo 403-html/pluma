@@ -41,6 +41,8 @@ export function AddProjectModal({
     }
     if (!isKeyCustomized) {
       setKey(name ? makeKeyUnique(slugify(name), initialExistingKeysRef.current) : '');
+      setKeyError(null);
+      setIsKeyEditing(false);
     }
   }, [name, isKeyCustomized]);
 
