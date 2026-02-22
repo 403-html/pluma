@@ -9,6 +9,7 @@ import {
   deleteProject,
   type ProjectSummary,
 } from '@/lib/api/projects';
+import Modal from '@/components/Modal';
 
 type ModalState =
   | { type: 'none' }
@@ -213,69 +214,55 @@ function AddProjectModal({
   }
 
   return (
-    <div
-      className="modal-overlay"
-      aria-hidden="true"
-      onClick={onClose}
-      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
-    >
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="add-project-modal-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 id="add-project-modal-title" className="modal-title">{t.projects.modalAddTitle}</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="project-name" className="form-label">
-              {t.projects.nameLabel}
-            </label>
-            <input
-              id="project-name"
-              type="text"
-              className="form-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t.projects.namePlaceholder}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+    <Modal titleId="add-project-modal-title" title={t.projects.modalAddTitle} onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="project-name" className="form-label">
+            {t.projects.nameLabel}
+          </label>
+          <input
+            id="project-name"
+            type="text"
+            className="form-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t.projects.namePlaceholder}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
 
-          <div className="form-group form-group--spaced">
-            <label htmlFor="project-key" className="form-label">
-              {t.projects.keyLabel}
-            </label>
-            <input
-              id="project-key"
-              type="text"
-              className="form-input"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder={t.projects.keyPlaceholder}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+        <div className="form-group form-group--spaced">
+          <label htmlFor="project-key" className="form-label">
+            {t.projects.keyLabel}
+          </label>
+          <input
+            id="project-key"
+            type="text"
+            className="form-input"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder={t.projects.keyPlaceholder}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
 
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn-sm btn-sm--edit"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              {t.projects.cancelBtn}
-            </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              {t.projects.createBtn}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="btn-sm btn-sm--edit"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            {t.projects.cancelBtn}
+          </button>
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            {t.projects.createBtn}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -310,68 +297,54 @@ function EditProjectModal({
   }
 
   return (
-    <div
-      className="modal-overlay"
-      aria-hidden="true"
-      onClick={onClose}
-      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
-    >
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-project-modal-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 id="edit-project-modal-title" className="modal-title">{t.projects.modalEditTitle}</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="project-name-edit" className="form-label">
-              {t.projects.nameLabel}
-            </label>
-            <input
-              id="project-name-edit"
-              type="text"
-              className="form-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t.projects.namePlaceholder}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+    <Modal titleId="edit-project-modal-title" title={t.projects.modalEditTitle} onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="project-name-edit" className="form-label">
+            {t.projects.nameLabel}
+          </label>
+          <input
+            id="project-name-edit"
+            type="text"
+            className="form-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t.projects.namePlaceholder}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
 
-          <div className="form-group form-group--spaced">
-            <label htmlFor="project-key-edit" className="form-label">
-              {t.projects.keyLabel}
-            </label>
-            <input
-              id="project-key-edit"
-              type="text"
-              className="form-input"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder={t.projects.keyPlaceholder}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+        <div className="form-group form-group--spaced">
+          <label htmlFor="project-key-edit" className="form-label">
+            {t.projects.keyLabel}
+          </label>
+          <input
+            id="project-key-edit"
+            type="text"
+            className="form-input"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder={t.projects.keyPlaceholder}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
 
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn-sm btn-sm--edit"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              {t.projects.cancelBtn}
-            </button>
-            <button type="submit" className="btn-primary" disabled={isSubmitting}>
-              {t.projects.saveBtn}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="btn-sm btn-sm--edit"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            {t.projects.cancelBtn}
+          </button>
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            {t.projects.saveBtn}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
