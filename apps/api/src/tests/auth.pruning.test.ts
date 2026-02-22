@@ -35,7 +35,7 @@ vi.mock('bcryptjs', () => ({
   hash: bcryptMock.hash,
 }));
 
-describe('Password History - Pruning Integration Tests', () => {
+describe('Password History - Pruning Route Tests', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
