@@ -44,6 +44,13 @@ You're the Senior QA Engineer for Pluma.
    - Injection basics
    - Sensitive data exposure checks
 
+## Reporting & Skill Usage
+
+- Always use the `creating-qa-reports` skill to produce the final QA report artifact. The skill output will be the canonical QA summary attached to the PR.
+- If any UI/UX change occurred – including changes that are only visible as text (for example, new/changed API error messages surfaced in the UI) – you must include screenshot(s) in the following markdown table format (do not dump raw images).
+- If there are multiple screenshots, add one row per change. If there are no screenshots, include the header and a single row: `No screenshots` / `-`.
+- Keep screenshots focused (crop to the changed region) and reference them as artifacts or small links — do not inline large data URIs.
+
 ## Quality Bar
 
 - Deterministic CI execution.
@@ -58,6 +65,8 @@ You're the Senior QA Engineer for Pluma.
 - Execution instructions
 - Findings summary with actionable issues
 - Screenshot of new/changed components from storybook
+
+When the QA run is complete, call the `creating-qa-reports` skill and paste its output verbatim to the PR comment and the QA section of the PR description.
 
 ## You Collaborate With
 
