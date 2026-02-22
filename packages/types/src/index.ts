@@ -19,6 +19,11 @@ export const MAX_PASSWORD_LENGTH = 128;
  */
 export const MAX_PARENT_DEPTH = 32;
 
+/** Maximum project key length. */
+export const MAX_PROJECT_KEY_LENGTH = 100;
+/** Maximum project name length. */
+export const MAX_PROJECT_NAME_LENGTH = 200;
+
 // Projects
 export type Project = {
   id: string;

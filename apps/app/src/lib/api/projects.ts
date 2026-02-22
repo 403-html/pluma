@@ -1,4 +1,5 @@
 import type { ProjectSummary } from '@pluma/types';
+import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH } from '@pluma/types';
 
 export type { ProjectSummary };
 
@@ -36,6 +37,18 @@ export async function createProject(
   key: string,
   name: string
 ): Promise<{ ok: true; project: ProjectSummary } | { ok: false; message: string }> {
+  if (typeof key !== 'string' || key.length === 0) {
+    return { ok: false, message: 'Key is required' };
+  }
+  if (key.length > MAX_PROJECT_KEY_LENGTH) {
+    return { ok: false, message: `Key must be ${MAX_PROJECT_KEY_LENGTH} characters or fewer` };
+  }
+  if (typeof name !== 'string' || name.length === 0) {
+    return { ok: false, message: 'Name is required' };
+  }
+  if (name.length > MAX_PROJECT_NAME_LENGTH) {
+    return { ok: false, message: `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer` };
+  }
   try {
     const response = await fetch('/api/v1/projects', {
       method: 'POST',
@@ -60,6 +73,15 @@ export async function updateProject(
   id: string,
   data: { key?: string; name?: string }
 ): Promise<{ ok: true; project: ProjectSummary } | { ok: false; message: string }> {
+  if (data.key === undefined && data.name === undefined) {
+    return { ok: false, message: 'Provide a valid key or name to update' };
+  }
+  if (data.key !== undefined && (data.key.length === 0 || data.key.length > MAX_PROJECT_KEY_LENGTH)) {
+    return { ok: false, message: data.key.length === 0 ? 'Key is required' : `Key must be ${MAX_PROJECT_KEY_LENGTH} characters or fewer` };
+  }
+  if (data.name !== undefined && (data.name.length === 0 || data.name.length > MAX_PROJECT_NAME_LENGTH)) {
+    return { ok: false, message: data.name.length === 0 ? 'Name is required' : `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer` };
+  }
   try {
     const response = await fetch(`/api/v1/projects/${id}`, {
       method: 'PATCH',

@@ -3,16 +3,19 @@ import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH } from '@pluma/types';
+
+const PAGE_SIZE = 100;
 
 const projectBodySchema = z.object({
-  key: z.string().min(1),
-  name: z.string().min(1),
+  key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH),
+  name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH),
 });
 
 const projectUpdateBodySchema = z
   .object({
-    key: z.string().min(1).optional(),
-    name: z.string().min(1).optional(),
+    key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).optional(),
+    name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH).optional(),
   })
   .refine((body) => body.key !== undefined || body.name !== undefined, {
     message: 'At least one field is required',
@@ -26,6 +29,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
   fastify.get('/projects', { preHandler: [adminAuthHook] }, async () => {
     const projects = await prisma.project.findMany({
       orderBy: { createdAt: 'desc' },
+      take: PAGE_SIZE,
       include: {
         environments: { select: { id: true, key: true, name: true } },
         _count: { select: { featureFlags: true } },

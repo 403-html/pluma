@@ -99,6 +99,11 @@ export const en = {
     createError: 'Failed to create project',
     updateError: 'Failed to update project',
     deleteError: 'Failed to delete project',
+    keyRequired: 'Key is required',
+    nameRequired: 'Name is required',
+    keyTooLong: 'Key must be 100 characters or fewer',
+    nameTooLong: 'Name must be 200 characters or fewer',
+    updateInvalid: 'Provide a valid key or name to update',
   },
 } as const;
 
