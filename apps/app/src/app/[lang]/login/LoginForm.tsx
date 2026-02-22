@@ -12,7 +12,8 @@ function isSafeReturnUrl(url: string | null): url is string {
   if (!url.startsWith('/') || url.startsWith('//')) return false;
   try {
     const decoded = decodeURIComponent(url);
-    if (/[\x00-\x1f\x7f]/.test(decoded)) return false;
+    // eslint-disable-next-line no-control-regex
+    if (/[\u0000-\u001f\u007f]/.test(decoded)) return false;
     return !decoded.split('?')[0].split('/').includes('..');
   } catch {
     return false;

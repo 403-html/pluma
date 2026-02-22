@@ -45,6 +45,23 @@ You're the Senior Frontend Engineer for Pluma.
    - Edge cases
    - Known limitations
 
+## Pre-Handoff Validation (MANDATORY)
+
+Before handing off any work, you **MUST** complete the following validation loop:
+
+1. **Run lint**: `pnpm --filter @pluma/app lint`
+   - If errors exist, fix them and re-run lint
+   - Repeat until 0 errors and 0 warnings
+2. **Run build**: `pnpm --filter @pluma/app build`
+   - If build fails, fix errors and re-run build
+   - Repeat until build succeeds
+3. **Run dev server** (when applicable): `pnpm --filter @pluma/app dev`
+   - Verify the feature works in the browser
+   - Check for console errors or warnings
+   - Stop the dev server after verification
+
+**Do not hand off work until all three checks pass.** This is non-negotiable.
+
 ## Quality Bar
 
 - No hacks.

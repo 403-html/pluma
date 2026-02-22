@@ -91,65 +91,69 @@ export const EmptyWithHint: Story = {
 /**
  * Editing mode where the user can type in the key
  */
-export const Editing: Story = {
-  render: () => {
-    const [value, setValue] = useState('my-awesome-project');
-    const [isEditing, setIsEditing] = useState(true);
+function EditingStory() {
+  const [value, setValue] = useState('my-awesome-project');
+  const [isEditing, setIsEditing] = useState(true);
 
-    return (
-      <div style={{ maxWidth: '600px' }}>
-        <div className="form-group">
-          <label htmlFor="project-key-edit" className="form-label">
-            Project Key
-          </label>
-          <ProjectKeyField
-            id="project-key-edit"
-            value={value}
-            isEditing={isEditing}
-            error={null}
-            disabled={false}
-            placeholder="my-project-key"
-            editBtnLabel="Edit project key"
-            hint="Auto-generated from project name"
-            onEditStart={() => setIsEditing(true)}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-          />
-        </div>
+  return (
+    <div style={{ maxWidth: '600px' }}>
+      <div className="form-group">
+        <label htmlFor="project-key-edit" className="form-label">
+          Project Key
+        </label>
+        <ProjectKeyField
+          id="project-key-edit"
+          value={value}
+          isEditing={isEditing}
+          error={null}
+          disabled={false}
+          placeholder="my-project-key"
+          editBtnLabel="Edit project key"
+          hint="Auto-generated from project name"
+          onEditStart={() => setIsEditing(true)}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={() => setIsEditing(false)}
+        />
       </div>
-    );
-  },
+    </div>
+  );
+}
+
+export const Editing: Story = {
+  render: () => <EditingStory />,
 };
 
 /**
  * Error state with validation message
  */
-export const WithError: Story = {
-  render: () => {
-    const [value, setValue] = useState('my invalid key!');
-    const [isEditing, setIsEditing] = useState(true);
+function WithErrorStory() {
+  const [value, setValue] = useState('my invalid key!');
+  const [isEditing, setIsEditing] = useState(true);
 
-    return (
-      <div style={{ maxWidth: '600px' }}>
-        <div className="form-group">
-          <label htmlFor="project-key-error" className="form-label">
-            Project Key
-          </label>
-          <ProjectKeyField
-            id="project-key-error"
-            value={value}
-            isEditing={isEditing}
-            error="Only lowercase letters, numbers, and hyphens are allowed"
-            disabled={false}
-            placeholder="my-project-key"
-            editBtnLabel="Edit project key"
-            hint="Auto-generated from project name"
-            onEditStart={() => setIsEditing(true)}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-          />
-        </div>
+  return (
+    <div style={{ maxWidth: '600px' }}>
+      <div className="form-group">
+        <label htmlFor="project-key-error" className="form-label">
+          Project Key
+        </label>
+        <ProjectKeyField
+          id="project-key-error"
+          value={value}
+          isEditing={isEditing}
+          error="Only lowercase letters, numbers, and hyphens are allowed"
+          disabled={false}
+          placeholder="my-project-key"
+          editBtnLabel="Edit project key"
+          hint="Auto-generated from project name"
+          onEditStart={() => setIsEditing(true)}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={() => setIsEditing(false)}
+        />
       </div>
-    );
-  },
+    </div>
+  );
+}
+
+export const WithError: Story = {
+  render: () => <WithErrorStory />,
 };

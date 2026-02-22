@@ -18,29 +18,31 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(false);
+function DefaultStory() {
+  const [isOpen, setIsOpen] = useState(false);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <Modal
+          titleId="example-modal-title"
+          title="Example Modal"
+          onClose={() => setIsOpen(false)}
         >
-          Open Modal
-        </button>
-        {isOpen && (
-          <Modal
-            titleId="example-modal-title"
-            title="Example Modal"
-            onClose={() => setIsOpen(false)}
-          >
-            <p>This is the modal content.</p>
-          </Modal>
-        )}
-      </div>
-    );
-  },
+          <p>This is the modal content.</p>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+export const Default: Story = {
+  render: () => <DefaultStory />,
 };
