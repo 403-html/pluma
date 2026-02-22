@@ -96,6 +96,27 @@ describe('Environment routes', () => {
       expect(payload[0]).toHaveProperty('flagStats', { total: 5, enabled: 1 });
     });
 
+    it('should reflect total as project flag count even when no FlagConfigs exist', async () => {
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.findMany.mockResolvedValue([
+        {
+          ...mockEnvironment,
+          flagConfigs: [],
+        },
+      ]);
+      prismaMock.featureFlag.count.mockResolvedValue(3);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload[0]).toHaveProperty('flagStats', { total: 3, enabled: 0 });
+    });
+
     it('should return 404 when project not found', async () => {
       prismaMock.project.findUnique.mockResolvedValue(null);
 
