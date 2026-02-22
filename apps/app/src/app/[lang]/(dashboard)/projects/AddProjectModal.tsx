@@ -29,6 +29,10 @@ export function AddProjectModal({
   // Track initial mount so that subsequent existingKeys changes (background refreshes)
   // don't unexpectedly regenerate a key the user is already editing.
   const hasMountedRef = useRef(false);
+  // Capture existingKeys at mount time so the effect only re-runs on name / isKeyCustomized
+  // changes, not on background project-list refreshes. Refs are intentionally excluded from
+  // the exhaustive-deps rule, so no lint suppression is needed.
+  const initialExistingKeysRef = useRef(existingKeys);
 
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -36,11 +40,8 @@ export function AddProjectModal({
       return;
     }
     if (!isKeyCustomized) {
-      setKey(name ? makeKeyUnique(slugify(name), existingKeys) : '');
+      setKey(name ? makeKeyUnique(slugify(name), initialExistingKeysRef.current) : '');
     }
-    // existingKeys intentionally excluded: only re-generate on name change, not on
-    // background project list refreshes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, isKeyCustomized]);
 
   function handleEditKey() {
