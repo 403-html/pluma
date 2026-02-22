@@ -79,7 +79,6 @@ export const en = {
     colName: 'Name',
     colKey: 'Key',
     colEnvironments: 'Environments',
-    colFlags: 'Flags',
     colActions: 'Actions',
     editBtn: 'Edit',
     deleteBtn: 'Delete',
