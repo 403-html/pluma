@@ -106,7 +106,8 @@ export default function ProjectsPage() {
             {projects.map((project) => (
               <tr
                 key={project.id}
-                onClick={() => {
+                onClick={(e) => {
+                  if (e.detail >= 2) return;
                   if (window.getSelection()?.toString()) return;
                   router.push(`/${locale}/projects/${project.id}/environments`);
                 }}
