@@ -111,12 +111,12 @@ export default function ProjectsPage() {
                   router.push(`/${locale}/projects/${project.id}/environments`);
                 }}
               >
-                <td>{project.name}</td>
+                <td><span className="projects-table-cell-text">{project.name}</span></td>
                 <td>
                   <span className="project-key-badge">{project.key}</span>
                 </td>
                 <td>
-                  {project.flagStats.enabled}/{project.flagStats.total} on
+                  <span className="projects-table-cell-text">{project.flagStats.enabled}/{project.flagStats.total} on</span>
                 </td>
                 <td onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (
