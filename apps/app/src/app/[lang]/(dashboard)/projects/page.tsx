@@ -98,33 +98,25 @@ export default function ProjectsPage() {
             <tr>
               <th>{t.projects.colName}</th>
               <th>{t.projects.colKey}</th>
-              <th>{t.projects.colEnvironments}</th>
               <th>{t.projects.colFlags}</th>
               <th>{t.projects.colActions}</th>
             </tr>
           </thead>
           <tbody>
             {projects.map((project) => (
-              <tr key={project.id}>
+              <tr
+                key={project.id}
+                style={{ cursor: 'pointer' }}
+                onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
+              >
                 <td>{project.name}</td>
                 <td>
                   <span className="project-key-badge">{project.key}</span>
                 </td>
                 <td>
-                  <button
-                    type="button"
-                    className="btn-sm btn-sm--edit"
-                    onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
-                  >
-                    {project.environments.length > 0
-                      ? `${project.environments.length} env${project.environments.length !== 1 ? 's' : ''}`
-                      : t.projects.noEnvironments}
-                  </button>
-                </td>
-                <td>
                   {project.flagStats.enabled}/{project.flagStats.total} on
                 </td>
-                <td>
+                <td onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (
                     <div className="delete-confirm-actions">
                       <span className="delete-confirm-text">{t.projects.confirmDelete}</span>
