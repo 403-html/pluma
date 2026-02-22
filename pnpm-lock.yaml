@@ -90,6 +90,9 @@ importers:
 
   apps/app:
     dependencies:
+      '@pluma/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@pluma/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -210,12 +213,6 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-
-  tooling/eslint:
-    devDependencies:
-      globals:
-        specifier: ^17.3.0
-        version: 17.3.0
 
 packages:
 

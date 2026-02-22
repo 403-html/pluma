@@ -28,17 +28,6 @@ export type Project = {
   updatedAt: Date;
 };
 
-/**
- * JSON-serialised project as returned by `GET /api/v1/projects`.
- * Extends `Project` with pre-computed environment list and flag statistics.
- */
-export type ProjectSummary = Omit<Project, 'createdAt' | 'updatedAt'> & {
-  createdAt: string;
-  updatedAt: string;
-  environments: Array<{ id: string; key: string; name: string }>;
-  flagStats: { enabled: number; total: number };
-};
-
 // SDK Tokens
 export type SdkToken = {
   id: string;

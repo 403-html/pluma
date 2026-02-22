@@ -5,14 +5,15 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "predev": "pnpm --filter @pluma/types build",
+    "predev": "pnpm --filter @pluma/types build && pnpm --filter @pluma/db build",
     "dev": "next dev",
-    "prebuild": "pnpm --filter @pluma/types build",
+    "prebuild": "pnpm --filter @pluma/types build && pnpm --filter @pluma/db build",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "@pluma/db": "workspace:*",
     "@pluma/types": "workspace:*",
     "http-status-codes": "2.3.0",
     "next": "^16.1.6",
