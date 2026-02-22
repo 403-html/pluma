@@ -1,53 +1,55 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
-  listProjects,
-  deleteProject,
-  type ProjectSummary,
-} from '@/lib/api/projects';
-import { AddProjectModal } from './AddProjectModal';
-import { EditProjectModal } from './EditProjectModal';
+  listEnvironments,
+  deleteEnvironment,
+  type EnvironmentSummary,
+} from '@/lib/api/environments';
+import { AddEnvironmentModal } from './AddEnvironmentModal';
+import { EditEnvironmentModal } from './EditEnvironmentModal';
 
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
-  | { type: 'edit'; project: ProjectSummary };
+  | { type: 'edit'; env: EnvironmentSummary };
 
-export default function ProjectsPage() {
+export default function EnvironmentsPage() {
   const { t, locale } = useLocale();
   const router = useRouter();
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const params = useParams();
+  const projectId = params.projectId as string;
+  const [environments, setEnvironments] = useState<EnvironmentSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const existingKeys = useMemo(() => projects.map(p => p.key), [projects]);
+  const existingKeys = useMemo(() => environments.map(env => env.key), [environments]);
 
-  const loadProjects = useCallback(async () => {
+  const loadEnvironments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const result = await listProjects();
+    const result = await listEnvironments(projectId);
     if (result.ok) {
-      setProjects(result.projects);
+      setEnvironments(result.environments);
     } else {
       setError(result.message);
     }
     setIsLoading(false);
-  }, []);
+  }, [projectId]);
 
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    loadEnvironments();
+  }, [loadEnvironments]);
 
   async function handleDelete(id: string) {
-    const result = await deleteProject(id);
+    const result = await deleteEnvironment(id);
     setDeletingId(null);
     if (result.ok) {
-      await loadProjects();
+      await loadEnvironments();
     } else {
       setError(result.message);
     }
@@ -57,18 +59,32 @@ export default function ProjectsPage() {
     return (
       <main className="projects-page">
         <div className="projects-page-header">
-          <h1 className="projects-page-title">{t.projects.title}</h1>
+          <button
+            type="button"
+            className="btn-sm btn-sm--edit"
+            onClick={() => router.push(`/${locale}/projects`)}
+          >
+            {t.environments.backToProjects}
+          </button>
+          <h1 className="projects-page-title">{t.environments.title}</h1>
         </div>
         <p>{t.common.loading}</p>
       </main>
     );
   }
 
-  if (error && projects.length === 0) {
+  if (error && environments.length === 0) {
     return (
       <main className="projects-page">
         <div className="projects-page-header">
-          <h1 className="projects-page-title">{t.projects.title}</h1>
+          <button
+            type="button"
+            className="btn-sm btn-sm--edit"
+            onClick={() => router.push(`/${locale}/projects`)}
+          >
+            {t.environments.backToProjects}
+          </button>
+          <h1 className="projects-page-title">{t.environments.title}</h1>
         </div>
         <div className="form-error">{error}</div>
       </main>
@@ -78,69 +94,64 @@ export default function ProjectsPage() {
   return (
     <main className="projects-page">
       <div className="projects-page-header">
-        <h1 className="projects-page-title">{t.projects.title}</h1>
+        <button
+          type="button"
+          className="btn-sm btn-sm--edit"
+          onClick={() => router.push(`/${locale}/projects`)}
+        >
+          {t.environments.backToProjects}
+        </button>
+        <h1 className="projects-page-title">{t.environments.title}</h1>
         <button
           type="button"
           className="btn-primary"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
-          {t.projects.newProject}
+          {t.environments.newEnvironment}
         </button>
       </div>
 
       {error && <div className="form-error projects-error">{error}</div>}
 
-      {projects.length === 0 ? (
-        <div className="projects-empty">{t.projects.emptyState}</div>
+      {environments.length === 0 ? (
+        <div className="projects-empty">{t.environments.emptyState}</div>
       ) : (
         <table className="projects-table">
           <thead>
             <tr>
-              <th>{t.projects.colName}</th>
-              <th>{t.projects.colKey}</th>
-              <th>{t.projects.colEnvironments}</th>
-              <th>{t.projects.colFlags}</th>
-              <th>{t.projects.colActions}</th>
+              <th>{t.environments.colName}</th>
+              <th>{t.environments.colKey}</th>
+              <th>{t.environments.colFlags}</th>
+              <th>{t.environments.colActions}</th>
             </tr>
           </thead>
           <tbody>
-            {projects.map((project) => (
-              <tr key={project.id}>
-                <td>{project.name}</td>
+            {environments.map((env) => (
+              <tr key={env.id}>
+                <td>{env.name}</td>
                 <td>
-                  <span className="project-key-badge">{project.key}</span>
+                  <span className="project-key-badge">{env.key}</span>
                 </td>
                 <td>
-                  <button
-                    type="button"
-                    className="btn-sm btn-sm--edit"
-                    onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
-                  >
-                    {project.environments.length > 0
-                      ? `${project.environments.length} env${project.environments.length !== 1 ? 's' : ''}`
-                      : t.projects.noEnvironments}
-                  </button>
+                  {env.flagStats.enabled}/{env.flagStats.total} on
                 </td>
                 <td>
-                  {project.flagStats.enabled}/{project.flagStats.total} on
-                </td>
-                <td>
-                  {deletingId === project.id ? (
+                  {deletingId === env.id ? (
                     <div className="delete-confirm-actions">
-                      <span className="delete-confirm-text">{t.projects.confirmDelete}</span>
+                      <span className="delete-confirm-text">{t.environments.confirmDelete}</span>
                       <button
                         type="button"
                         className="btn-sm btn-sm--danger"
-                        onClick={() => handleDelete(project.id)}
+                        onClick={() => handleDelete(env.id)}
                       >
-                        {t.projects.confirmDeleteBtn}
+                        {t.environments.confirmDeleteBtn}
                       </button>
                       <button
                         type="button"
                         className="btn-sm btn-sm--edit"
                         onClick={() => setDeletingId(null)}
                       >
-                        {t.projects.cancelBtn}
+                        {t.environments.cancelBtn}
                       </button>
                     </div>
                   ) : (
@@ -148,16 +159,16 @@ export default function ProjectsPage() {
                       <button
                         type="button"
                         className="btn-sm btn-sm--edit"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', project }); }}
+                        onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
                       >
-                        {t.projects.editBtn}
+                        {t.environments.editBtn}
                       </button>
                       <button
                         type="button"
                         className="btn-sm btn-sm--danger"
-                        onClick={() => setDeletingId(project.id)}
+                        onClick={() => setDeletingId(env.id)}
                       >
-                        {t.projects.deleteBtn}
+                        {t.environments.deleteBtn}
                       </button>
                     </div>
                   )}
@@ -169,24 +180,25 @@ export default function ProjectsPage() {
       )}
 
       {modalState.type === 'add' && (
-        <AddProjectModal
+        <AddEnvironmentModal
+          projectId={projectId}
           existingKeys={existingKeys}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
-            loadProjects();
+            loadEnvironments();
           }}
           onError={setError}
         />
       )}
 
       {modalState.type === 'edit' && (
-        <EditProjectModal
-          project={modalState.project}
+        <EditEnvironmentModal
+          env={modalState.env}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
-            loadProjects();
+            loadEnvironments();
           }}
           onError={setError}
         />
@@ -194,4 +206,3 @@ export default function ProjectsPage() {
     </main>
   );
 }
-
