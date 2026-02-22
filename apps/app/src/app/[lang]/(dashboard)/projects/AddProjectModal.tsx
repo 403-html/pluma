@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
 import Modal from '@/components/Modal';
+import { ProjectKeyField } from '@/components/ProjectKeyField';
 import { createProject } from '@/lib/api/projects';
 import { slugify, makeKeyUnique, isValidProjectKey } from '@/lib/projectKeyUtils';
 
@@ -25,7 +26,6 @@ export function AddProjectModal({
   const [isKeyEditing, setIsKeyEditing] = useState(false);
   const [keyError, setKeyError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const keyInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isKeyCustomized && name) {
@@ -34,12 +34,6 @@ export function AddProjectModal({
       setKey('');
     }
   }, [name, isKeyCustomized, existingKeys]);
-
-  useEffect(() => {
-    if (isKeyEditing && keyInputRef.current) {
-      keyInputRef.current.focus();
-    }
-  }, [isKeyEditing]);
 
   function handleEditKey() {
     setIsKeyEditing(true);
@@ -119,56 +113,18 @@ export function AddProjectModal({
             {t.projects.keyLabel}
           </label>
 
-          {isKeyEditing ? (
-            <div className="project-key-input-wrapper">
-              <input
-                ref={keyInputRef}
-                id="project-key"
-                type="text"
-                className="form-input"
-                value={key}
-                onChange={handleKeyChange}
-                onBlur={handleKeyBlur}
-                disabled={isSubmitting}
-              />
-              {keyError && <div className="project-key-error">{keyError}</div>}
-            </div>
-          ) : (
-            <div className="project-key-preview">
-              {key ? (
-                <code className="project-key-preview-text">{key}</code>
-              ) : (
-                <span className="project-key-preview-text" aria-label="placeholder">
-                  {t.projects.keyPlaceholder}
-                </span>
-              )}
-              <button
-                type="button"
-                className="project-key-edit-btn"
-                onClick={handleEditKey}
-                disabled={isSubmitting}
-                aria-label={t.projects.keyEditBtnLabel}
-                title={t.projects.keyEditBtnLabel}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.3879 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L5.33301 13.3334L1.66634 14.3334L2.66634 10.6667L11.333 2.00004Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
+          <ProjectKeyField
+            id="project-key"
+            value={key}
+            isEditing={isKeyEditing}
+            error={keyError}
+            disabled={isSubmitting}
+            placeholder={t.projects.keyPlaceholder}
+            editBtnLabel={t.projects.keyEditBtnLabel}
+            onEditStart={handleEditKey}
+            onChange={handleKeyChange}
+            onBlur={handleKeyBlur}
+          />
 
           {!isKeyEditing && !isKeyCustomized && key && (
             <p className="form-helper-text">{t.projects.keyAutoHint}</p>
