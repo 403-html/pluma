@@ -35,7 +35,7 @@ Summary: E2E flows pass; no regressions found in feature X.
 - [minor] Tooltip text adjusted for clarity.
 - [info] Performance metrics unchanged.
 
-| change | screen |
+| Changes | Screenshot |
 |---|---|
 | Updated tooltip text on Flag list | ![flag-tooltip](artifacts/flag-tooltip.png) |
 ```
