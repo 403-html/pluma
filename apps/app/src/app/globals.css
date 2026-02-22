@@ -559,3 +559,83 @@ p {
   margin-top: 1rem;
 }
 
+/* Project Key Preview (Read-only Code Block) */
+.project-key-preview {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 0.375rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  min-height: 3rem;
+}
+
+.project-key-preview-text {
+  flex: 1;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  color: #333;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.project-key-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  border-radius: 0.25rem;
+  color: #555;
+}
+
+.project-key-edit-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #0070f3;
+}
+
+.project-key-edit-btn:focus {
+  outline: 2px solid #0070f3;
+  outline-offset: 2px;
+}
+
+.project-key-preview:hover .project-key-edit-btn {
+  opacity: 1;
+}
+
+.project-key-edit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* Project Key Input Wrapper (Edit Mode) */
+.project-key-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Project Key Error Message */
+.project-key-error {
+  font-size: 0.875rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
+}
+
+/* Helper Text for Auto-generated Keys */
+.form-helper-text {
+  font-size: 0.875rem;
+  color: #777;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+

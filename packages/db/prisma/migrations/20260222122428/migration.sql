@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "FlagConfig" ALTER COLUMN "allowList" DROP DEFAULT,
+ALTER COLUMN "denyList" DROP DEFAULT;
