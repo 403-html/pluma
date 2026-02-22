@@ -230,7 +230,9 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       // current password already counts as the 5th slot in the reuse check.
       const maxHistoryEntries = MAX_PASSWORD_HISTORY - 1;
       if (historyCount >= MAX_PASSWORD_HISTORY) {
-        const entriesToDelete = historyCount - maxHistoryEntries;
+        // Bound deletions to maxHistoryEntries per request to prevent unbounded
+        // array growth if the table ever becomes inconsistent.
+        const entriesToDelete = Math.min(historyCount - maxHistoryEntries, maxHistoryEntries);
         
         // Get the oldest entries to delete
         const oldestEntries = await tx.passwordHistory.findMany({
