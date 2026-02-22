@@ -436,6 +436,23 @@ p {
   border-bottom: none;
 }
 
+.projects-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.projects-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.projects-table tbody td {
+  cursor: text;
+}
+
+.projects-table tbody td:last-child {
+  cursor: default;
+}
+
 .project-key-badge {
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.8rem;

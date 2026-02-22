@@ -106,7 +106,6 @@ export default function ProjectsPage() {
             {projects.map((project) => (
               <tr
                 key={project.id}
-                style={{ cursor: 'pointer' }}
                 onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
               >
                 <td>{project.name}</td>
