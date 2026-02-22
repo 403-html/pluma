@@ -84,7 +84,7 @@ No vague prompts. Always send concrete, testable criteria.
 - **Screenshots**: If there are any UI/UX changes (visual changes, flows, or even API-visible error text changes), include screenshots in a markdown table exactly matching this format:
 
 ----
-| change | screen |
+| Changes | Screenshot |
 |---|---|
 | Brief one-line description of change | ![alt](link-or-relative-path) |
 ----
