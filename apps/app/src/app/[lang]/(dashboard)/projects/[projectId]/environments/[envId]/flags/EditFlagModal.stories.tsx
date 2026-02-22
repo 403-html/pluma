@@ -27,97 +27,103 @@ const sampleFlag: FlagEntry = {
   enabled: true,
 };
 
-export const Default: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function DefaultStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Edit Flag Modal
-        </button>
-        {isOpen && (
-          <EditFlagModal
-            flag={sampleFlag}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Flag updated successfully!');
-              setIsOpen(false);
-            }}
-            onError={(message) => {
-              alert(`Error: ${message}`);
-            }}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Edit Flag Modal
+      </button>
+      {isOpen && (
+        <EditFlagModal
+          flag={sampleFlag}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag updated successfully!');
+            setIsOpen(false);
+          }}
+          onError={(message) => {
+            alert(`Error: ${message}`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+export const Default: Story = {
+  render: () => <DefaultStory />,
 };
+
+function WithoutDescriptionStory() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <EditFlagModal
+          flag={{
+            ...sampleFlag,
+            description: null,
+          }}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag updated!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
 
 export const WithoutDescription: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
-
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <EditFlagModal
-            flag={{
-              ...sampleFlag,
-              description: null,
-            }}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Flag updated!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  render: () => <WithoutDescriptionStory />,
 };
 
-export const Disabled: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function DisabledStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <EditFlagModal
-            flag={{
-              ...sampleFlag,
-              enabled: false,
-            }}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Flag updated!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <EditFlagModal
+          flag={{
+            ...sampleFlag,
+            enabled: false,
+          }}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag updated!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const Disabled: Story = {
+  render: () => <DisabledStory />,
 };

@@ -18,64 +18,68 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function DefaultStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Add Flag Modal
-        </button>
-        {isOpen && (
-          <AddFlagModal
-            projectId="demo-project-id"
-            existingKeys={['existing-flag']}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Flag created successfully!');
-              setIsOpen(false);
-            }}
-            onError={(message) => {
-              alert(`Error: ${message}`);
-            }}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Add Flag Modal
+      </button>
+      {isOpen && (
+        <AddFlagModal
+          projectId="demo-project-id"
+          existingKeys={['existing-flag']}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag created successfully!');
+            setIsOpen(false);
+          }}
+          onError={(message) => {
+            alert(`Error: ${message}`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+export const Default: Story = {
+  render: () => <DefaultStory />,
 };
 
-export const WithExistingKeys: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function WithExistingKeysStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <AddFlagModal
-            projectId="demo-project-id"
-            existingKeys={['flag-one', 'flag-two', 'my-flag']}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Flag created!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <AddFlagModal
+          projectId="demo-project-id"
+          existingKeys={['flag-one', 'flag-two', 'my-flag']}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag created!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const WithExistingKeys: Story = {
+  render: () => <WithExistingKeysStory />,
 };

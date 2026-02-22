@@ -18,94 +18,100 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function DefaultStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Add Environment Modal
-        </button>
-        {isOpen && (
-          <AddEnvironmentModal
-            projectId="demo-project-id"
-            existingKeys={['production', 'staging']}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Environment created successfully!');
-              setIsOpen(false);
-            }}
-            onError={(message) => {
-              alert(`Error: ${message}`);
-            }}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Add Environment Modal
+      </button>
+      {isOpen && (
+        <AddEnvironmentModal
+          projectId="demo-project-id"
+          existingKeys={['production', 'staging']}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Environment created successfully!');
+            setIsOpen(false);
+          }}
+          onError={(message) => {
+            alert(`Error: ${message}`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+export const Default: Story = {
+  render: () => <DefaultStory />,
 };
+
+function WithExistingEnvironmentsStory() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <AddEnvironmentModal
+          projectId="demo-project-id"
+          existingKeys={['production', 'staging', 'development', 'qa', 'uat']}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Environment created!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
 
 export const WithExistingEnvironments: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
-
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <AddEnvironmentModal
-            projectId="demo-project-id"
-            existingKeys={['production', 'staging', 'development', 'qa', 'uat']}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Environment created!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  render: () => <WithExistingEnvironmentsStory />,
 };
 
-export const EmptyProject: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function EmptyProjectStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <AddEnvironmentModal
-            projectId="demo-project-id"
-            existingKeys={[]}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('First environment created!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <AddEnvironmentModal
+          projectId="demo-project-id"
+          existingKeys={[]}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('First environment created!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const EmptyProject: Story = {
+  render: () => <EmptyProjectStory />,
 };

@@ -32,111 +32,117 @@ const mockEnvironment: EnvironmentSummary = {
   },
 };
 
-export const Default: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
+function DefaultStory() {
+  const [isOpen, setIsOpen] = useState(true);
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Edit Environment Modal
-        </button>
-        {isOpen && (
-          <EditEnvironmentModal
-            env={mockEnvironment}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Environment updated successfully!');
-              setIsOpen(false);
-            }}
-            onError={(message) => {
-              alert(`Error: ${message}`);
-            }}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Edit Environment Modal
+      </button>
+      {isOpen && (
+        <EditEnvironmentModal
+          env={mockEnvironment}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Environment updated successfully!');
+            setIsOpen(false);
+          }}
+          onError={(message) => {
+            alert(`Error: ${message}`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+export const Default: Story = {
+  render: () => <DefaultStory />,
 };
+
+function StagingEnvironmentStory() {
+  const [isOpen, setIsOpen] = useState(true);
+  const stagingEnv: EnvironmentSummary = {
+    ...mockEnvironment,
+    id: 'env-2',
+    key: 'staging',
+    name: 'Staging',
+    flagStats: {
+      total: 15,
+      enabled: 3,
+    },
+  };
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <EditEnvironmentModal
+          env={stagingEnv}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Environment updated!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
 
 export const StagingEnvironment: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
-    const stagingEnv: EnvironmentSummary = {
-      ...mockEnvironment,
-      id: 'env-2',
-      key: 'staging',
-      name: 'Staging',
-      flagStats: {
-        total: 15,
-        enabled: 3,
-      },
-    };
-
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <EditEnvironmentModal
-            env={stagingEnv}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Environment updated!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  render: () => <StagingEnvironmentStory />,
 };
 
-export const NoFlags: Story = {
-  render: () => {
-    const [isOpen, setIsOpen] = useState(true);
-    const emptyEnv: EnvironmentSummary = {
-      ...mockEnvironment,
-      id: 'env-3',
-      key: 'development',
-      name: 'Development',
-      flagStats: {
-        total: 0,
-        enabled: 0,
-      },
-    };
+function NoFlagsStory() {
+  const [isOpen, setIsOpen] = useState(true);
+  const emptyEnv: EnvironmentSummary = {
+    ...mockEnvironment,
+    id: 'env-3',
+    key: 'development',
+    name: 'Development',
+    flagStats: {
+      total: 0,
+      enabled: 0,
+    },
+  };
 
-    return (
-      <div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setIsOpen(true)}
-        >
-          Open Modal
-        </button>
-        {isOpen && (
-          <EditEnvironmentModal
-            env={emptyEnv}
-            onClose={() => setIsOpen(false)}
-            onSuccess={() => {
-              alert('Environment updated!');
-              setIsOpen(false);
-            }}
-            onError={(message) => alert(`Error: ${message}`)}
-          />
-        )}
-      </div>
-    );
-  },
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <EditEnvironmentModal
+          env={emptyEnv}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Environment updated!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const NoFlags: Story = {
+  render: () => <NoFlagsStory />,
 };
