@@ -55,6 +55,10 @@ export function AddProjectModal({
       setKeyError(t.projects.keyInvalid);
       return;
     }
+    if (existingKeys.includes(trimmedKey)) {
+      setKeyError(t.projects.keyDuplicate);
+      return;
+    }
 
     setKey(trimmedKey);
     setKeyError(null);
@@ -63,7 +67,7 @@ export function AddProjectModal({
   }
 
   function handleKeyChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setKey(e.target.value.trim());
+    setKey(e.target.value);
     setKeyError(null);
   }
 
@@ -121,13 +125,14 @@ export function AddProjectModal({
             disabled={isSubmitting}
             placeholder={t.projects.keyPlaceholder}
             editBtnLabel={t.projects.keyEditBtnLabel}
+            hintId={!isKeyEditing && !isKeyCustomized && key ? 'project-key-hint' : undefined}
             onEditStart={handleEditKey}
             onChange={handleKeyChange}
             onBlur={handleKeyBlur}
           />
 
           {!isKeyEditing && !isKeyCustomized && key && (
-            <p className="form-helper-text">{t.projects.keyAutoHint}</p>
+            <p id="project-key-hint" className="form-helper-text">{t.projects.keyAutoHint}</p>
           )}
         </div>
 

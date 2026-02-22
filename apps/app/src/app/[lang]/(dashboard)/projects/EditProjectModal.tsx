@@ -53,7 +53,7 @@ export function EditProjectModal({
   }
 
   function handleKeyChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setKey(e.target.value.trim());
+    setKey(e.target.value);
     setKeyError(null);
   }
 

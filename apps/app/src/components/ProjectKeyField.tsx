@@ -33,6 +33,7 @@ export function ProjectKeyField({
   disabled,
   placeholder,
   editBtnLabel,
+  hintId,
   onEditStart,
   onChange,
   onBlur,
@@ -44,6 +45,7 @@ export function ProjectKeyField({
   disabled: boolean;
   placeholder: string;
   editBtnLabel: string;
+  hintId?: string;
   onEditStart: () => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur: () => void;
@@ -57,6 +59,8 @@ export function ProjectKeyField({
   }, [isEditing]);
 
   if (isEditing) {
+    const errorId = error ? `${id}-error` : undefined;
+    const describedBy = [errorId, hintId].filter(Boolean).join(' ') || undefined;
     return (
       <div className="project-key-input-wrapper">
         <input
@@ -68,8 +72,14 @@ export function ProjectKeyField({
           onChange={onChange}
           onBlur={onBlur}
           disabled={disabled}
+          aria-describedby={describedBy}
+          aria-invalid={!!error}
         />
-        {error && <div className="project-key-error">{error}</div>}
+        {error && (
+          <div id={`${id}-error`} className="project-key-error" role="alert">
+            {error}
+          </div>
+        )}
       </div>
     );
   }
