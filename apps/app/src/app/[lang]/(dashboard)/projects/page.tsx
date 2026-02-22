@@ -213,9 +213,20 @@ function AddProjectModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">{t.projects.modalAddTitle}</h2>
+    <div
+      className="modal-overlay"
+      aria-hidden="true"
+      onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
+    >
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-project-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="add-project-modal-title" className="modal-title">{t.projects.modalAddTitle}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="project-name" className="form-label">
@@ -299,9 +310,20 @@ function EditProjectModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">{t.projects.modalEditTitle}</h2>
+    <div
+      className="modal-overlay"
+      aria-hidden="true"
+      onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
+    >
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-project-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="edit-project-modal-title" className="modal-title">{t.projects.modalEditTitle}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="project-name-edit" className="form-label">
