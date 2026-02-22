@@ -31,6 +31,7 @@ function getActionBadgeStyle(action: string): string {
 
 function formatDetails(details: Record<string, unknown> | null | undefined): string {
   if (!details || Object.keys(details).length === 0) return '—';
+  // Use compact JSON format (no indentation) to fit in table cell
   return JSON.stringify(details, null, 0);
 }
 
