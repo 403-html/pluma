@@ -258,21 +258,18 @@ describe('Auth routes', () => {
       // Mock password history check (no matches)
       prismaMock.passwordHistory.findMany.mockResolvedValue([]);
       
-      // Mock transaction
-      prismaMock.$transaction.mockImplementation(async (callback: any) => {
-        const tx = {
-          user: {
-            update: vi.fn().mockResolvedValue({ ...mockUser, passwordHash: 'new_hashed_pw' }),
-          },
-          passwordHistory: {
-            create: vi.fn().mockResolvedValue({ id: 'hist1', userId: USER_ID, passwordHash: 'old_hashed_pw', createdAt: new Date() }),
-            count: vi.fn().mockResolvedValue(1),
-            findMany: vi.fn().mockResolvedValue([]),
-            deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
-          },
-        };
-        return callback(tx);
-      });
+      // Mock transaction — reuse prismaMock as the tx object so we can assert on it afterwards
+      prismaMock.$transaction.mockImplementation(
+        async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
+          const tx = prismaMock;
+          tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_hashed_pw' });
+          tx.passwordHistory.create.mockResolvedValue({ id: 'hist1', userId: USER_ID, passwordHash: 'old_hashed_pw', createdAt: new Date() });
+          tx.passwordHistory.count.mockResolvedValue(1);
+          tx.passwordHistory.findMany.mockResolvedValue([]);
+          tx.passwordHistory.deleteMany.mockResolvedValue({ count: 0 });
+          return callback(tx);
+        },
+      );
 
       const response = await app.inject({
         method: 'POST',
@@ -292,6 +289,13 @@ describe('Auth routes', () => {
         orderBy: { createdAt: 'desc' },
         take: 4,
       });
+      expect(prismaMock.$transaction).toHaveBeenCalled();
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: USER_ID }, data: { passwordHash: 'new_hashed_pw' } }),
+      );
+      expect(prismaMock.passwordHistory.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { userId: USER_ID, passwordHash: 'old_hashed_pw' } }),
+      );
     });
 
     it('should return 401 when not authenticated', async () => {
@@ -504,25 +508,22 @@ describe('Auth routes', () => {
       bcryptMock.hash.mockResolvedValue('new_unique_hash');
       
       // Mock transaction
-      prismaMock.$transaction.mockImplementation(async (callback: any) => {
-        const tx = {
-          user: {
-            update: vi.fn().mockResolvedValue({ ...mockUser, passwordHash: 'new_unique_hash' }),
-          },
-          passwordHistory: {
-            create: vi.fn().mockResolvedValue({ 
-              id: 'hist5', 
-              userId: USER_ID, 
-              passwordHash: 'current_hash', 
-              createdAt: new Date() 
-            }),
-            count: vi.fn().mockResolvedValue(5),
-            findMany: vi.fn().mockResolvedValue([]),
-            deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
-          },
-        };
-        return callback(tx);
-      });
+      prismaMock.$transaction.mockImplementation(
+        async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
+          const tx = prismaMock;
+          tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_unique_hash' });
+          tx.passwordHistory.create.mockResolvedValue({ 
+            id: 'hist5', 
+            userId: USER_ID, 
+            passwordHash: 'current_hash', 
+            createdAt: new Date() 
+          });
+          // count = 4 is below the pruning threshold (MAX_PASSWORD_HISTORY = 5), so no pruning occurs
+          tx.passwordHistory.count.mockResolvedValue(4);
+          tx.passwordHistory.deleteMany.mockResolvedValue({ count: 0 });
+          return callback(tx);
+        },
+      );
 
       const response = await app.inject({
         method: 'POST',

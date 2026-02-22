@@ -89,56 +89,46 @@ describe('Password History - Pruning Integration Tests', () => {
 
     bcryptMock.hash.mockResolvedValue('new_password_hash_5');
 
-    // Mock the transaction with detailed pruning logic validation
+    // Mock the transaction — reuse prismaMock as tx, setting implementations with closures
     let updateCalled = false;
     let historyCalled = false;
     let pruneCalled = false;
     let historyCountReturned = 0;
-    let oldestEntriesReturned: any[] = [];
+    let oldestEntriesReturned: { id: string }[] = [];
 
-    prismaMock.$transaction.mockImplementation(async (callback: any) => {
-      const tx = {
-        user: {
-          update: vi.fn().mockImplementation(async (params) => {
-            updateCalled = true;
-            expect(params.where.id).toBe(USER_ID);
-            expect(params.data.passwordHash).toBe('new_password_hash_5');
-            return { ...mockUser, passwordHash: 'new_password_hash_5' };
-          }),
-        },
-        passwordHistory: {
-          create: vi.fn().mockImplementation(async (params) => {
-            historyCalled = true;
-            expect(params.data.userId).toBe(USER_ID);
-            expect(params.data.passwordHash).toBe('current_password_hash');
-            return { 
-              id: 'hist5', 
-              userId: USER_ID, 
-              passwordHash: 'current_password_hash', 
-              createdAt: new Date() 
-            };
-          }),
-          count: vi.fn().mockImplementation(async () => {
-            // After insert, count returns 5 (4 existing + 1 just inserted)
-            historyCountReturned = 5;
-            return 5;
-          }),
-          findMany: vi.fn().mockImplementation(async (params) => {
-            // Return the oldest entry (hist4 with oldest date)
-            expect(params.orderBy.createdAt).toBe('asc');
-            expect(params.take).toBe(1); // Should delete exactly 1 entry (5 - 4 = 1)
-            oldestEntriesReturned = [{ id: 'hist4' }];
-            return oldestEntriesReturned;
-          }),
-          deleteMany: vi.fn().mockImplementation(async (params) => {
-            pruneCalled = true;
-            expect(params.where.id.in).toEqual(['hist4']);
-            return { count: 1 };
-          }),
-        },
-      };
-      return callback(tx);
-    });
+    prismaMock.$transaction.mockImplementation(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
+        const tx = prismaMock;
+        tx.user.update.mockImplementation(async (params: { where: { id: string }; data: { passwordHash: string } }) => {
+          updateCalled = true;
+          expect(params.where.id).toBe(USER_ID);
+          expect(params.data.passwordHash).toBe('new_password_hash_5');
+          return { ...mockUser, passwordHash: 'new_password_hash_5' };
+        });
+        tx.passwordHistory.create.mockImplementation(async (params: { data: { userId: string; passwordHash: string } }) => {
+          historyCalled = true;
+          expect(params.data.userId).toBe(USER_ID);
+          expect(params.data.passwordHash).toBe('current_password_hash');
+          return { id: 'hist5', userId: USER_ID, passwordHash: 'current_password_hash', createdAt: new Date() };
+        });
+        tx.passwordHistory.count.mockImplementation(async () => {
+          historyCountReturned = 5;
+          return 5;
+        });
+        tx.passwordHistory.findMany.mockImplementation(async (params: { orderBy: { createdAt: string }; take: number; select: { id: boolean } }) => {
+          expect(params.orderBy.createdAt).toBe('asc');
+          expect(params.take).toBe(1); // Should delete exactly 1 entry (5 - 4 = 1)
+          oldestEntriesReturned = [{ id: 'hist4' }];
+          return oldestEntriesReturned;
+        });
+        tx.passwordHistory.deleteMany.mockImplementation(async (params: { where: { id: { in: string[] } } }) => {
+          pruneCalled = true;
+          expect(params.where.id.in).toEqual(['hist4']);
+          return { count: 1 };
+        });
+        return callback(tx);
+      },
+    );
 
     const response = await app.inject({
       method: 'POST',
@@ -209,32 +199,29 @@ describe('Password History - Pruning Integration Tests', () => {
     let pruneCheckPerformed = false;
     let deleteManyCalled = false;
 
-    prismaMock.$transaction.mockImplementation(async (callback: any) => {
-      const tx = {
-        user: {
-          update: vi.fn().mockResolvedValue({ ...mockUser, passwordHash: 'new_password_hash_4' }),
-        },
-        passwordHistory: {
-          create: vi.fn().mockResolvedValue({ 
-            id: 'hist4', 
-            userId: USER_ID, 
-            passwordHash: 'current_password_hash', 
-            createdAt: new Date() 
-          }),
-          count: vi.fn().mockImplementation(async () => {
-            pruneCheckPerformed = true;
-            // After insert, count returns 4 (3 existing + 1 just inserted)
-            return 4;
-          }),
-          findMany: vi.fn(), // Should NOT be called
-          deleteMany: vi.fn().mockImplementation(async () => {
-            deleteManyCalled = true;
-            return { count: 0 };
-          }),
-        },
-      };
-      return callback(tx);
-    });
+    prismaMock.$transaction.mockImplementation(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
+        const tx = prismaMock;
+        tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_password_hash_4' });
+        tx.passwordHistory.create.mockResolvedValue({ 
+          id: 'hist4', 
+          userId: USER_ID, 
+          passwordHash: 'current_password_hash', 
+          createdAt: new Date() 
+        });
+        tx.passwordHistory.count.mockImplementation(async () => {
+          pruneCheckPerformed = true;
+          // After insert, count returns 4 (3 existing + 1 just inserted)
+          return 4;
+        });
+        tx.passwordHistory.findMany.mockResolvedValue([]); // Should NOT be called
+        tx.passwordHistory.deleteMany.mockImplementation(async () => {
+          deleteManyCalled = true;
+          return { count: 0 };
+        });
+        return callback(tx);
+      },
+    );
 
     const response = await app.inject({
       method: 'POST',
@@ -249,6 +236,9 @@ describe('Password History - Pruning Integration Tests', () => {
     expect(response.statusCode).toBe(200);
     expect(pruneCheckPerformed).toBe(true);
     expect(deleteManyCalled).toBe(false); // Pruning should NOT have occurred
+    expect(prismaMock.passwordHistory.findMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { createdAt: 'asc' } }),
+    );
 
     // Final state: 4 history entries + 1 current = 5 unique passwords tracked
   });
@@ -283,31 +273,28 @@ describe('Password History - Pruning Integration Tests', () => {
 
     bcryptMock.hash.mockResolvedValue('new_hash');
 
-    prismaMock.$transaction.mockImplementation(async (callback: any) => {
-      const tx = {
-        user: {
-          update: vi.fn().mockResolvedValue({ ...mockUser, passwordHash: 'new_hash' }),
-        },
-        passwordHistory: {
-          create: vi.fn().mockResolvedValue({ 
-            id: 'h5', 
-            userId: USER_ID, 
-            passwordHash: 'current_hash', 
-            createdAt: new Date() 
-          }),
-          count: vi.fn().mockResolvedValue(6), // Somehow 6 entries exist
-          findMany: vi.fn().mockImplementation(async (params) => {
-            expect(params.take).toBe(2); // Should delete 6 - 4 = 2 entries
-            return [{ id: 'h1' }, { id: 'h2' }];
-          }),
-          deleteMany: vi.fn().mockImplementation(async (params) => {
-            expect(params.where.id.in).toEqual(['h1', 'h2']);
-            return { count: 2 };
-          }),
-        },
-      };
-      return callback(tx);
-    });
+    prismaMock.$transaction.mockImplementation(
+      async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
+        const tx = prismaMock;
+        tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_hash' });
+        tx.passwordHistory.create.mockResolvedValue({ 
+          id: 'h5', 
+          userId: USER_ID, 
+          passwordHash: 'current_hash', 
+          createdAt: new Date() 
+        });
+        tx.passwordHistory.count.mockResolvedValue(6); // Somehow 6 entries exist
+        tx.passwordHistory.findMany.mockImplementation(async (params: { take: number; select: { id: boolean } }) => {
+          expect(params.take).toBe(2); // Should delete 6 - 4 = 2 entries
+          return [{ id: 'h1' }, { id: 'h2' }];
+        });
+        tx.passwordHistory.deleteMany.mockImplementation(async (params: { where: { id: { in: string[] } } }) => {
+          expect(params.where.id.in).toEqual(['h1', 'h2']);
+          return { count: 2 };
+        });
+        return callback(tx);
+      },
+    );
 
     const response = await app.inject({
       method: 'POST',
