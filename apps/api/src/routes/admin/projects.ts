@@ -3,18 +3,18 @@ import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
-import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH } from '@pluma/types';
+import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH, PROJECT_KEY_REGEX } from '@pluma/types';
 
 const PAGE_SIZE = 100;
 
 const projectBodySchema = z.object({
-  key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH),
+  key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).regex(PROJECT_KEY_REGEX, 'Invalid project key format'),
   name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH),
 });
 
 const projectUpdateBodySchema = z
   .object({
-    key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).optional(),
+    key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).regex(PROJECT_KEY_REGEX, 'Invalid project key format').optional(),
     name: z.string().min(1).max(MAX_PROJECT_NAME_LENGTH).optional(),
   })
   .refine((body) => body.key !== undefined || body.name !== undefined, {

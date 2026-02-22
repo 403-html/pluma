@@ -104,6 +104,10 @@ export const en = {
     keyTooLong: 'Key must be 100 characters or fewer',
     nameTooLong: 'Name must be 200 characters or fewer',
     updateInvalid: 'Provide a valid key or name to update',
+    keyEditBtnLabel: 'Edit project key',
+    keyInvalid: 'Key must contain only lowercase letters, numbers, and hyphens (no leading or trailing hyphens, max 100 characters)',
+    keyAutoHint: 'Auto-generated from project name',
+    keyDuplicate: 'This key already exists. Please choose a different key.',
   },
 } as const;
 

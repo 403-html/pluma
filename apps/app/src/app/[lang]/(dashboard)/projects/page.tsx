@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
   listProjects,
-  createProject,
-  updateProject,
   deleteProject,
   type ProjectSummary,
 } from '@/lib/api/projects';
-import Modal from '@/components/Modal';
+import { AddProjectModal } from './AddProjectModal';
+import { EditProjectModal } from './EditProjectModal';
 
 type ModalState =
   | { type: 'none' }
@@ -23,6 +22,8 @@ export default function ProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const existingKeys = useMemo(() => projects.map(p => p.key), [projects]);
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -161,6 +162,7 @@ export default function ProjectsPage() {
 
       {modalState.type === 'add' && (
         <AddProjectModal
+          existingKeys={existingKeys}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
@@ -185,166 +187,3 @@ export default function ProjectsPage() {
   );
 }
 
-function AddProjectModal({
-  onClose,
-  onSuccess,
-  onError,
-}: {
-  onClose: () => void;
-  onSuccess: () => void;
-  onError: (message: string) => void;
-}) {
-  const { t } = useLocale();
-  const [name, setName] = useState('');
-  const [key, setKey] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const result = await createProject(key, name);
-
-    if (result.ok) {
-      onSuccess();
-    } else {
-      onError(result.message);
-      setIsSubmitting(false);
-    }
-  }
-
-  return (
-    <Modal titleId="add-project-modal-title" title={t.projects.modalAddTitle} onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="project-name" className="form-label">
-            {t.projects.nameLabel}
-          </label>
-          <input
-            id="project-name"
-            type="text"
-            className="form-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t.projects.namePlaceholder}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group form-group--spaced">
-          <label htmlFor="project-key" className="form-label">
-            {t.projects.keyLabel}
-          </label>
-          <input
-            id="project-key"
-            type="text"
-            className="form-input"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder={t.projects.keyPlaceholder}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="modal-actions">
-          <button
-            type="button"
-            className="btn-sm btn-sm--edit"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
-            {t.projects.cancelBtn}
-          </button>
-          <button type="submit" className="btn-primary" disabled={isSubmitting}>
-            {t.projects.createBtn}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-function EditProjectModal({
-  project,
-  onClose,
-  onSuccess,
-  onError,
-}: {
-  project: ProjectSummary;
-  onClose: () => void;
-  onSuccess: () => void;
-  onError: (message: string) => void;
-}) {
-  const { t } = useLocale();
-  const [name, setName] = useState(project.name);
-  const [key, setKey] = useState(project.key);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const result = await updateProject(project.id, { key, name });
-
-    if (result.ok) {
-      onSuccess();
-    } else {
-      onError(result.message);
-      setIsSubmitting(false);
-    }
-  }
-
-  return (
-    <Modal titleId="edit-project-modal-title" title={t.projects.modalEditTitle} onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="project-name-edit" className="form-label">
-            {t.projects.nameLabel}
-          </label>
-          <input
-            id="project-name-edit"
-            type="text"
-            className="form-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t.projects.namePlaceholder}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="form-group form-group--spaced">
-          <label htmlFor="project-key-edit" className="form-label">
-            {t.projects.keyLabel}
-          </label>
-          <input
-            id="project-key-edit"
-            type="text"
-            className="form-input"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder={t.projects.keyPlaceholder}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="modal-actions">
-          <button
-            type="button"
-            className="btn-sm btn-sm--edit"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
-            {t.projects.cancelBtn}
-          </button>
-          <button type="submit" className="btn-primary" disabled={isSubmitting}>
-            {t.projects.saveBtn}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
