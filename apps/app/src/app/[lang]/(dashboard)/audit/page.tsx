@@ -32,10 +32,10 @@ function getActionBadgeStyle(action: string): string {
 function formatDetails(details: Record<string, unknown> | null | undefined): string {
   if (!details || Object.keys(details).length === 0) return '—';
   // Use compact JSON format (no indentation) to fit in table cell
-  return JSON.stringify(details, null, 0);
+  return JSON.stringify(details);
 }
 
-function AuditTableRow({ entry }: { entry: AuditLogEntry }) {
+function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string }) {
   const entityDisplay = entry.entityKey
     ? `${entry.entityType}: ${entry.entityKey}`
     : entry.entityType;
@@ -44,7 +44,7 @@ function AuditTableRow({ entry }: { entry: AuditLogEntry }) {
     <tr>
       <td>
         <span className="audit-timestamp">
-          {new Date(entry.createdAt).toLocaleString()}
+          {new Date(entry.createdAt).toLocaleString(locale)}
         </span>
       </td>
       <td>
@@ -66,7 +66,7 @@ function AuditTableRow({ entry }: { entry: AuditLogEntry }) {
 }
 
 export default function AuditPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [auditData, setAuditData] = useState<AuditPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -295,7 +295,7 @@ export default function AuditPage() {
             </thead>
             <tbody>
               {auditData?.entries.map((entry) => (
-                <AuditTableRow key={entry.id} entry={entry} />
+                <AuditTableRow key={entry.id} entry={entry} locale={locale} />
               ))}
             </tbody>
           </table>
