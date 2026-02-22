@@ -26,6 +26,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.2.3",
     "@types/pg": "^8.16.0",
     "prisma": "^7.4.0",
@@ -36,6 +37,7 @@
     "@pluma/types": "workspace:*",
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
+    "bcryptjs": "3.0.3",
     "dotenv": "^17.3.1",
     "pg": "^8.18.0"
   }
