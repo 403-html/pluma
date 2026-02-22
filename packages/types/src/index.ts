@@ -19,6 +19,11 @@ export const MAX_PASSWORD_LENGTH = 128;
  */
 export const MAX_PARENT_DEPTH = 32;
 
+/** Maximum project key length. */
+export const MAX_PROJECT_KEY_LENGTH = 100;
+/** Maximum project name length. */
+export const MAX_PROJECT_NAME_LENGTH = 200;
+
 // Projects
 export type Project = {
   id: string;
@@ -26,6 +31,17 @@ export type Project = {
   name: string;
   createdAt: Date;
   updatedAt: Date;
+};
+
+/**
+ * JSON-serialised project as returned by `GET /api/v1/projects`.
+ * Extends `Project` with pre-computed environment list and flag statistics.
+ */
+export type ProjectSummary = Omit<Project, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+  environments: Array<{ id: string; key: string; name: string }>;
+  flagStats: { enabled: number; total: number };
 };
 
 // SDK Tokens

@@ -82,7 +82,22 @@ describe('API Projects', () => {
 
   it('should list projects', async () => {
     prismaMock.project.findMany.mockResolvedValue([
-      { id: PROJECT_ID, key: 'alpha', name: 'Alpha' },
+      {
+        id: PROJECT_ID,
+        key: 'alpha',
+        name: 'Alpha',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        environments: [
+          { id: 'env-1', key: 'dev', name: 'Development' },
+          { id: 'env-2', key: 'prod', name: 'Production' },
+        ],
+        _count: { featureFlags: 3 },
+        featureFlags: [
+          { id: 'flag-1' },
+          { id: 'flag-3' },
+        ],
+      },
     ]);
 
     const response = await app.inject({
@@ -93,7 +108,16 @@ describe('API Projects', () => {
 
     expect(response.statusCode).toBe(200);
     expect(prismaMock.project.findMany).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(response.payload)).toHaveLength(1);
+    expect(prismaMock.project.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ take: 100 }),
+    );
+    const projects = JSON.parse(response.payload);
+    expect(projects).toHaveLength(1);
+    expect(projects[0]).toHaveProperty('environments');
+    expect(projects[0].environments).toHaveLength(2);
+    expect(projects[0]).toHaveProperty('flagStats');
+    expect(projects[0].flagStats).toEqual({ total: 3, enabled: 2 });
+    expect(projects[0]).not.toHaveProperty('featureFlags');
   });
 
   it('should create a project', async () => {
@@ -164,6 +188,54 @@ describe('API Projects', () => {
       where: { id: PROJECT_ID },
       data: { name: 'Alpha Updated' },
     });
+  });
+
+  it('should return 400 when creating a project with key too long', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects',
+      payload: { key: 'a'.repeat(101), name: 'Alpha' },
+      headers: { cookie: AUTH_COOKIE },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(prismaMock.project.create).not.toHaveBeenCalled();
+  });
+
+  it('should return 400 when creating a project with name too long', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/projects',
+      payload: { key: 'alpha', name: 'a'.repeat(201) },
+      headers: { cookie: AUTH_COOKIE },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(prismaMock.project.create).not.toHaveBeenCalled();
+  });
+
+  it('should return 400 when updating a project with key too long', async () => {
+    const response = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${PROJECT_ID}`,
+      payload: { key: 'a'.repeat(101) },
+      headers: { cookie: AUTH_COOKIE },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(prismaMock.project.update).not.toHaveBeenCalled();
+  });
+
+  it('should return 400 when updating a project with no fields', async () => {
+    const response = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/projects/${PROJECT_ID}`,
+      payload: {},
+      headers: { cookie: AUTH_COOKIE },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(prismaMock.project.update).not.toHaveBeenCalled();
   });
 
   it('should delete a project', async () => {
