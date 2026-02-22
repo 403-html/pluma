@@ -436,6 +436,19 @@ p {
   border-bottom: none;
 }
 
+.projects-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.projects-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.projects-table-cell-text {
+  cursor: text;
+}
+
 .project-key-badge {
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.8rem;
@@ -444,6 +457,7 @@ p {
   border-radius: 0.25rem;
   color: #555;
   display: inline-block;
+  cursor: text;
 }
 
 .project-actions {

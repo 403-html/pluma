@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  PROJECT_ID, ENV_ID, AUTH_COOKIE,
+  PROJECT_ID, ENV_ID, FLAG_ID, AUTH_COOKIE,
   mockSession, mockProject, mockEnvironment,
 } from './fixtures';
 
@@ -74,7 +74,13 @@ describe('Environment routes', () => {
   describe('GET /api/v1/projects/:projectId/environments', () => {
     it('should list environments for a project', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.environment.findMany.mockResolvedValue([mockEnvironment]);
+      prismaMock.environment.findMany.mockResolvedValue([
+        {
+          ...mockEnvironment,
+          _count: { flagConfigs: 3 },
+          flagConfigs: [{ flagId: FLAG_ID }],
+        },
+      ]);
 
       const response = await app.inject({
         method: 'GET',
@@ -86,6 +92,7 @@ describe('Environment routes', () => {
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveLength(1);
       expect(payload[0]).toHaveProperty('key', mockEnvironment.key);
+      expect(payload[0]).toHaveProperty('flagStats', { total: 3, enabled: 1 });
     });
 
     it('should return 404 when project not found', async () => {

@@ -76,6 +76,16 @@ export type Environment = {
   updatedAt: Date;
 };
 
+/**
+ * JSON-serialised environment as returned by `GET /api/v1/projects/:projectId/environments`.
+ * Extends `Environment` with pre-computed flag statistics.
+ */
+export type EnvironmentSummary = Omit<Environment, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+  flagStats: { enabled: number; total: number };
+};
+
 // Flag Config (per environment)
 export type FlagConfig = {
   envId: string;
