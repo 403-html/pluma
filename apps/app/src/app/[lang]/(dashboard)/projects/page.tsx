@@ -106,7 +106,10 @@ export default function ProjectsPage() {
             {projects.map((project) => (
               <tr
                 key={project.id}
-                onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
+                onClick={() => {
+                  if (window.getSelection()?.toString()) return;
+                  router.push(`/${locale}/projects/${project.id}/environments`);
+                }}
               >
                 <td>{project.name}</td>
                 <td>
