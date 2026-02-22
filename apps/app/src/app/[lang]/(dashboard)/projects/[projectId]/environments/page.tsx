@@ -107,7 +107,7 @@ export default function EnvironmentsPage() {
           className="btn-sm btn-sm--edit"
           onClick={() => router.push(`/${locale}/projects/${projectId}/flags`)}
         >
-          Manage Flags
+          {t.environments.manageFlags}
         </button>
         <button
           type="button"
@@ -147,7 +147,7 @@ export default function EnvironmentsPage() {
                     onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
                     style={{ marginLeft: '8px' }}
                   >
-                    Flags
+                    {t.environments.flags}
                   </button>
                 </td>
                 <td>

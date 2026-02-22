@@ -144,6 +144,8 @@ export const en = {
     keyInvalid: 'Key must contain only lowercase letters, numbers, and hyphens (no leading or trailing hyphens, max 100 characters)',
     keyAutoHint: 'Auto-generated from environment name',
     keyDuplicate: 'This key already exists. Please choose a different key.',
+    manageFlags: 'Manage Flags',
+    flags: 'Flags',
   },
   flags: {
     title: 'Feature Flags',
