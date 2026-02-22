@@ -29,6 +29,11 @@ export function AddFlagModal({
   const [isKeyEditing, setIsKeyEditing] = useState(false);
   const [keyError, setKeyError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Track initial mount so the effect below does not run on the first render
+  // and overwrite any existing key state.
+  // Capture the existing keys once at mount time so the auto-generated key
+  // only depends on name/isKeyCustomized, not on background updates to
+  // existingKeys (which would otherwise regenerate the key unexpectedly).
   const hasMountedRef = useRef(false);
   const initialExistingKeysRef = useRef(existingKeys);
 
