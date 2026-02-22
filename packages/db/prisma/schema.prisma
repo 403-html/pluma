@@ -104,3 +104,26 @@ model FlagConfig {
 
   @@id([envId, flagId])
 }
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String   // "create" | "update" | "delete" | "enable" | "disable"
+  entityType String   // "project" | "flag" | "environment" | "flagConfig" | "token"
+  entityId   String
+  entityKey  String?
+  projectId  String?
+  projectKey String?
+  envId      String?
+  envKey     String?
+  flagId     String?
+  flagKey    String?
+  actorId    String
+  actorEmail String
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
+  @@index([flagId])
+  @@index([envId])
+  @@index([createdAt])
+}

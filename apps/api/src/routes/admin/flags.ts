@@ -4,6 +4,7 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { MAX_PARENT_DEPTH } from '@pluma/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { writeAuditLog } from '../../lib/audit';
 
 const flagBodySchema = z.object({
   key: z.string().min(1).max(100),
@@ -153,6 +154,18 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return created;
       });
 
+      await writeAuditLog({
+        action: 'create',
+        entityType: 'flag',
+        entityId: flag.id,
+        entityKey: flag.key,
+        projectId: flag.projectId,
+        flagId: flag.id,
+        flagKey: flag.key,
+        actorId: request.sessionUserId!,
+        actorEmail: request.sessionUser!.email,
+      });
+
       return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
@@ -199,6 +212,19 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           return updated;
         });
 
+        await writeAuditLog({
+          action: 'update',
+          entityType: 'flag',
+          entityId: flag.id,
+          entityKey: flag.key,
+          projectId: flag.projectId,
+          flagId: flag.id,
+          flagKey: flag.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+          details: parsedBody.data,
+        });
+
         return flag;
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
@@ -231,7 +257,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        await prisma.$transaction(async (tx) => {
+        const deletedFlag = await prisma.$transaction(async (tx) => {
           const flag = await tx.featureFlag.delete({
             where: { id: parsedParams.data.flagId },
           });
@@ -240,6 +266,20 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
             where: { projectId: flag.projectId },
             data: { configVersion: { increment: 1 } },
           });
+
+          return flag;
+        });
+
+        await writeAuditLog({
+          action: 'delete',
+          entityType: 'flag',
+          entityId: deletedFlag.id,
+          entityKey: deletedFlag.key,
+          projectId: deletedFlag.projectId,
+          flagId: deletedFlag.id,
+          flagKey: deletedFlag.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
         });
 
         return reply.code(StatusCodes.NO_CONTENT).send();

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { writeAuditLog } from '../../lib/audit';
 
 const envBodySchema = z.object({
   key: z.string().min(1).max(100),
@@ -114,6 +115,18 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
           },
         });
 
+        await writeAuditLog({
+          action: 'create',
+          entityType: 'environment',
+          entityId: environment.id,
+          entityKey: environment.key,
+          projectId: environment.projectId,
+          envId: environment.id,
+          envKey: environment.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+        });
+
         return reply.code(StatusCodes.CREATED).send(environment);
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
@@ -152,6 +165,19 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
           data: { ...parsedBody.data, configVersion: { increment: 1 } },
         });
 
+        await writeAuditLog({
+          action: 'update',
+          entityType: 'environment',
+          entityId: environment.id,
+          entityKey: environment.key,
+          projectId: environment.projectId,
+          envId: environment.id,
+          envKey: environment.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+          details: parsedBody.data,
+        });
+
         return environment;
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
@@ -184,8 +210,29 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       }
 
       try {
+        const environment = await prisma.environment.findUnique({
+          where: { id: parsedParams.data.envId },
+        });
+
+        if (!environment) {
+          request.log.warn({ envId: parsedParams.data.envId }, 'DELETE /environments/:envId rejected: environment not found');
+          return reply.notFound(ReasonPhrases.NOT_FOUND);
+        }
+
         await prisma.environment.delete({
           where: { id: parsedParams.data.envId },
+        });
+
+        await writeAuditLog({
+          action: 'delete',
+          entityType: 'environment',
+          entityId: environment.id,
+          entityKey: environment.key,
+          projectId: environment.projectId,
+          envId: environment.id,
+          envKey: environment.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
         });
 
         return reply.code(StatusCodes.NO_CONTENT).send();

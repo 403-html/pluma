@@ -111,3 +111,28 @@ export type Snapshot = {
   envKey: string;
   flags: SnapshotFlag[];
 };
+
+// Audit Logging
+export const AUDIT_ACTIONS = ['create', 'update', 'delete', 'enable', 'disable'] as const;
+export type AuditAction = typeof AUDIT_ACTIONS[number];
+
+export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token'] as const;
+export type AuditEntityType = typeof AUDIT_ENTITY_TYPES[number];
+
+export interface AuditLogEntry {
+  id: string;
+  action: AuditAction;
+  entityType: AuditEntityType;
+  entityId: string;
+  entityKey?: string | null;
+  projectId?: string | null;
+  projectKey?: string | null;
+  envId?: string | null;
+  envKey?: string | null;
+  flagId?: string | null;
+  flagKey?: string | null;
+  actorId: string;
+  actorEmail: string;
+  details?: Record<string, unknown> | null;
+  createdAt: string;
+}

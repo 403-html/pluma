@@ -47,6 +47,9 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    auditLog: {
+      create: vi.fn(),
+    },
   },
 }));
 
@@ -239,11 +242,16 @@ describe('API Projects', () => {
   });
 
   it('should delete a project', async () => {
-    prismaMock.project.delete.mockResolvedValue({
+    const projectData = {
       id: PROJECT_ID,
       key: 'alpha',
       name: 'Alpha',
-    });
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    prismaMock.project.findUnique.mockResolvedValue(projectData);
+    prismaMock.project.delete.mockResolvedValue(projectData);
 
     const response = await app.inject({
       method: 'DELETE',
@@ -252,6 +260,9 @@ describe('API Projects', () => {
     });
 
     expect(response.statusCode).toBe(204);
+    expect(prismaMock.project.findUnique).toHaveBeenCalledWith({
+      where: { id: PROJECT_ID },
+    });
     expect(prismaMock.project.delete).toHaveBeenCalledWith({
       where: { id: PROJECT_ID },
     });

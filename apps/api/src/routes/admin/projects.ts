@@ -4,6 +4,7 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH, PROJECT_KEY_REGEX } from '@pluma/types';
+import { writeAuditLog } from '../../lib/audit';
 
 const PAGE_SIZE = 100;
 
@@ -85,6 +86,17 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         data: parsedBody.data,
       });
 
+      await writeAuditLog({
+        action: 'create',
+        entityType: 'project',
+        entityId: project.id,
+        entityKey: project.key,
+        projectId: project.id,
+        projectKey: project.key,
+        actorId: request.sessionUserId!,
+        actorEmail: request.sessionUser!.email,
+      });
+
       return reply.code(StatusCodes.CREATED).send(project);
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
@@ -116,6 +128,18 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         data: parsedBody.data,
       });
 
+      await writeAuditLog({
+        action: 'update',
+        entityType: 'project',
+        entityId: project.id,
+        entityKey: project.key,
+        projectId: project.id,
+        projectKey: project.key,
+        actorId: request.sessionUserId!,
+        actorEmail: request.sessionUser!.email,
+        details: parsedBody.data,
+      });
+
       return project;
     } catch (error) {
       if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
@@ -141,8 +165,28 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
 
     try {
+      const project = await prisma.project.findUnique({
+        where: { id: parsedParams.data.id },
+      });
+
+      if (!project) {
+        request.log.warn({ projectId: parsedParams.data.id }, 'DELETE /projects/:id rejected: project not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
+      }
+
       await prisma.project.delete({
         where: { id: parsedParams.data.id },
+      });
+
+      await writeAuditLog({
+        action: 'delete',
+        entityType: 'project',
+        entityId: project.id,
+        entityKey: project.key,
+        projectId: project.id,
+        projectKey: project.key,
+        actorId: request.sessionUserId!,
+        actorEmail: request.sessionUser!.email,
       });
 
       return reply.code(StatusCodes.NO_CONTENT).send();

@@ -50,6 +50,9 @@ const { prismaMock } = vi.hoisted(() => {
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    auditLog: {
+      create: vi.fn(),
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     $transaction: vi.fn() as any,
   };
