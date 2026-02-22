@@ -63,57 +63,61 @@ export function ProjectKeyField({
     const hintId = hint ? `${id}-hint` : undefined;
     const describedBy = [errorId, hintId].filter(Boolean).join(' ') || undefined;
     return (
-      <div className="project-key-input-wrapper">
-        <input
-          ref={inputRef}
-          id={id}
-          type="text"
-          className="form-input"
-          value={value}
-          onChange={onChange}
-          onBlur={onBlur}
-          disabled={disabled}
-          aria-describedby={describedBy}
-          aria-invalid={!!error}
-        />
-        {error && (
-          <div id={`${id}-error`} className="project-key-error" role="alert">
-            {error}
-          </div>
-        )}
+      <>
+        <div className="project-key-input-wrapper">
+          <input
+            ref={inputRef}
+            id={id}
+            type="text"
+            className="form-input"
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            disabled={disabled}
+            aria-describedby={describedBy}
+            aria-invalid={!!error}
+          />
+          {error && (
+            <div id={`${id}-error`} className="project-key-error" role="alert">
+              {error}
+            </div>
+          )}
+        </div>
         {hint && !error && (
           <p id={`${id}-hint`} className="form-helper-text">
             {hint}
           </p>
         )}
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="project-key-preview">
-      {value ? (
-        <code className="project-key-preview-text">{value}</code>
-      ) : (
-        <span className="project-key-preview-text" aria-label="placeholder">
-          {placeholder}
-        </span>
-      )}
-      <button
-        type="button"
-        className="project-key-edit-btn"
-        onClick={onEditStart}
-        disabled={disabled}
-        aria-label={editBtnLabel}
-        title={editBtnLabel}
-      >
-        <PencilIcon />
-      </button>
+    <>
+      <div className="project-key-preview">
+        {value ? (
+          <code className="project-key-preview-text">{value}</code>
+        ) : (
+          <span className="project-key-preview-text" aria-label="placeholder">
+            {placeholder}
+          </span>
+        )}
+        <button
+          type="button"
+          className="project-key-edit-btn"
+          onClick={onEditStart}
+          disabled={disabled}
+          aria-label={editBtnLabel}
+          title={editBtnLabel}
+        >
+          <PencilIcon />
+        </button>
+      </div>
       {hint && (
         <p id={`${id}-hint`} className="form-helper-text">
           {hint}
         </p>
       )}
-    </div>
+    </>
   );
 }
