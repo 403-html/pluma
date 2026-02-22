@@ -50,9 +50,24 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
-      return prisma.environment.findMany({
+      const environments = await prisma.environment.findMany({
         where: { projectId: parsedParams.data.projectId },
         orderBy: { createdAt: 'asc' },
+        include: {
+          _count: { select: { flagConfigs: true } },
+          flagConfigs: { where: { enabled: true }, select: { flagId: true } },
+        },
+      });
+
+      return environments.map((env) => {
+        const { flagConfigs, _count, ...rest } = env;
+        return {
+          ...rest,
+          flagStats: {
+            total: _count.flagConfigs,
+            enabled: flagConfigs.length,
+          },
+        };
       });
     },
   );
