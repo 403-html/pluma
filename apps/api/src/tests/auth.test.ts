@@ -25,6 +25,7 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
       count: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     passwordHistory: {
       findMany: vi.fn(),
@@ -262,7 +263,8 @@ describe('Auth routes', () => {
       prismaMock.$transaction.mockImplementation(
         async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
           const tx = prismaMock;
-          tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_hashed_pw' });
+          // Optimistic concurrency: count: 1 means the hash matched → update succeeded
+          tx.user.updateMany.mockResolvedValue({ count: 1 });
           tx.passwordHistory.create.mockResolvedValue({ id: 'hist1', userId: USER_ID, passwordHash: 'old_hashed_pw', createdAt: new Date() });
           tx.passwordHistory.count.mockResolvedValue(1);
           tx.passwordHistory.findMany.mockResolvedValue([]);
@@ -290,12 +292,45 @@ describe('Auth routes', () => {
         take: 4,
       });
       expect(prismaMock.$transaction).toHaveBeenCalled();
-      expect(prismaMock.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: USER_ID }, data: { passwordHash: 'new_hashed_pw' } }),
+      expect(prismaMock.user.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: USER_ID, passwordHash: 'old_hashed_pw' },
+          data: { passwordHash: 'new_hashed_pw' },
+        }),
       );
       expect(prismaMock.passwordHistory.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: { userId: USER_ID, passwordHash: 'old_hashed_pw' } }),
       );
+    });
+
+    it('should return 409 when a concurrent password change is detected', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'old_hashed_pw' });
+      // Old password valid, new password doesn't match current
+      bcryptMock.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      bcryptMock.hash.mockResolvedValue('new_hashed_pw');
+
+      // Mock password history check (no matches)
+      prismaMock.passwordHistory.findMany.mockResolvedValue([]);
+
+      // updateMany returns count: 0 → concurrent change was detected
+      prismaMock.$transaction.mockImplementation(
+        async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
+          const tx = prismaMock;
+          tx.user.updateMany.mockResolvedValue({ count: 0 });
+          return callback(tx);
+        },
+      );
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/change-password',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { oldPassword: 'oldpassword', newPassword: 'newpassword123' },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect(prismaMock.passwordHistory.create).not.toHaveBeenCalled();
     });
 
     it('should return 401 when not authenticated', async () => {
@@ -511,7 +546,7 @@ describe('Auth routes', () => {
       prismaMock.$transaction.mockImplementation(
         async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
           const tx = prismaMock;
-          tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_unique_hash' });
+          tx.user.updateMany.mockResolvedValue({ count: 1 });
           tx.passwordHistory.create.mockResolvedValue({ 
             id: 'hist5', 
             userId: USER_ID, 

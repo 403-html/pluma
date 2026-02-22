@@ -14,6 +14,7 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
     user: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     passwordHistory: {
       findMany: vi.fn(),
@@ -99,11 +100,11 @@ describe('Password History - Pruning Route Tests', () => {
     prismaMock.$transaction.mockImplementation(
       async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
         const tx = prismaMock;
-        tx.user.update.mockImplementation(async (params: { where: { id: string }; data: { passwordHash: string } }) => {
+        tx.user.updateMany.mockImplementation(async (params: { where: { id: string; passwordHash: string }; data: { passwordHash: string } }) => {
           updateCalled = true;
           expect(params.where.id).toBe(USER_ID);
           expect(params.data.passwordHash).toBe('new_password_hash_5');
-          return { ...mockUser, passwordHash: 'new_password_hash_5' };
+          return { count: 1 };
         });
         tx.passwordHistory.create.mockImplementation(async (params: { data: { userId: string; passwordHash: string } }) => {
           historyCalled = true;
@@ -202,7 +203,7 @@ describe('Password History - Pruning Route Tests', () => {
     prismaMock.$transaction.mockImplementation(
       async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
         const tx = prismaMock;
-        tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_password_hash_4' });
+        tx.user.updateMany.mockResolvedValue({ count: 1 });
         tx.passwordHistory.create.mockResolvedValue({ 
           id: 'hist4', 
           userId: USER_ID, 
@@ -276,7 +277,7 @@ describe('Password History - Pruning Route Tests', () => {
     prismaMock.$transaction.mockImplementation(
       async (callback: (tx: typeof prismaMock) => Promise<unknown> | unknown) => {
         const tx = prismaMock;
-        tx.user.update.mockResolvedValue({ ...mockUser, passwordHash: 'new_hash' });
+        tx.user.updateMany.mockResolvedValue({ count: 1 });
         tx.passwordHistory.create.mockResolvedValue({ 
           id: 'h5', 
           userId: USER_ID, 

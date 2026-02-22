@@ -201,17 +201,23 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     const newPasswordHash = await hash(parsedBody.data.newPassword, BCRYPT_ROUNDS);
 
-    // Use a transaction to:
-    // 1. Update user's password
+    // Use a transaction to atomically:
+    // 1. Update user's password with optimistic concurrency check
     // 2. Insert old password hash to history
     // 3. Prune history to keep at most MAX_PASSWORD_HISTORY - 1 entries
     //    (current password occupies the remaining slot in the reuse check)
-    await prisma.$transaction(async (tx) => {
-      // Update user's password
-      await tx.user.update({
-        where: { id: user.id },
+    const updated = await prisma.$transaction(async (tx) => {
+      // Optimistic concurrency: only update if the current hash still matches what
+      // we read before hashing the new password. If a concurrent change occurred,
+      // count will be 0 and we skip all further writes and return false.
+      const result = await tx.user.updateMany({
+        where: { id: user.id, passwordHash: user.passwordHash },
         data: { passwordHash: newPasswordHash },
       });
+
+      if (result.count === 0) {
+        return false;
+      }
 
       // Insert the old password hash to history
       await tx.passwordHistory.create({
@@ -233,7 +239,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
         // Bound deletions to maxHistoryEntries per request to prevent unbounded
         // array growth if the table ever becomes inconsistent.
         const entriesToDelete = Math.min(historyCount - maxHistoryEntries, maxHistoryEntries);
-        
+
         // Get the oldest entries to delete
         const oldestEntries = await tx.passwordHistory.findMany({
           where: { userId: user.id },
@@ -248,7 +254,14 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
           where: { id: { in: idsToDelete } },
         });
       }
+
+      return true;
     });
+
+    if (!updated) {
+      request.log.warn({ userId: user.id }, 'Change password rejected: concurrent password change detected');
+      return reply.conflict('Password was recently changed, please try again');
+    }
 
     request.log.info({ userId: user.id }, 'Password changed successfully');
 
