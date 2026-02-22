@@ -77,11 +77,29 @@ export async function updateEnvironment(
   if (data.key === undefined && data.name === undefined) {
     return { ok: false, message: 'Provide a valid key or name to update' };
   }
-  if (data.key !== undefined && (data.key.length === 0 || data.key.length > MAX_PROJECT_KEY_LENGTH)) {
-    return { ok: false, message: data.key.length === 0 ? 'Key is required' : `Key must be ${MAX_PROJECT_KEY_LENGTH} characters or fewer` };
+  if (data.key !== undefined) {
+    const keyLength = data.key.length;
+    if (keyLength === 0) {
+      return { ok: false, message: 'Key is required' };
+    }
+    if (keyLength > MAX_PROJECT_KEY_LENGTH) {
+      return {
+        ok: false,
+        message: `Key must be ${MAX_PROJECT_KEY_LENGTH} characters or fewer`,
+      };
+    }
   }
-  if (data.name !== undefined && (data.name.length === 0 || data.name.length > MAX_PROJECT_NAME_LENGTH)) {
-    return { ok: false, message: data.name.length === 0 ? 'Name is required' : `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer` };
+  if (data.name !== undefined) {
+    const nameLength = data.name.length;
+    if (nameLength === 0) {
+      return { ok: false, message: 'Name is required' };
+    }
+    if (nameLength > MAX_PROJECT_NAME_LENGTH) {
+      return {
+        ok: false,
+        message: `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer`,
+      };
+    }
   }
   try {
     const response = await fetch(`/api/v1/environments/${envId}`, {
