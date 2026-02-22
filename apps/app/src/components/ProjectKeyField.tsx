@@ -33,7 +33,7 @@ export function ProjectKeyField({
   disabled,
   placeholder,
   editBtnLabel,
-  hintId,
+  hint,
   onEditStart,
   onChange,
   onBlur,
@@ -45,7 +45,7 @@ export function ProjectKeyField({
   disabled: boolean;
   placeholder: string;
   editBtnLabel: string;
-  hintId?: string;
+  hint?: string;
   onEditStart: () => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur: () => void;
@@ -60,6 +60,7 @@ export function ProjectKeyField({
 
   if (isEditing) {
     const errorId = error ? `${id}-error` : undefined;
+    const hintId = hint ? `${id}-hint` : undefined;
     const describedBy = [errorId, hintId].filter(Boolean).join(' ') || undefined;
     return (
       <div className="project-key-input-wrapper">
@@ -79,6 +80,11 @@ export function ProjectKeyField({
           <div id={`${id}-error`} className="project-key-error" role="alert">
             {error}
           </div>
+        )}
+        {hint && !error && (
+          <p id={`${id}-hint`} className="form-helper-text">
+            {hint}
+          </p>
         )}
       </div>
     );
@@ -103,6 +109,11 @@ export function ProjectKeyField({
       >
         <PencilIcon />
       </button>
+      {hint && (
+        <p id={`${id}-hint`} className="form-helper-text">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }

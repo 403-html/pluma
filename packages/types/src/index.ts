@@ -23,6 +23,8 @@ export const MAX_PARENT_DEPTH = 32;
 export const MAX_PROJECT_KEY_LENGTH = 100;
 /** Maximum project name length. */
 export const MAX_PROJECT_NAME_LENGTH = 200;
+/** Regex for a valid project key: lowercase alphanumeric segments separated by hyphens. */
+export const PROJECT_KEY_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // Projects
 export type Project = {

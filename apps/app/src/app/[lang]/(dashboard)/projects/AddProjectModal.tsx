@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
 import Modal from '@/components/Modal';
@@ -26,14 +26,22 @@ export function AddProjectModal({
   const [isKeyEditing, setIsKeyEditing] = useState(false);
   const [keyError, setKeyError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Track initial mount so that subsequent existingKeys changes (background refreshes)
+  // don't unexpectedly regenerate a key the user is already editing.
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
-    if (!isKeyCustomized && name) {
-      setKey(makeKeyUnique(slugify(name), existingKeys));
-    } else if (!isKeyCustomized && !name) {
-      setKey('');
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
     }
-  }, [name, isKeyCustomized, existingKeys]);
+    if (!isKeyCustomized) {
+      setKey(name ? makeKeyUnique(slugify(name), existingKeys) : '');
+    }
+    // existingKeys intentionally excluded: only re-generate on name change, not on
+    // background project list refreshes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, isKeyCustomized]);
 
   function handleEditKey() {
     setIsKeyEditing(true);
@@ -125,15 +133,11 @@ export function AddProjectModal({
             disabled={isSubmitting}
             placeholder={t.projects.keyPlaceholder}
             editBtnLabel={t.projects.keyEditBtnLabel}
-            hintId={!isKeyEditing && !isKeyCustomized && key ? 'project-key-hint' : undefined}
+            hint={!isKeyCustomized && key ? t.projects.keyAutoHint : undefined}
             onEditStart={handleEditKey}
             onChange={handleKeyChange}
             onBlur={handleKeyBlur}
           />
-
-          {!isKeyEditing && !isKeyCustomized && key && (
-            <p id="project-key-hint" className="form-helper-text">{t.projects.keyAutoHint}</p>
-          )}
         </div>
 
         <div className="modal-actions">
