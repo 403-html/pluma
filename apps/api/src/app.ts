@@ -32,7 +32,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
 
   // Global error handler for Prisma errors
   fastify.setErrorHandler((error, request, reply) => {
-    if (error.constructor.name.startsWith('PrismaClient')) {
+    if (error instanceof Error && error.constructor.name.startsWith('PrismaClient')) {
       request.log.error({ err: error }, 'Unhandled Prisma error');
       return reply.code(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: ReasonPhrases.INTERNAL_SERVER_ERROR });
     }
