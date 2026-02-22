@@ -211,12 +211,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  tooling/eslint:
-    devDependencies:
-      globals:
-        specifier: ^17.3.0
-        version: 17.3.0
-
 packages:
 
   '@adobe/css-tools@4.4.4':
