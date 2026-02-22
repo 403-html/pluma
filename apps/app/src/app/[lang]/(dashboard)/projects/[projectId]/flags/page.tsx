@@ -4,37 +4,37 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
-  listEnvironments,
-  deleteEnvironment,
-  type EnvironmentSummary,
-} from '@/lib/api/environments';
-import { AddEnvironmentModal } from './AddEnvironmentModal';
-import { EditEnvironmentModal } from './EditEnvironmentModal';
+  listFlags,
+  deleteFlag,
+  type FeatureFlag,
+} from '@/lib/api/flags';
+import { AddFlagModal } from './AddFlagModal';
+import { EditFlagModal } from './EditFlagModal';
 
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
-  | { type: 'edit'; env: EnvironmentSummary };
+  | { type: 'edit'; flag: FeatureFlag };
 
-export default function EnvironmentsPage() {
+export default function FlagsPage() {
   const { t, locale } = useLocale();
   const router = useRouter();
   const params = useParams();
   const projectId = params.projectId as string;
-  const [environments, setEnvironments] = useState<EnvironmentSummary[]>([]);
+  const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const existingKeys = useMemo(() => environments.map(env => env.key), [environments]);
+  const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
 
-  const loadEnvironments = useCallback(async () => {
+  const loadFlags = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const result = await listEnvironments(projectId);
+    const result = await listFlags(projectId);
     if (result.ok) {
-      setEnvironments(result.environments);
+      setFlags(result.flags);
     } else {
       setError(result.message);
     }
@@ -42,14 +42,14 @@ export default function EnvironmentsPage() {
   }, [projectId]);
 
   useEffect(() => {
-    loadEnvironments();
-  }, [loadEnvironments]);
+    loadFlags();
+  }, [loadFlags]);
 
   async function handleDelete(id: string) {
-    const result = await deleteEnvironment(id);
+    const result = await deleteFlag(id);
     setDeletingId(null);
     if (result.ok) {
-      await loadEnvironments();
+      await loadFlags();
     } else {
       setError(result.message);
     }
@@ -62,29 +62,29 @@ export default function EnvironmentsPage() {
           <button
             type="button"
             className="btn-sm btn-sm--edit"
-            onClick={() => router.push(`/${locale}/projects`)}
+            onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
-            {t.environments.backToProjects}
+            {t.flags.backToEnvironments}
           </button>
-          <h1 className="projects-page-title">{t.environments.title}</h1>
+          <h1 className="projects-page-title">{t.flags.title}</h1>
         </div>
         <p>{t.common.loading}</p>
       </main>
     );
   }
 
-  if (error && environments.length === 0) {
+  if (error && flags.length === 0) {
     return (
       <main className="projects-page">
         <div className="projects-page-header">
           <button
             type="button"
             className="btn-sm btn-sm--edit"
-            onClick={() => router.push(`/${locale}/projects`)}
+            onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
-            {t.environments.backToProjects}
+            {t.flags.backToEnvironments}
           </button>
-          <h1 className="projects-page-title">{t.environments.title}</h1>
+          <h1 className="projects-page-title">{t.flags.title}</h1>
         </div>
         <div className="form-error">{error}</div>
       </main>
@@ -97,76 +97,59 @@ export default function EnvironmentsPage() {
         <button
           type="button"
           className="btn-sm btn-sm--edit"
-          onClick={() => router.push(`/${locale}/projects`)}
+          onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
         >
-          {t.environments.backToProjects}
+          {t.flags.backToEnvironments}
         </button>
-        <h1 className="projects-page-title">{t.environments.title}</h1>
-        <button
-          type="button"
-          className="btn-sm btn-sm--edit"
-          onClick={() => router.push(`/${locale}/projects/${projectId}/flags`)}
-        >
-          Manage Flags
-        </button>
+        <h1 className="projects-page-title">{t.flags.title}</h1>
         <button
           type="button"
           className="btn-primary"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
-          {t.environments.newEnvironment}
+          {t.flags.newFlag}
         </button>
       </div>
 
       {error && <div className="form-error projects-error">{error}</div>}
 
-      {environments.length === 0 ? (
-        <div className="projects-empty">{t.environments.emptyState}</div>
+      {flags.length === 0 ? (
+        <div className="projects-empty">{t.flags.emptyState}</div>
       ) : (
         <table className="projects-table">
           <thead>
             <tr>
-              <th>{t.environments.colName}</th>
-              <th>{t.environments.colKey}</th>
-              <th>{t.environments.colFlags}</th>
-              <th>{t.environments.colActions}</th>
+              <th>{t.flags.colName}</th>
+              <th>{t.flags.colKey}</th>
+              <th>{t.flags.colDescription}</th>
+              <th>{t.flags.colActions}</th>
             </tr>
           </thead>
           <tbody>
-            {environments.map((env) => (
-              <tr key={env.id}>
-                <td>{env.name}</td>
+            {flags.map((flag) => (
+              <tr key={flag.id}>
+                <td>{flag.name}</td>
                 <td>
-                  <span className="project-key-badge">{env.key}</span>
+                  <span className="project-key-badge">{flag.key}</span>
                 </td>
+                <td>{flag.description || '—'}</td>
                 <td>
-                  {env.flagStats.enabled}/{env.flagStats.total} on
-                  <button
-                    type="button"
-                    className="btn-sm btn-sm--edit"
-                    onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
-                    style={{ marginLeft: '8px' }}
-                  >
-                    Flags
-                  </button>
-                </td>
-                <td>
-                  {deletingId === env.id ? (
+                  {deletingId === flag.id ? (
                     <div className="delete-confirm-actions">
-                      <span className="delete-confirm-text">{t.environments.confirmDelete}</span>
+                      <span className="delete-confirm-text">{t.flags.confirmDelete}</span>
                       <button
                         type="button"
                         className="btn-sm btn-sm--danger"
-                        onClick={() => handleDelete(env.id)}
+                        onClick={() => handleDelete(flag.id)}
                       >
-                        {t.environments.confirmDeleteBtn}
+                        {t.flags.confirmDeleteBtn}
                       </button>
                       <button
                         type="button"
                         className="btn-sm btn-sm--edit"
                         onClick={() => setDeletingId(null)}
                       >
-                        {t.environments.cancelBtn}
+                        {t.flags.cancelBtn}
                       </button>
                     </div>
                   ) : (
@@ -174,16 +157,16 @@ export default function EnvironmentsPage() {
                       <button
                         type="button"
                         className="btn-sm btn-sm--edit"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
+                        onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
                       >
-                        {t.environments.editBtn}
+                        {t.flags.editBtn}
                       </button>
                       <button
                         type="button"
                         className="btn-sm btn-sm--danger"
-                        onClick={() => setDeletingId(env.id)}
+                        onClick={() => setDeletingId(flag.id)}
                       >
-                        {t.environments.deleteBtn}
+                        {t.flags.deleteBtn}
                       </button>
                     </div>
                   )}
@@ -195,25 +178,26 @@ export default function EnvironmentsPage() {
       )}
 
       {modalState.type === 'add' && (
-        <AddEnvironmentModal
+        <AddFlagModal
           projectId={projectId}
           existingKeys={existingKeys}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
-            loadEnvironments();
+            loadFlags();
           }}
           onError={setError}
         />
       )}
 
       {modalState.type === 'edit' && (
-        <EditEnvironmentModal
-          env={modalState.env}
+        <EditFlagModal
+          flag={modalState.flag}
+          existingKeys={existingKeys.filter(k => k !== modalState.flag.key)}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
-            loadEnvironments();
+            loadFlags();
           }}
           onError={setError}
         />

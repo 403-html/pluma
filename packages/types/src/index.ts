@@ -26,6 +26,13 @@ export const MAX_PROJECT_NAME_LENGTH = 200;
 /** Regex for a valid project key: lowercase alphanumeric segments separated by hyphens. */
 export const PROJECT_KEY_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** Maximum feature flag key length. */
+export const MAX_FLAG_KEY_LENGTH = 100;
+/** Maximum feature flag name length. */
+export const MAX_FLAG_NAME_LENGTH = 200;
+/** Maximum feature flag description length. */
+export const MAX_FLAG_DESC_LENGTH = 500;
+
 // Projects
 export type Project = {
   id: string;
@@ -93,6 +100,15 @@ export type FlagConfig = {
   enabled: boolean;
   allowList: string[];
   denyList: string[];
+};
+
+/** JSON-serialised flag as returned by GET /api/v1/environments/:envId/flags */
+export type FlagConfigEntry = {
+  flagId: string;
+  key: string;
+  name: string;
+  description: string | null;
+  enabled: boolean;
 };
 
 // SDK Snapshot
