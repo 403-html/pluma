@@ -83,3 +83,34 @@ describe('API Health', () => {
   });
 
 });
+
+describe('Prisma Error Handling', () => {
+  it('should handle Prisma errors with 500 response', async () => {
+    // Create a mock Prisma error
+    class PrismaClientKnownRequestError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = 'PrismaClientKnownRequestError';
+      }
+    }
+
+    // Create a fresh app instance for this test
+    const testApp = await buildApp({ logger: false });
+
+    // Register a test route that throws a Prisma error
+    testApp.get('/test-prisma-error', async () => {
+      throw new PrismaClientKnownRequestError('Test Prisma error');
+    });
+
+    const response = await testApp.inject({
+      method: 'GET',
+      url: '/test-prisma-error',
+    });
+
+    expect(response.statusCode).toBe(500);
+    const payload = JSON.parse(response.payload);
+    expect(payload).toEqual({ message: 'Internal Server Error' });
+
+    await testApp.close();
+  });
+});

@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import sensible from '@fastify/sensible';
 import cookie from '@fastify/cookie';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { registerAuthRoutes } from './routes/admin/auth';
 import { registerProjectRoutes } from './routes/admin/projects';
 import { registerTokenRoutes } from './routes/admin/tokens';
@@ -28,6 +29,15 @@ export async function buildApp(options: BuildAppOptions = {}) {
   await fastify.register(helmet);
   await fastify.register(sensible);
   await fastify.register(cookie);
+
+  // Global error handler for Prisma errors
+  fastify.setErrorHandler((error, request, reply) => {
+    if (error.constructor.name.startsWith('PrismaClient')) {
+      request.log.error({ err: error }, 'Unhandled Prisma error');
+      return reply.code(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: ReasonPhrases.INTERNAL_SERVER_ERROR });
+    }
+    return reply.send(error);
+  });
 
   // Health check endpoint
   fastify.get('/health', async () => {
