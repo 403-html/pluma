@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { changePassword } from '@/lib/api/auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function SettingsPage() {
   const { t, locale } = useLocale();
@@ -42,6 +43,7 @@ export default function SettingsPage() {
       <section className="settings-section">
         <h2 className="settings-section-title">{t.settings.generalSection}</h2>
         <LanguageSwitcher />
+        <ThemeToggle />
       </section>
 
       <section className="settings-section">

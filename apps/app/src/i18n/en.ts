@@ -49,6 +49,10 @@ export const en = {
     languageSelectorDisabledTitle: 'Only one language is currently set up',
     languageSelectorAriaLabel: 'Switch app language',
     languageSelectorDisabledAriaLabel: 'Language selection is disabled because only one language is currently set up',
+    themeSwitcherLabel: 'Theme',
+    themeSwitcherLight: 'Light',
+    themeSwitcherDark: 'Dark',
+    themeSwitcherSystem: 'System',
   },
   common: {
     loading: 'Loading…',

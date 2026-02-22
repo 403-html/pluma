@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '../globals.css';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
+import { ThemeProvider } from '@/components/ThemeContext';
 
 type Props = { params: Promise<{ lang: string }> };
 
@@ -30,8 +31,17 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body>
+        {/* Anti-FOUC script: Applies theme before React hydration to prevent flash.
+            Note: If using CSP headers, add nonce or allow inline scripts. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('pluma-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();`,
+          }}
+        />
         <LocaleProvider locale={locale}>
-          {children}
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </LocaleProvider>
       </body>
     </html>
