@@ -49,21 +49,21 @@ function LoginFormContent() {
   };
 
   return (
-    <main className="auth-container">
-      <div className="auth-card">
-        <h1 className="auth-title">{t.login.title}</h1>
-        {notice && <p className="auth-notice">{notice}</p>}
-        <form onSubmit={handleSubmit} className="auth-form">
+    <main className="flex items-center justify-center min-h-screen px-4 py-8">
+      <div className="w-full max-w-sm p-8 bg-background border border-border rounded-lg shadow-sm">
+        <h1 className="text-2xl font-semibold text-center mb-2">{t.login.title}</h1>
+        {notice && <p className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-center mb-4">{notice}</p>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <FormField id="email" label={t.login.emailLabel} type="email" value={email} onChange={setEmail} placeholder={t.login.emailPlaceholder} />
           <FormField id="password" label={t.login.passwordLabel} type="password" value={password} onChange={setPassword} placeholder={t.login.passwordPlaceholder} />
-          {error && <div className="form-error">{error}</div>}
+          {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>}
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t.login.submitLoading : t.login.submitIdle}
           </Button>
         </form>
-        <p className="auth-footer">
+        <p className="mt-6 text-sm text-muted-foreground text-center">
           {t.login.footerText}{' '}
-          <Link href={`/${locale}/register`} className="auth-link">{t.login.footerLink}</Link>
+          <Link href={`/${locale}/register`} className="text-primary font-medium hover:underline">{t.login.footerLink}</Link>
         </p>
       </div>
     </main>

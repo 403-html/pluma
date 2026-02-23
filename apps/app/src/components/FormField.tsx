@@ -11,8 +11,8 @@ type FormFieldProps = {
 
 export default function FormField({ id, label, type, value, onChange, placeholder }: FormFieldProps) {
   return (
-    <div className="form-group">
-      <label htmlFor={id} className="form-label">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
       <Input

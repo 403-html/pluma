@@ -23,51 +23,51 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-content">
+    <aside className="fixed left-0 top-0 bottom-0 w-60 bg-[#1a1a1a] text-white flex flex-col z-50">
+      <div className="flex-1 overflow-y-auto">
         {/* Logo/branding section - can be expanded in the future */}
-        <div className="sidebar-header">
-          <h2 className="sidebar-logo">Pluma</h2>
+        <div className="px-4 py-6 border-b border-white/10">
+          <h2 className="text-2xl font-bold">Pluma</h2>
         </div>
 
         {/* Main navigation - can be expanded with more menu items */}
-        <nav className="sidebar-nav">
+        <nav className="py-4">
           <button
             type="button"
-            className="sidebar-btn sidebar-nav-btn"
+            className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => router.push(`/${locale}/projects`)}
           >
-            <span className="sidebar-btn-icon" aria-hidden="true">
+            <span className="text-xl leading-none" aria-hidden="true">
               ⚑
             </span>
-            <span className="sidebar-btn-text">{t.sidebar.projects}</span>
+            <span className="flex-1 text-left">{t.sidebar.projects}</span>
           </button>
         </nav>
       </div>
 
       {/* Bottom actions */}
-      <div className="sidebar-footer">
+      <div className="border-t border-white/10 p-4 flex flex-col gap-2">
         <button
           type="button"
-          className="sidebar-btn"
+          className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => router.push(`/${locale}/settings`)}
           disabled={isLoggingOut}
         >
-          <span className="sidebar-btn-icon" aria-hidden="true">
+          <span className="text-xl leading-none" aria-hidden="true">
             ⚙
           </span>
-          <span className="sidebar-btn-text">{t.sidebar.settings}</span>
+          <span className="flex-1 text-left">{t.sidebar.settings}</span>
         </button>
         <button
           type="button"
-          className="sidebar-btn sidebar-btn--logout"
+          className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-[#ff6b6b] hover:bg-[#ff6b6b]/10"
           onClick={handleLogout}
           disabled={isLoggingOut}
         >
-          <span className="sidebar-btn-icon" aria-hidden="true">
+          <span className="text-xl leading-none" aria-hidden="true">
             →
           </span>
-          <span className="sidebar-btn-text">{t.sidebar.logout}</span>
+          <span className="flex-1 text-left">{t.sidebar.logout}</span>
         </button>
       </div>
     </aside>

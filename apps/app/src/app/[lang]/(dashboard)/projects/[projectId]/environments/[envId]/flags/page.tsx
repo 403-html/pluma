@@ -9,6 +9,7 @@ import {
   toggleFlagEnabled,
   type FlagEntry,
 } from '@/lib/api/flags';
+import { Button } from '@/components/ui/button';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 
@@ -68,16 +69,16 @@ export default function FlagsPage() {
 
   if (isLoading) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <button
-            type="button"
-            className="btn-sm btn-sm--edit"
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
             {t.flags.backToEnvironments}
-          </button>
-          <h1 className="projects-page-title">{t.flags.title}</h1>
+          </Button>
+          <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
         </div>
         <p>{t.common.loading}</p>
       </main>
@@ -86,110 +87,109 @@ export default function FlagsPage() {
 
   if (error && flags.length === 0) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <button
-            type="button"
-            className="btn-sm btn-sm--edit"
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
             {t.flags.backToEnvironments}
-          </button>
-          <h1 className="projects-page-title">{t.flags.title}</h1>
+          </Button>
+          <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
         </div>
-        <div className="form-error">{error}</div>
+        <div className="text-sm text-destructive">{error}</div>
       </main>
     );
   }
 
   return (
-    <main className="projects-page">
-      <div className="projects-page-header">
-        <button
-          type="button"
-          className="btn-sm btn-sm--edit"
+    <main className="p-8">
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
         >
           {t.flags.backToEnvironments}
-        </button>
-        <h1 className="projects-page-title">{t.flags.title}</h1>
-        <button
-          type="button"
-          className="btn-primary"
+        </Button>
+        <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
+        <Button
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.flags.newFlag}
-        </button>
+        </Button>
       </div>
 
-      {error && <div className="form-error projects-error">{error}</div>}
+      {error && <div className="text-sm text-destructive mb-4">{error}</div>}
 
       {flags.length === 0 ? (
-        <div className="projects-empty">{t.flags.emptyState}</div>
+        <div className="text-muted-foreground">{t.flags.emptyState}</div>
       ) : (
-        <table className="projects-table">
+        <table className="w-full border-collapse">
           <thead>
-            <tr>
-              <th>{t.flags.colName}</th>
-              <th>{t.flags.colKey}</th>
-              <th>{t.flags.colDescription}</th>
-              <th>{t.flags.colStatus}</th>
-              <th>{t.flags.colActions}</th>
+            <tr className="border-b">
+              <th className="text-left py-3 px-4 font-medium">{t.flags.colName}</th>
+              <th className="text-left py-3 px-4 font-medium">{t.flags.colKey}</th>
+              <th className="text-left py-3 px-4 font-medium">{t.flags.colDescription}</th>
+              <th className="text-left py-3 px-4 font-medium">{t.flags.colStatus}</th>
+              <th className="text-left py-3 px-4 font-medium">{t.flags.colActions}</th>
             </tr>
           </thead>
           <tbody>
             {flags.map((flag) => (
-              <tr key={flag.flagId}>
-                <td>{flag.name}</td>
-                <td>
-                  <span className="project-key-badge">{flag.key}</span>
+              <tr key={flag.flagId} className="border-b hover:bg-muted/50">
+                <td className="py-3 px-4">{flag.name}</td>
+                <td className="py-3 px-4">
+                  <span className="inline-block bg-muted px-2 py-1 rounded text-sm font-mono">{flag.key}</span>
                 </td>
-                <td>{flag.description || '—'}</td>
-                <td>
-                  <label className="flag-toggle">
+                <td className="py-3 px-4">{flag.description || '—'}</td>
+                <td className="py-3 px-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={flag.enabled}
                       onChange={() => handleToggle(flag.flagId, flag.enabled)}
+                      className="cursor-pointer"
                     />
                     {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                   </label>
                 </td>
-                <td>
+                <td className="py-3 px-4">
                   {deletingId === flag.flagId ? (
-                    <div className="delete-confirm-actions">
-                      <span className="delete-confirm-text">{t.flags.confirmDelete}</span>
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--danger"
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{t.flags.confirmDelete}</span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
                         onClick={() => handleDelete(flag.flagId)}
                       >
                         {t.flags.confirmDeleteBtn}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--edit"
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setDeletingId(null)}
                       >
                         {t.flags.cancelBtn}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
-                    <div className="project-actions">
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--edit"
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
                       >
                         {t.flags.editBtn}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--danger"
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
                         onClick={() => setDeletingId(flag.flagId)}
                       >
                         {t.flags.deleteBtn}
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </td>

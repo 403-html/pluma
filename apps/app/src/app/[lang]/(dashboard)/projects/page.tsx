@@ -10,6 +10,7 @@ import {
 } from '@/lib/api/projects';
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
+import { Button } from '@/components/ui/button';
 
 type ModalState =
   | { type: 'none' }
@@ -55,9 +56,9 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <h1 className="projects-page-title">{t.projects.title}</h1>
+      <main className="p-8 max-w-3xl">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
         </div>
         <p>{t.common.loading}</p>
       </main>
@@ -66,89 +67,93 @@ export default function ProjectsPage() {
 
   if (error && projects.length === 0) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <h1 className="projects-page-title">{t.projects.title}</h1>
+      <main className="p-8 max-w-3xl">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
         </div>
-        <div className="form-error">{error}</div>
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
   }
 
   return (
-    <main className="projects-page">
-      <div className="projects-page-header">
-        <h1 className="projects-page-title">{t.projects.title}</h1>
-        <button
+    <main className="p-8 max-w-3xl">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
+        <Button
           type="button"
-          className="btn-primary"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.projects.newProject}
-        </button>
+        </Button>
       </div>
 
-      {error && <div className="form-error projects-error">{error}</div>}
+      {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {projects.length === 0 ? (
-        <div className="projects-empty">{t.projects.emptyState}</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">{t.projects.emptyState}</div>
       ) : (
-        <table className="projects-table">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th>{t.projects.colName}</th>
-              <th>{t.projects.colKey}</th>
-              <th>{t.projects.colActions}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colName}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colKey}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colActions}</th>
             </tr>
           </thead>
           <tbody>
             {projects.map((project) => (
               <tr
                 key={project.id}
+                className="cursor-pointer transition-colors hover:bg-muted/50"
                 onClick={() => {
                   if (window.getSelection()?.toString()) return;
                   router.push(`/${locale}/projects/${project.id}/environments`);
                 }}
               >
-                <td><span className="projects-table-cell-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
-                <td>
-                  <span className="project-key-badge" onClick={(e) => e.stopPropagation()}>{project.key}</span>
+                <td className="px-3 py-3 border-b border-border/20 align-middle"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block" onClick={(e) => e.stopPropagation()}>{project.key}</span>
                 </td>
-                <td onClick={(e) => e.stopPropagation()}>
+                <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (
-                    <div className="delete-confirm-actions">
-                      <span className="delete-confirm-text">{t.projects.confirmDelete}</span>
-                      <button
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs text-destructive">{t.projects.confirmDelete}</span>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--danger"
+                        variant="destructive"
+                        size="sm"
                         onClick={() => handleDelete(project.id)}
                       >
                         {t.projects.confirmDeleteBtn}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--edit"
+                        variant="outline"
+                        size="sm"
                         onClick={() => setDeletingId(null)}
                       >
                         {t.projects.cancelBtn}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
-                    <div className="project-actions">
-                      <button
+                    <div className="flex gap-2">
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--edit"
+                        variant="outline"
+                        size="sm"
                         onClick={() => { setError(null); setModalState({ type: 'edit', project }); }}
                       >
                         {t.projects.editBtn}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--danger"
+                        variant="destructive"
+                        size="sm"
                         onClick={() => setDeletingId(project.id)}
                       >
                         {t.projects.deleteBtn}
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </td>

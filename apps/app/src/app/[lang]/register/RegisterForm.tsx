@@ -40,21 +40,21 @@ export default function RegisterForm() {
   };
 
   return (
-    <main className="auth-container">
-      <div className="auth-card">
-        <h1 className="auth-title">{t.register.title}</h1>
-        <p className="auth-description">{t.register.description}</p>
-        <form onSubmit={handleSubmit} className="auth-form">
+    <main className="flex items-center justify-center min-h-screen px-4 py-8">
+      <div className="w-full max-w-sm p-8 bg-background border border-border rounded-lg shadow-sm">
+        <h1 className="text-2xl font-semibold text-center mb-2">{t.register.title}</h1>
+        <p className="text-sm text-muted-foreground text-center mb-6">{t.register.description}</p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <FormField id="email" label={t.register.emailLabel} type="email" value={email} onChange={setEmail} placeholder={t.register.emailPlaceholder} />
           <FormField id="password" label={t.register.passwordLabel} type="password" value={password} onChange={setPassword} placeholder={t.register.passwordPlaceholder} />
-          {error && <div className="form-error">{error}</div>}
+          {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>}
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t.register.submitLoading : t.register.submitIdle}
           </Button>
         </form>
-        <p className="auth-footer">
+        <p className="mt-6 text-sm text-muted-foreground text-center">
           {t.register.footerText}{' '}
-          <Link href={`/${locale}/login`} className="auth-link">{t.register.footerLink}</Link>
+          <Link href={`/${locale}/login`} className="text-primary font-medium hover:underline">{t.register.footerLink}</Link>
         </p>
       </div>
     </main>
