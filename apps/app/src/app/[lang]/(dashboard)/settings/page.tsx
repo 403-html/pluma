@@ -50,7 +50,7 @@ export default function SettingsPage() {
 
       <section className="mb-8 flex flex-col gap-4 last:mb-0">
         <h2 className="text-lg font-semibold mb-4">{t.settings.passwordSection}</h2>
-        <form className="flex flex-col gap-4" onSubmit={handleChangePassword}>
+        <form className="flex flex-col gap-4 max-w-sm" onSubmit={handleChangePassword}>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="old-password" className="text-sm font-medium">
               {t.settings.oldPassword}
