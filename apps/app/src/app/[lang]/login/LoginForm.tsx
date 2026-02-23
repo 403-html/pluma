@@ -49,8 +49,8 @@ function LoginFormContent() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4 py-8">
-      <div className="w-full max-w-sm p-8 bg-background border border-border rounded-lg shadow-sm">
+    <main className="flex items-center justify-center min-h-screen px-4 py-8 bg-background">
+      <div className="w-full max-w-sm p-8 bg-card border border-border rounded-lg shadow-sm">
         <h1 className="text-2xl font-semibold text-center mb-2">{t.login.title}</h1>
         {notice && <p className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-center mb-4">{notice}</p>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

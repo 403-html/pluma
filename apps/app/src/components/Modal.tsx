@@ -18,13 +18,13 @@ export default function Modal({ titleId, title, onClose, children }: ModalProps)
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
     >
       <div
-        className="bg-background rounded-lg p-6 w-full max-w-sm shadow-2xl"
+        className="bg-card border border-border rounded-lg p-6 w-full max-w-sm shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id={titleId} className="text-xl font-semibold mb-5">{title}</h2>
+        <h2 id={titleId} className="text-xl font-semibold text-foreground mb-5">{title}</h2>
         {children}
       </div>
     </div>

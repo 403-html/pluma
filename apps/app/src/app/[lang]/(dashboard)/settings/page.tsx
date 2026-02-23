@@ -39,7 +39,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="p-8 max-w-lg">
+    <main className="p-8 max-w-md mx-auto">
       <h1 className="text-2xl font-semibold mb-8">{t.settings.title}</h1>
 
       <section className="mb-8 flex flex-col gap-4 last:mb-0">
@@ -85,7 +85,7 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={isChangingPassword}>
+          <Button type="submit" disabled={isChangingPassword}>
             {isChangingPassword ? t.settings.changePasswordLoading : t.settings.changePassword}
           </Button>
         </form>

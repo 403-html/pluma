@@ -72,7 +72,7 @@ export default function FlagsPage() {
       <main className="p-8">
         <div className="flex items-center gap-4 mb-6">
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
@@ -90,7 +90,7 @@ export default function FlagsPage() {
       <main className="p-8">
         <div className="flex items-center gap-4 mb-6">
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
@@ -98,7 +98,7 @@ export default function FlagsPage() {
           </Button>
           <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
         </div>
-        <div className="text-sm text-destructive">{error}</div>
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
   }
@@ -107,7 +107,7 @@ export default function FlagsPage() {
     <main className="p-8">
       <div className="flex items-center gap-4 mb-6">
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
           onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
         >
@@ -115,36 +115,37 @@ export default function FlagsPage() {
         </Button>
         <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
         <Button
+          className="ml-auto"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.flags.newFlag}
         </Button>
       </div>
 
-      {error && <div className="text-sm text-destructive mb-4">{error}</div>}
+      {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {flags.length === 0 ? (
-        <div className="text-muted-foreground">{t.flags.emptyState}</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">{t.flags.emptyState}</div>
       ) : (
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 font-medium">{t.flags.colName}</th>
-              <th className="text-left py-3 px-4 font-medium">{t.flags.colKey}</th>
-              <th className="text-left py-3 px-4 font-medium">{t.flags.colDescription}</th>
-              <th className="text-left py-3 px-4 font-medium">{t.flags.colStatus}</th>
-              <th className="text-left py-3 px-4 font-medium">{t.flags.colActions}</th>
+            <tr>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colName}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colKey}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colDescription}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colStatus}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colActions}</th>
             </tr>
           </thead>
           <tbody>
             {flags.map((flag) => (
-              <tr key={flag.flagId} className="border-b hover:bg-muted/50">
-                <td className="py-3 px-4">{flag.name}</td>
-                <td className="py-3 px-4">
-                  <span className="inline-block bg-muted px-2 py-1 rounded text-sm font-mono">{flag.key}</span>
+              <tr key={flag.flagId} className="transition-colors hover:bg-muted/40">
+                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.name}</td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">{flag.key}</span>
                 </td>
-                <td className="py-3 px-4">{flag.description || '—'}</td>
-                <td className="py-3 px-4">
+                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.description || '—'}</td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -155,10 +156,10 @@ export default function FlagsPage() {
                     {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                   </label>
                 </td>
-                <td className="py-3 px-4">
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
                   {deletingId === flag.flagId ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">{t.flags.confirmDelete}</span>
+                      <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
                       <Button
                         variant="destructive"
                         size="sm"
@@ -167,7 +168,7 @@ export default function FlagsPage() {
                         {t.flags.confirmDeleteBtn}
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         onClick={() => setDeletingId(null)}
                       >
@@ -177,7 +178,7 @@ export default function FlagsPage() {
                   ) : (
                     <div className="flex gap-2">
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
                       >

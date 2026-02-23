@@ -40,8 +40,8 @@ export default function RegisterForm() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4 py-8">
-      <div className="w-full max-w-sm p-8 bg-background border border-border rounded-lg shadow-sm">
+    <main className="flex items-center justify-center min-h-screen px-4 py-8 bg-background">
+      <div className="w-full max-w-sm p-8 bg-card border border-border rounded-lg shadow-sm">
         <h1 className="text-2xl font-semibold text-center mb-2">{t.register.title}</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">{t.register.description}</p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

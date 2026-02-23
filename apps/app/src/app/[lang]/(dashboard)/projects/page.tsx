@@ -56,7 +56,7 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8 max-w-3xl">
+      <main className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
         </div>
@@ -67,7 +67,7 @@ export default function ProjectsPage() {
 
   if (error && projects.length === 0) {
     return (
-      <main className="p-8 max-w-3xl">
+      <main className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
         </div>
@@ -77,7 +77,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <main className="p-8 max-w-3xl">
+    <main className="p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
         <Button
@@ -105,7 +105,7 @@ export default function ProjectsPage() {
             {projects.map((project) => (
               <tr
                 key={project.id}
-                className="cursor-pointer transition-colors hover:bg-muted/50"
+                className="cursor-pointer transition-colors hover:bg-muted/40"
                 onClick={() => {
                   if (window.getSelection()?.toString()) return;
                   router.push(`/${locale}/projects/${project.id}/environments`);

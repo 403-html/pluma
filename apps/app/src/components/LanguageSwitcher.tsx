@@ -27,7 +27,7 @@ export default function LanguageSwitcher() {
       </label>
       <select
         id="lang-select"
-        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer"
+        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         value={locale}
         onChange={(e) => handleChange(e.target.value)}
         disabled={!canSwitch}

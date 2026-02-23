@@ -58,8 +58,8 @@ export default function EnvironmentsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8 max-w-3xl">
-        <div className="flex justify-between items-center mb-6">
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
           <Button
             type="button"
             variant="outline"
@@ -77,8 +77,8 @@ export default function EnvironmentsPage() {
 
   if (error && environments.length === 0) {
     return (
-      <main className="p-8 max-w-3xl">
-        <div className="flex justify-between items-center mb-6">
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
           <Button
             type="button"
             variant="outline"
@@ -95,8 +95,8 @@ export default function EnvironmentsPage() {
   }
 
   return (
-    <main className="p-8 max-w-3xl">
-      <div className="flex justify-between items-center mb-6">
+    <main className="p-8">
+      <div className="flex items-center gap-4 mb-6">
         <Button
           type="button"
           variant="outline"
@@ -108,6 +108,7 @@ export default function EnvironmentsPage() {
         <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
         <Button
           type="button"
+          className="ml-auto"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.environments.newEnvironment}
@@ -130,7 +131,7 @@ export default function EnvironmentsPage() {
           </thead>
           <tbody>
             {environments.map((env) => (
-              <tr key={env.id}>
+              <tr key={env.id} className="transition-colors hover:bg-muted/40">
                 <td className="px-3 py-3 border-b border-border/20 align-middle">{env.name}</td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle">
                   <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">{env.key}</span>

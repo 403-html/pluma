@@ -31,7 +31,7 @@ export default function Sidebar() {
         </div>
 
         {/* Main navigation - can be expanded with more menu items */}
-        <nav className="py-4">
+        <nav className="py-2 px-2">
           <button
             type="button"
             className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -46,7 +46,7 @@ export default function Sidebar() {
       </div>
 
       {/* Bottom actions */}
-      <div className="border-t border-white/10 p-4 flex flex-col gap-2">
+      <div className="border-t border-white/10 py-4 px-2 flex flex-col gap-2">
         <button
           type="button"
           className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
