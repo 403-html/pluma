@@ -41,99 +41,15 @@
 }
 
 :root {
-  /* Pluma brand palette */
+  /* Pluma brand palette — foundation tokens used by semantic vars below */
   --pluma-punch-red: #e63946;
   --pluma-honeydew: #f1faee;
   --pluma-frosted-blue: #a8dadc;
   --pluma-cerulean: #457b9d;
   --pluma-oxford-navy: #1d3557;
-
-  /* Pluma light mode semantic tokens */
-  --pluma-bg: var(--pluma-honeydew);
-  --pluma-text: var(--pluma-oxford-navy);
-  --pluma-accent: var(--pluma-punch-red);
-  --pluma-muted: var(--pluma-frosted-blue);
-  --pluma-surface: var(--pluma-cerulean);
-
-  /* Existing color tokens */
-  --color-bg: #ffffff;
-  --color-bg-subtle: #f5f5f5;
-  --color-bg-hover: #f9f9f9;
-  --color-bg-input: #ffffff;
-  --color-text: #333333;
-  --color-text-secondary: #555555;
-  --color-text-faint: #777777;
-  --color-text-placeholder: #aaaaaa;
-  --color-border: #dddddd;
-  --color-border-subtle: #eeeeee;
-  --color-border-strong: #e5e5e5;
 }
 
-/* Dark mode overrides for Pluma semantic tokens */
-[data-theme="dark"] {
-  --pluma-bg: var(--pluma-oxford-navy);
-  --pluma-text: var(--pluma-honeydew);
-  --pluma-accent: var(--pluma-punch-red);
-  --pluma-muted: var(--pluma-cerulean);
-  --pluma-surface: var(--pluma-frosted-blue);
 
-  /* Existing color tokens */
-  --color-bg: #1e1e1e;
-  --color-bg-subtle: #2a2a2a;
-  --color-bg-hover: #333333;
-  --color-bg-input: #2a2a2a;
-  --color-text: #e0e0e0;
-  --color-text-secondary: #aaaaaa;
-  --color-text-faint: #888888;
-  --color-text-placeholder: #666666;
-  --color-border: #444444;
-  --color-border-subtle: #383838;
-  --color-border-strong: #444444;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --pluma-bg: var(--pluma-oxford-navy);
-    --pluma-text: var(--pluma-honeydew);
-    --pluma-accent: var(--pluma-punch-red);
-    --pluma-muted: var(--pluma-cerulean);
-    --pluma-surface: var(--pluma-frosted-blue);
-
-    /* Existing color tokens */
-    --color-bg: #1e1e1e;
-    --color-bg-subtle: #2a2a2a;
-    --color-bg-hover: #333333;
-    --color-bg-input: #2a2a2a;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #aaaaaa;
-    --color-text-faint: #888888;
-    --color-text-placeholder: #666666;
-    --color-border: #444444;
-    --color-border-subtle: #383838;
-    --color-border-strong: #444444;
-
-    /* shadcn variables — dark mode for system preference */
-    --background: 215 50% 10%;
-    --foreground: 105 55% 96%;
-    --card: 215 50% 14%;
-    --card-foreground: 105 55% 96%;
-    --popover: 215 50% 14%;
-    --popover-foreground: 105 55% 96%;
-    --primary: 182 43% 76%;
-    --primary-foreground: 215 50% 23%;
-    --secondary: 215 50% 20%;
-    --secondary-foreground: 105 55% 96%;
-    --muted: 215 50% 20%;
-    --muted-foreground: 182 43% 60%;
-    --accent: 215 50% 20%;
-    --accent-foreground: 105 55% 96%;
-    --destructive: 356 77% 56%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 215 40% 30%;
-    --input: 215 40% 30%;
-    --ring: 182 43% 76%;
-  }
-}
 
 html,
 body {
@@ -181,8 +97,29 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Pluma semantic tokens — light */
+    --pluma-bg: var(--pluma-honeydew);
+    --pluma-text: var(--pluma-oxford-navy);
+    --pluma-accent: var(--pluma-punch-red);
+    --pluma-muted: var(--pluma-frosted-blue);
+    --pluma-surface: var(--pluma-cerulean);
+
+    /* Legacy color tokens — light */
+    --color-bg: #ffffff;
+    --color-bg-subtle: #f5f5f5;
+    --color-bg-hover: #f9f9f9;
+    --color-bg-input: #ffffff;
+    --color-text: #333333;
+    --color-text-secondary: #555555;
+    --color-text-faint: #777777;
+    --color-text-placeholder: #aaaaaa;
+    --color-border: #dddddd;
+    --color-border-subtle: #eeeeee;
+    --color-border-strong: #e5e5e5;
   }
 
+  /* Dark mode variables — explicit user choice */
   [data-theme="dark"] {
     /* oxford-navy #1d3557 */
     --background: 215 50% 10%;
@@ -212,5 +149,73 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Pluma semantic tokens — dark */
+    --pluma-bg: var(--pluma-oxford-navy);
+    --pluma-text: var(--pluma-honeydew);
+    --pluma-accent: var(--pluma-punch-red);
+    --pluma-muted: var(--pluma-cerulean);
+    --pluma-surface: var(--pluma-frosted-blue);
+
+    /* Legacy color tokens — dark */
+    --color-bg: #1e1e1e;
+    --color-bg-subtle: #2a2a2a;
+    --color-bg-hover: #333333;
+    --color-bg-input: #2a2a2a;
+    --color-text: #e0e0e0;
+    --color-text-secondary: #aaaaaa;
+    --color-text-faint: #888888;
+    --color-text-placeholder: #666666;
+    --color-border: #444444;
+    --color-border-subtle: #383838;
+    --color-border-strong: #444444;
+  }
+
+  /* Dark mode variables — system preference (identical values, same cascade level) */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --background: 215 50% 10%;
+      --foreground: 105 55% 96%;
+      --card: 215 50% 14%;
+      --card-foreground: 105 55% 96%;
+      --popover: 215 50% 14%;
+      --popover-foreground: 105 55% 96%;
+      --primary: 182 43% 76%;
+      --primary-foreground: 215 50% 23%;
+      --secondary: 215 50% 20%;
+      --secondary-foreground: 105 55% 96%;
+      --muted: 215 50% 20%;
+      --muted-foreground: 182 43% 60%;
+      --accent: 215 50% 20%;
+      --accent-foreground: 105 55% 96%;
+      --destructive: 356 77% 56%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 215 40% 30%;
+      --input: 215 40% 30%;
+      --ring: 182 43% 76%;
+      --chart-1: 220 70% 50%;
+      --chart-2: 160 60% 45%;
+      --chart-3: 30 80% 55%;
+      --chart-4: 280 65% 60%;
+      --chart-5: 340 75% 55%;
+
+      --pluma-bg: var(--pluma-oxford-navy);
+      --pluma-text: var(--pluma-honeydew);
+      --pluma-accent: var(--pluma-punch-red);
+      --pluma-muted: var(--pluma-cerulean);
+      --pluma-surface: var(--pluma-frosted-blue);
+
+      --color-bg: #1e1e1e;
+      --color-bg-subtle: #2a2a2a;
+      --color-bg-hover: #333333;
+      --color-bg-input: #2a2a2a;
+      --color-text: #e0e0e0;
+      --color-text-secondary: #aaaaaa;
+      --color-text-faint: #888888;
+      --color-text-placeholder: #666666;
+      --color-border: #444444;
+      --color-border-subtle: #383838;
+      --color-border-strong: #444444;
+    }
   }
 }
