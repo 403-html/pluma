@@ -42,6 +42,16 @@ export default function Sidebar() {
             </span>
             <span className="flex-1 text-left">{t.sidebar.projects}</span>
           </button>
+          <button
+            type="button"
+            className="sidebar-btn sidebar-nav-btn"
+            onClick={() => router.push(`/${locale}/audit`)}
+          >
+            <span className="sidebar-btn-icon" aria-hidden="true">
+              ✎
+            </span>
+            <span className="sidebar-btn-text">{t.sidebar.audit}</span>
+          </button>
         </nav>
       </div>
 

@@ -4,6 +4,7 @@ import { randomBytes, createHash } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { writeAuditLog } from '../../lib/audit';
 
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'pluma_sdk_';
@@ -98,6 +99,21 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
         select: { id: true, envId: true, projectId: true, name: true, createdAt: true },
       });
 
+      try {
+        await writeAuditLog({
+          action: 'create',
+          entityType: 'token',
+          entityId: sdkToken.id,
+          projectId: sdkToken.projectId,
+          envId: sdkToken.envId ?? undefined,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+          details: { name: sdkToken.name },
+        });
+      } catch (auditError) {
+        request.log.error({ err: auditError, tokenId: sdkToken.id }, 'POST /environments/:envId/sdk-tokens: failed to write audit log');
+      }
+
       return reply.code(StatusCodes.CREATED).send({ ...sdkToken, token: rawToken });
     },
   );
@@ -122,6 +138,18 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
           where: { id: parsedParams.data.id, revokedAt: null },
           data: { revokedAt: new Date() },
         });
+
+        try {
+          await writeAuditLog({
+            action: 'delete',
+            entityType: 'token',
+            entityId: parsedParams.data.id,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, tokenId: parsedParams.data.id }, 'DELETE /sdk-tokens/:id: failed to write audit log');
+        }
 
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {

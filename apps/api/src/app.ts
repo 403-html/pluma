@@ -11,6 +11,7 @@ import { registerEnvTokenRoutes } from './routes/admin/envTokens';
 import { registerFlagRoutes } from './routes/admin/flags';
 import { registerEnvironmentRoutes } from './routes/admin/environments';
 import { registerFlagConfigRoutes } from './routes/admin/flagConfigs';
+import { registerAuditRoutes } from './routes/admin/audit';
 import { registerSdkRoutes } from './routes/sdk/snapshot';
 
 type BuildAppOptions = {
@@ -59,6 +60,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       await registerFlagRoutes(adminApi);
       await registerEnvironmentRoutes(adminApi);
       await registerFlagConfigRoutes(adminApi);
+      await registerAuditRoutes(adminApi);
     },
     { prefix: '/api/v1' },
   );

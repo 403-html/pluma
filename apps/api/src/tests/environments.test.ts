@@ -51,6 +51,9 @@ const { prismaMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    auditLog: {
+      create: vi.fn(),
+    },
   },
 }));
 
@@ -253,6 +256,7 @@ describe('Environment routes', () => {
 
   describe('DELETE /api/v1/environments/:envId', () => {
     it('should delete an environment', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.environment.delete.mockResolvedValue(mockEnvironment);
 
       const response = await app.inject({
@@ -265,7 +269,7 @@ describe('Environment routes', () => {
     });
 
     it('should return 404 when environment not found', async () => {
-      prismaMock.environment.delete.mockRejectedValue({ code: 'P2025' });
+      prismaMock.environment.findUnique.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'DELETE',
