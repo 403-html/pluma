@@ -32,6 +32,9 @@ const { prismaMock } = vi.hoisted(() => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    auditLog: {
+      create: vi.fn(),
+    },
     featureFlag: {
       findMany: vi.fn(),
       findUnique: vi.fn(),

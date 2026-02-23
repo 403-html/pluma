@@ -1,21 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
-import { listAuditLog, type AuditFilters, type AuditPage as AuditPageData } from '@/lib/api/audit';
-import type { AuditAction, AuditLogEntry, ProjectSummary } from '@pluma/types';
+import type { AuditLogEntry, AuditAction } from '@pluma/types';
+import type { AuditPage as AuditPageData } from '@/lib/api/audit';
+import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 
-interface Flag {
-  id: string;
-  key: string;
-  name: string;
-}
-
-interface Environment {
-  id: string;
-  key: string;
-  name: string;
-}
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getActionBadgeStyle(action: AuditAction): string {
   const baseClass = 'audit-action-badge';
@@ -32,9 +22,10 @@ function getActionBadgeStyle(action: AuditAction): string {
 function formatDetails(details: unknown): string {
   if (details === null || details === undefined) return '—';
   if (typeof details === 'object' && Object.keys(details as object).length === 0) return '—';
-  // Use compact JSON format (no indentation) to fit in table cell
   return JSON.stringify(details);
 }
+
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string }) {
   const entityDisplay = entry.entityKey
@@ -43,155 +34,127 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
 
   return (
     <tr>
-      <td>
-        <span className="audit-timestamp">
-          {new Date(entry.createdAt).toLocaleString(locale)}
-        </span>
-      </td>
-      <td>
-        <span className="audit-actor">{entry.actorEmail}</span>
-      </td>
-      <td>
-        <span className={getActionBadgeStyle(entry.action)}>
-          {entry.action}
-        </span>
-      </td>
-      <td>
-        <span className="audit-entity">{entityDisplay}</span>
-      </td>
-      <td>
-        <span className="audit-details">{formatDetails(entry.details)}</span>
-      </td>
+      <td><span className="audit-timestamp">{new Date(entry.createdAt).toLocaleString(locale)}</span></td>
+      <td><span className="audit-actor">{entry.actorEmail}</span></td>
+      <td><span className={getActionBadgeStyle(entry.action)}>{entry.action}</span></td>
+      <td><span className="audit-entity">{entityDisplay}</span></td>
+      <td><span className="audit-details">{formatDetails(entry.details)}</span></td>
     </tr>
   );
 }
 
+interface AuditFiltersProps {
+  state: AuditFilterState;
+  labels: {
+    filterProject: string;
+    allProjects: string;
+    filterEnvironment: string;
+    allEnvironments: string;
+    filterFlag: string;
+    allFlags: string;
+  };
+}
+
+function AuditFiltersBar({ state, labels }: AuditFiltersProps) {
+  const { projects, environments, flags, selectedProjectId, selectedEnvId, selectedFlagId,
+    handleProjectChange, handleEnvChange, handleFlagChange } = state;
+
+  return (
+    <div className="audit-filters">
+      <div className="audit-filter">
+        <label htmlFor="project-filter" className="audit-filter-label">{labels.filterProject}</label>
+        <select id="project-filter" className="audit-filter-select" value={selectedProjectId}
+          onChange={(e) => handleProjectChange(e.target.value)}>
+          <option value="">{labels.allProjects}</option>
+          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      </div>
+      <div className="audit-filter">
+        <label htmlFor="env-filter" className="audit-filter-label">{labels.filterEnvironment}</label>
+        <select id="env-filter" className="audit-filter-select" value={selectedEnvId}
+          onChange={(e) => handleEnvChange(e.target.value)} disabled={!selectedProjectId}>
+          <option value="">{labels.allEnvironments}</option>
+          {environments.map((env) => <option key={env.id} value={env.id}>{env.name}</option>)}
+        </select>
+      </div>
+      <div className="audit-filter">
+        <label htmlFor="flag-filter" className="audit-filter-label">{labels.filterFlag}</label>
+        <select id="flag-filter" className="audit-filter-select" value={selectedFlagId}
+          onChange={(e) => handleFlagChange(e.target.value)} disabled={!selectedProjectId}>
+          <option value="">{labels.allFlags}</option>
+          {flags.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+}
+
+interface AuditTableProps {
+  auditData: AuditPageData;
+  locale: string;
+  headers: { timestamp: string; actor: string; action: string; entity: string; details: string };
+}
+
+function AuditTable({ auditData, locale, headers }: AuditTableProps) {
+  return (
+    <table className="audit-table">
+      <thead>
+        <tr>
+          <th>{headers.timestamp}</th>
+          <th>{headers.actor}</th>
+          <th>{headers.action}</th>
+          <th>{headers.entity}</th>
+          <th>{headers.details}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {auditData.entries.map((entry) => (
+          <AuditTableRow key={entry.id} entry={entry} locale={locale} />
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+interface AuditPaginationProps {
+  currentPage: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  prevLabel: string;
+  nextLabel: string;
+  pageInfoTemplate: string;
+}
+
+function AuditPagination({ currentPage, hasPrev, hasNext, onPrev, onNext, prevLabel, nextLabel, pageInfoTemplate }: AuditPaginationProps) {
+  return (
+    <div className="audit-pagination">
+      <button type="button" className="btn-sm" onClick={onPrev} disabled={!hasPrev}>
+        {prevLabel}
+      </button>
+      <span className="audit-page-info">{pageInfoTemplate.replace('{page}', String(currentPage))}</span>
+      <button type="button" className="btn-sm" onClick={onNext} disabled={!hasNext}>
+        {nextLabel}
+      </button>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function AuditPage() {
   const { t, locale } = useLocale();
-  const [auditData, setAuditData] = useState<AuditPageData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [flags, setFlags] = useState<Flag[]>([]);
-  const [environments, setEnvironments] = useState<Environment[]>([]);
-  
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [selectedEnvId, setSelectedEnvId] = useState<string>('');
-  const [selectedFlagId, setSelectedFlagId] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const state = useAuditFilters();
+  const { auditData, isLoading, error, currentPage, handlePrevPage, handleNextPage } = state;
 
-  const loadProjects = useCallback(async () => {
-    try {
-      const response = await fetch('/api/v1/projects', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const data: ProjectSummary[] = await response.json();
-        setProjects(data);
-      }
-    } catch {
-      // Silently fail - projects are optional for audit filtering
-    }
-  }, []);
-
-  const loadFlags = useCallback(async (projectId: string) => {
-    if (!projectId) {
-      setFlags([]);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/v1/projects/${projectId}/flags`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const data: Flag[] = await response.json();
-        setFlags(data);
-      } else {
-        setFlags([]);
-      }
-    } catch {
-      setFlags([]);
-    }
-  }, []);
-
-  const loadAuditEntries = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    const filters: AuditFilters = {
-      page: currentPage,
-    };
-    if (selectedProjectId) filters.projectId = selectedProjectId;
-    if (selectedEnvId) filters.envId = selectedEnvId;
-    if (selectedFlagId) filters.flagId = selectedFlagId;
-    
-    const result = await listAuditLog(filters);
-    if (result.ok) {
-      setAuditData(result.data);
-    } else {
-      setError(result.message);
-    }
-    setIsLoading(false);
-  }, [currentPage, selectedProjectId, selectedEnvId, selectedFlagId]);
-
-  useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
-
-  useEffect(() => {
-    loadAuditEntries();
-  }, [loadAuditEntries]);
-
-  useEffect(() => {
-    if (selectedProjectId) {
-      loadFlags(selectedProjectId);
-      const project = projects.find(p => p.id === selectedProjectId);
-      if (project) {
-        setEnvironments(project.environments);
-      }
-    } else {
-      setFlags([]);
-      setEnvironments([]);
-    }
-    setSelectedEnvId('');
-    setSelectedFlagId('');
-  }, [selectedProjectId, projects, loadFlags]);
-
-  function handleProjectChange(projectId: string) {
-    setSelectedProjectId(projectId);
-    setCurrentPage(1);
-  }
-
-  function handleEnvChange(envId: string) {
-    setSelectedEnvId(envId);
-    setCurrentPage(1);
-  }
-
-  function handleFlagChange(flagId: string) {
-    setSelectedFlagId(flagId);
-    setCurrentPage(1);
-  }
-
-  function handlePrevPage() {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  }
-
-  function handleNextPage() {
-    if (auditData && currentPage * auditData.pageSize < auditData.total) {
-      setCurrentPage(currentPage + 1);
-    }
-  }
+  const hasNextPage = auditData != null && currentPage * auditData.pageSize < auditData.total;
+  const hasPrevPage = currentPage > 1;
 
   if (isLoading && !auditData) {
     return (
       <main className="audit-page">
-        <div className="audit-page-header">
-          <h1 className="audit-page-title">{t.audit.title}</h1>
-        </div>
+        <div className="audit-page-header"><h1 className="audit-page-title">{t.audit.title}</h1></div>
         <p>{t.common.loading}</p>
       </main>
     );
@@ -200,16 +163,11 @@ export default function AuditPage() {
   if (error && !auditData) {
     return (
       <main className="audit-page">
-        <div className="audit-page-header">
-          <h1 className="audit-page-title">{t.audit.title}</h1>
-        </div>
+        <div className="audit-page-header"><h1 className="audit-page-title">{t.audit.title}</h1></div>
         <div className="form-error">{error}</div>
       </main>
     );
   }
-
-  const hasNextPage = auditData && currentPage * auditData.pageSize < auditData.total;
-  const hasPrevPage = currentPage > 1;
 
   return (
     <main className="audit-page">
@@ -217,113 +175,41 @@ export default function AuditPage() {
         <h1 className="audit-page-title">{t.audit.title}</h1>
       </div>
 
-      <div className="audit-filters">
-        <div className="audit-filter">
-          <label htmlFor="project-filter" className="audit-filter-label">
-            {t.audit.filterProject}
-          </label>
-          <select
-            id="project-filter"
-            className="audit-filter-select"
-            value={selectedProjectId}
-            onChange={(e) => handleProjectChange(e.target.value)}
-          >
-            <option value="">{t.audit.allProjects}</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="audit-filter">
-          <label htmlFor="env-filter" className="audit-filter-label">
-            {t.audit.filterEnvironment}
-          </label>
-          <select
-            id="env-filter"
-            className="audit-filter-select"
-            value={selectedEnvId}
-            onChange={(e) => handleEnvChange(e.target.value)}
-            disabled={!selectedProjectId}
-          >
-            <option value="">{t.audit.allEnvironments}</option>
-            {environments.map((env) => (
-              <option key={env.id} value={env.id}>
-                {env.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="audit-filter">
-          <label htmlFor="flag-filter" className="audit-filter-label">
-            {t.audit.filterFlag}
-          </label>
-          <select
-            id="flag-filter"
-            className="audit-filter-select"
-            value={selectedFlagId}
-            onChange={(e) => handleFlagChange(e.target.value)}
-            disabled={!selectedProjectId}
-          >
-            <option value="">{t.audit.allFlags}</option>
-            {flags.map((flag) => (
-              <option key={flag.id} value={flag.id}>
-                {flag.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <AuditFiltersBar state={state} labels={{
+        filterProject: t.audit.filterProject,
+        allProjects: t.audit.allProjects,
+        filterEnvironment: t.audit.filterEnvironment,
+        allEnvironments: t.audit.allEnvironments,
+        filterFlag: t.audit.filterFlag,
+        allFlags: t.audit.allFlags,
+      }} />
 
       {error && <div className="form-error audit-error">{error}</div>}
 
       {auditData && auditData.entries.length === 0 ? (
         <div className="audit-empty">{t.audit.emptyState}</div>
-      ) : (
+      ) : auditData ? (
         <>
-          <table className="audit-table">
-            <thead>
-              <tr>
-                <th>{t.audit.colTimestamp}</th>
-                <th>{t.audit.colActor}</th>
-                <th>{t.audit.colAction}</th>
-                <th>{t.audit.colEntity}</th>
-                <th>{t.audit.colDetails}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {auditData?.entries.map((entry) => (
-                <AuditTableRow key={entry.id} entry={entry} locale={locale} />
-              ))}
-            </tbody>
-          </table>
-
-          <div className="audit-pagination">
-            <button
-              type="button"
-              className="btn-sm"
-              onClick={handlePrevPage}
-              disabled={!hasPrevPage}
-            >
-              {t.audit.prevPage}
-            </button>
-            <span className="audit-page-info">
-              {t.audit.pageInfo.replace('{page}', String(currentPage))}
-            </span>
-            <button
-              type="button"
-              className="btn-sm"
-              onClick={handleNextPage}
-              disabled={!hasNextPage}
-            >
-              {t.audit.nextPage}
-            </button>
-          </div>
+          <AuditTable auditData={auditData} locale={locale} headers={{
+            timestamp: t.audit.colTimestamp,
+            actor: t.audit.colActor,
+            action: t.audit.colAction,
+            entity: t.audit.colEntity,
+            details: t.audit.colDetails,
+          }} />
+          <AuditPagination
+            currentPage={currentPage}
+            hasPrev={hasPrevPage}
+            hasNext={hasNextPage}
+            onPrev={handlePrevPage}
+            onNext={handleNextPage}
+            prevLabel={t.audit.prevPage}
+            nextLabel={t.audit.nextPage}
+            pageInfoTemplate={t.audit.pageInfo}
+          />
         </>
-      )}
+      ) : null}
     </main>
   );
 }
+
