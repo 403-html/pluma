@@ -14,7 +14,6 @@ const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning>
-      {/* eslint-disable-next-line react/no-danger -- see themeInitScript comment above */}
       <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
       <body>{children}</body>
     </html>

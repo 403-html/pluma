@@ -11,6 +11,7 @@ import {
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/PageHeader';
 
 type ModalState =
   | { type: 'none' }
@@ -57,9 +58,7 @@ export default function ProjectsPage() {
   if (isLoading) {
     return (
       <main className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
-        </div>
+        <PageHeader title={t.projects.title} />
         <p>{t.common.loading}</p>
       </main>
     );
@@ -68,9 +67,7 @@ export default function ProjectsPage() {
   if (error && projects.length === 0) {
     return (
       <main className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
-        </div>
+        <PageHeader title={t.projects.title} />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
@@ -78,15 +75,17 @@ export default function ProjectsPage() {
 
   return (
     <main className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">{t.projects.title}</h1>
-        <Button
-          type="button"
-          onClick={() => { setError(null); setModalState({ type: 'add' }); }}
-        >
-          {t.projects.newProject}
-        </Button>
-      </div>
+      <PageHeader 
+        title={t.projects.title}
+        actions={
+          <Button
+            type="button"
+            onClick={() => { setError(null); setModalState({ type: 'add' }); }}
+          >
+            {t.projects.newProject}
+          </Button>
+        }
+      />
 
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 

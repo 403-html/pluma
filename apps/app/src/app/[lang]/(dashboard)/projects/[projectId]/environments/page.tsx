@@ -8,9 +8,11 @@ import {
   deleteEnvironment,
   type EnvironmentSummary,
 } from '@/lib/api/environments';
+import { getProject } from '@/lib/api/projects';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/PageHeader';
 
 type ModalState =
   | { type: 'none' }
@@ -23,6 +25,7 @@ export default function EnvironmentsPage() {
   const params = useParams();
   const projectId = params.projectId as string;
   const [environments, setEnvironments] = useState<EnvironmentSummary[]>([]);
+  const [projectName, setProjectName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
@@ -33,11 +36,17 @@ export default function EnvironmentsPage() {
   const loadEnvironments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const result = await listEnvironments(projectId);
-    if (result.ok) {
-      setEnvironments(result.environments);
+    const [envsResult, projectResult] = await Promise.all([
+      listEnvironments(projectId),
+      getProject(projectId),
+    ]);
+    if (envsResult.ok) {
+      setEnvironments(envsResult.environments);
     } else {
-      setError(result.message);
+      setError(envsResult.message);
+    }
+    if (projectResult.ok) {
+      setProjectName(projectResult.project.name);
     }
     setIsLoading(false);
   }, [projectId]);
@@ -59,17 +68,10 @@ export default function EnvironmentsPage() {
   if (isLoading) {
     return (
       <main className="p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/${locale}/projects`)}
-          >
-            {t.environments.backToProjects}
-          </Button>
-          <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
-        </div>
+        <PageHeader 
+          breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
+          title={projectName ?? t.environments.title}
+        />
         <p>{t.common.loading}</p>
       </main>
     );
@@ -78,17 +80,10 @@ export default function EnvironmentsPage() {
   if (error && environments.length === 0) {
     return (
       <main className="p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/${locale}/projects`)}
-          >
-            {t.environments.backToProjects}
-          </Button>
-          <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
-        </div>
+        <PageHeader 
+          breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
+          title={projectName ?? t.environments.title}
+        />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
@@ -96,24 +91,18 @@ export default function EnvironmentsPage() {
 
   return (
     <main className="p-8">
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => router.push(`/${locale}/projects`)}
-        >
-          {t.environments.backToProjects}
-        </Button>
-        <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
-        <Button
-          type="button"
-          className="ml-auto"
-          onClick={() => { setError(null); setModalState({ type: 'add' }); }}
-        >
-          {t.environments.newEnvironment}
-        </Button>
-      </div>
+      <PageHeader 
+        breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
+        title={projectName ?? t.environments.title}
+        actions={
+          <Button
+            type="button"
+            onClick={() => { setError(null); setModalState({ type: 'add' }); }}
+          >
+            {t.environments.newEnvironment}
+          </Button>
+        }
+      />
 
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
