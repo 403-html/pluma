@@ -44,13 +44,13 @@ export default function Sidebar() {
           </button>
           <button
             type="button"
-            className="sidebar-btn sidebar-nav-btn"
+            className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => router.push(`/${locale}/audit`)}
           >
-            <span className="sidebar-btn-icon" aria-hidden="true">
+            <span className="text-xl leading-none" aria-hidden="true">
               ✎
             </span>
-            <span className="sidebar-btn-text">{t.sidebar.audit}</span>
+            <span className="flex-1 text-left">{t.sidebar.audit}</span>
           </button>
         </nav>
       </div>
