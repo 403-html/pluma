@@ -12,12 +12,12 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required and cannot be empty');
 }
 
-const adapter = new PrismaPg({ connectionString });
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  adapter,
-  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-});
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter: new PrismaPg({ connectionString }),
+    log: ['warn', 'error'],
+  });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
