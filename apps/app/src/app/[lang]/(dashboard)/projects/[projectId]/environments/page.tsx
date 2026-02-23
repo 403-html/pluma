@@ -11,6 +11,7 @@ import {
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
+import { CopyPill } from '@/components/CopyPill';
 
 type ModalState =
   | { type: 'none' }
@@ -134,7 +135,7 @@ export default function EnvironmentsPage() {
               <tr key={env.id} className="transition-colors hover:bg-muted/40">
                 <td className="px-3 py-3 border-b border-border/20 align-middle">{env.name}</td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">{env.key}</span>
+                  <CopyPill value={env.key} />
                 </td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle">
                   {env.flagStats.enabled}/{env.flagStats.total} on

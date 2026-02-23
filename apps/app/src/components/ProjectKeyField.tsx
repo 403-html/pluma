@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Copy, Check, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const PencilIcon = () => (
   <svg
@@ -51,12 +53,55 @@ export function ProjectKeyField({
   onBlur: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [copyState, setCopyState] = useState<'idle' | 'success' | 'error'>('idle');
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isEditing]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopy = async () => {
+    // Clear any existing timeout
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyState('success');
+    } catch {
+      setCopyState('error');
+    }
+
+    // Revert to idle after 1500ms for both success and error states
+    copyTimeoutRef.current = setTimeout(() => {
+      setCopyState('idle');
+      copyTimeoutRef.current = null;
+    }, 1500);
+  };
+
+  const getCopyButtonClasses = () => {
+    if (copyState === 'success') {
+      return 'text-green-600 dark:text-green-400';
+    }
+    if (copyState === 'error') {
+      return 'text-red-500';
+    }
+    return 'text-muted-foreground hover:bg-accent hover:text-accent-foreground';
+  };
+
+  const CopyIcon = copyState === 'success' ? Check : copyState === 'error' ? X : Copy;
 
   if (isEditing) {
     const errorId = error ? `${id}-error` : undefined;
@@ -102,6 +147,21 @@ export function ProjectKeyField({
             {placeholder}
           </span>
         )}
+        <button
+          type="button"
+          className={cn(
+            'flex items-center justify-center cursor-pointer p-1 transition-colors rounded',
+            'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
+            'disabled:cursor-not-allowed disabled:opacity-30',
+            getCopyButtonClasses()
+          )}
+          onClick={handleCopy}
+          disabled={disabled || !value}
+          aria-label="Copy to clipboard"
+          title="Copy to clipboard"
+        >
+          <CopyIcon size={16} />
+        </button>
         <button
           type="button"
           className="flex items-center justify-center cursor-pointer p-1 opacity-0 group-hover:opacity-100 transition-opacity rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-30"
