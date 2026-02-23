@@ -9,6 +9,7 @@ import {
   toggleFlagEnabled,
   type FlagEntry,
 } from '@/lib/api/flags';
+import { Button } from '@/components/ui/button';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 
@@ -68,16 +69,16 @@ export default function FlagsPage() {
 
   if (isLoading) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <button
-            type="button"
-            className="btn-sm btn-sm--edit"
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
             {t.flags.backToEnvironments}
-          </button>
-          <h1 className="projects-page-title">{t.flags.title}</h1>
+          </Button>
+          <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
         </div>
         <p>{t.common.loading}</p>
       </main>
@@ -86,110 +87,111 @@ export default function FlagsPage() {
 
   if (error && flags.length === 0) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <button
-            type="button"
-            className="btn-sm btn-sm--edit"
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
           >
             {t.flags.backToEnvironments}
-          </button>
-          <h1 className="projects-page-title">{t.flags.title}</h1>
+          </Button>
+          <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
         </div>
-        <div className="form-error">{error}</div>
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
   }
 
   return (
-    <main className="projects-page">
-      <div className="projects-page-header">
-        <button
-          type="button"
-          className="btn-sm btn-sm--edit"
+    <main className="p-8">
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
         >
           {t.flags.backToEnvironments}
-        </button>
-        <h1 className="projects-page-title">{t.flags.title}</h1>
-        <button
-          type="button"
-          className="btn-primary"
+        </Button>
+        <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
+        <Button
+          className="ml-auto"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.flags.newFlag}
-        </button>
+        </Button>
       </div>
 
-      {error && <div className="form-error projects-error">{error}</div>}
+      {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {flags.length === 0 ? (
-        <div className="projects-empty">{t.flags.emptyState}</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">{t.flags.emptyState}</div>
       ) : (
-        <table className="projects-table">
+        <table className="w-full border-collapse" aria-label={t.flags.title}>
           <thead>
             <tr>
-              <th>{t.flags.colName}</th>
-              <th>{t.flags.colKey}</th>
-              <th>{t.flags.colDescription}</th>
-              <th>{t.flags.colStatus}</th>
-              <th>{t.flags.colActions}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colName}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colKey}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colDescription}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colStatus}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colActions}</th>
             </tr>
           </thead>
           <tbody>
             {flags.map((flag) => (
-              <tr key={flag.flagId}>
-                <td>{flag.name}</td>
-                <td>
-                  <span className="project-key-badge">{flag.key}</span>
+              <tr key={flag.flagId} className="transition-colors hover:bg-muted/40">
+                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.name}</td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">{flag.key}</span>
                 </td>
-                <td>{flag.description || '—'}</td>
-                <td>
-                  <label className="flag-toggle">
+                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.description || '—'}</td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={flag.enabled}
                       onChange={() => handleToggle(flag.flagId, flag.enabled)}
+                      className="cursor-pointer"
+                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
                     />
                     {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                   </label>
                 </td>
-                <td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
                   {deletingId === flag.flagId ? (
-                    <div className="delete-confirm-actions">
-                      <span className="delete-confirm-text">{t.flags.confirmDelete}</span>
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--danger"
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
                         onClick={() => handleDelete(flag.flagId)}
                       >
                         {t.flags.confirmDeleteBtn}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--edit"
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setDeletingId(null)}
                       >
                         {t.flags.cancelBtn}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
-                    <div className="project-actions">
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--edit"
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
                       >
                         {t.flags.editBtn}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-sm btn-sm--danger"
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
                         onClick={() => setDeletingId(flag.flagId)}
                       >
                         {t.flags.deleteBtn}
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </td>

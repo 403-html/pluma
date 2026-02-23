@@ -4,19 +4,23 @@ import { useLocale } from '@/i18n/LocaleContext';
 import type { AuditLogEntry, AuditAction } from '@pluma/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
+import { Button } from '@/components/ui/button';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function getActionBadgeStyle(action: AuditAction): string {
-  const baseClass = 'audit-action-badge';
-  switch (action) {
-    case 'create': return `${baseClass} ${baseClass}--create`;
-    case 'update': return `${baseClass} ${baseClass}--update`;
-    case 'delete': return `${baseClass} ${baseClass}--delete`;
-    case 'enable': return `${baseClass} ${baseClass}--enable`;
-    case 'disable': return `${baseClass} ${baseClass}--disable`;
-    default: return baseClass;
-  }
+const ACTION_BADGE_CLASSES: Record<AuditAction, string> = {
+  // Creation-like / enabling actions → secondary-style badge
+  create: 'bg-secondary text-secondary-foreground',
+  enable: 'bg-secondary text-secondary-foreground',
+  // Non-destructive updates / toggles → muted-style badge
+  update: 'bg-muted text-foreground',
+  disable: 'bg-muted text-muted-foreground',
+  // Destructive actions → destructive-style badge
+  delete: 'bg-destructive text-destructive-foreground',
+};
+
+function getActionBadgeClass(action: AuditAction): string {
+  return ACTION_BADGE_CLASSES[action] ?? 'bg-muted text-muted-foreground';
 }
 
 function formatDetails(details: unknown): string {
@@ -33,13 +37,52 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
     : entry.entityType;
 
   return (
-    <tr>
-      <td><span className="audit-timestamp">{new Date(entry.createdAt).toLocaleString(locale)}</span></td>
-      <td><span className="audit-actor">{entry.actorEmail}</span></td>
-      <td><span className={getActionBadgeStyle(entry.action)}>{entry.action}</span></td>
-      <td><span className="audit-entity">{entityDisplay}</span></td>
-      <td><span className="audit-details">{formatDetails(entry.details)}</span></td>
+    <tr className="transition-colors hover:bg-muted/40">
+      <td className="px-3 py-3 border-b border-border/20 align-middle text-sm text-muted-foreground whitespace-nowrap">
+        {new Date(entry.createdAt).toLocaleString(locale)}
+      </td>
+      <td className="px-3 py-3 border-b border-border/20 align-middle text-sm">
+        {entry.actorEmail}
+      </td>
+      <td className="px-3 py-3 border-b border-border/20 align-middle">
+        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${getActionBadgeClass(entry.action)}`}>
+          {entry.action}
+        </span>
+      </td>
+      <td className="px-3 py-3 border-b border-border/20 align-middle text-sm">
+        <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">
+          {entityDisplay}
+        </span>
+      </td>
+      <td className="px-3 py-3 border-b border-border/20 align-middle text-xs text-muted-foreground max-w-xs truncate">
+        {formatDetails(entry.details)}
+      </td>
     </tr>
+  );
+}
+
+const SELECT_CLASS = "text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring";
+
+interface FilterSelectProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  allLabel: string;
+  options: { id: string; name: string }[];
+}
+
+function FilterSelect({ id, label, value, onChange, disabled, allLabel, options }: FilterSelectProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-xs font-medium text-muted-foreground">{label}</label>
+      <select id={id} className={SELECT_CLASS} value={value}
+        onChange={(e) => onChange(e.target.value)} disabled={disabled}>
+        <option value="">{allLabel}</option>
+        {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+      </select>
+    </div>
   );
 }
 
@@ -60,31 +103,13 @@ function AuditFiltersBar({ state, labels }: AuditFiltersProps) {
     handleProjectChange, handleEnvChange, handleFlagChange } = state;
 
   return (
-    <div className="audit-filters">
-      <div className="audit-filter">
-        <label htmlFor="project-filter" className="audit-filter-label">{labels.filterProject}</label>
-        <select id="project-filter" className="audit-filter-select" value={selectedProjectId}
-          onChange={(e) => handleProjectChange(e.target.value)}>
-          <option value="">{labels.allProjects}</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-      </div>
-      <div className="audit-filter">
-        <label htmlFor="env-filter" className="audit-filter-label">{labels.filterEnvironment}</label>
-        <select id="env-filter" className="audit-filter-select" value={selectedEnvId}
-          onChange={(e) => handleEnvChange(e.target.value)} disabled={!selectedProjectId}>
-          <option value="">{labels.allEnvironments}</option>
-          {environments.map((env) => <option key={env.id} value={env.id}>{env.name}</option>)}
-        </select>
-      </div>
-      <div className="audit-filter">
-        <label htmlFor="flag-filter" className="audit-filter-label">{labels.filterFlag}</label>
-        <select id="flag-filter" className="audit-filter-select" value={selectedFlagId}
-          onChange={(e) => handleFlagChange(e.target.value)} disabled={!selectedProjectId}>
-          <option value="">{labels.allFlags}</option>
-          {flags.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-        </select>
-      </div>
+    <div className="flex flex-wrap items-end gap-4 mb-6">
+      <FilterSelect id="project-filter" label={labels.filterProject} allLabel={labels.allProjects}
+        value={selectedProjectId} onChange={handleProjectChange} options={projects} />
+      <FilterSelect id="env-filter" label={labels.filterEnvironment} allLabel={labels.allEnvironments}
+        value={selectedEnvId} onChange={handleEnvChange} disabled={!selectedProjectId} options={environments} />
+      <FilterSelect id="flag-filter" label={labels.filterFlag} allLabel={labels.allFlags}
+        value={selectedFlagId} onChange={handleFlagChange} disabled={!selectedProjectId} options={flags} />
     </div>
   );
 }
@@ -97,14 +122,14 @@ interface AuditTableProps {
 
 function AuditTable({ auditData, locale, headers }: AuditTableProps) {
   return (
-    <table className="audit-table">
+    <table className="w-full border-collapse">
       <thead>
         <tr>
-          <th>{headers.timestamp}</th>
-          <th>{headers.actor}</th>
-          <th>{headers.action}</th>
-          <th>{headers.entity}</th>
-          <th>{headers.details}</th>
+          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.timestamp}</th>
+          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.actor}</th>
+          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.action}</th>
+          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.entity}</th>
+          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.details}</th>
         </tr>
       </thead>
       <tbody>
@@ -129,14 +154,14 @@ interface AuditPaginationProps {
 
 function AuditPagination({ currentPage, hasPrev, hasNext, onPrev, onNext, prevLabel, nextLabel, pageInfoTemplate }: AuditPaginationProps) {
   return (
-    <div className="audit-pagination">
-      <button type="button" className="btn-sm" onClick={onPrev} disabled={!hasPrev}>
+    <div className="flex items-center gap-3 mt-4">
+      <Button variant="outline" size="sm" onClick={onPrev} disabled={!hasPrev}>
         {prevLabel}
-      </button>
-      <span className="audit-page-info">{pageInfoTemplate.replace('{page}', String(currentPage))}</span>
-      <button type="button" className="btn-sm" onClick={onNext} disabled={!hasNext}>
+      </Button>
+      <span className="text-sm text-muted-foreground">{pageInfoTemplate.replace('{page}', String(currentPage))}</span>
+      <Button variant="outline" size="sm" onClick={onNext} disabled={!hasNext}>
         {nextLabel}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -153,8 +178,10 @@ export default function AuditPage() {
 
   if (isLoading && !auditData) {
     return (
-      <main className="audit-page">
-        <div className="audit-page-header"><h1 className="audit-page-title">{t.audit.title}</h1></div>
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
+        </div>
         <p>{t.common.loading}</p>
       </main>
     );
@@ -162,17 +189,19 @@ export default function AuditPage() {
 
   if (error && !auditData) {
     return (
-      <main className="audit-page">
-        <div className="audit-page-header"><h1 className="audit-page-title">{t.audit.title}</h1></div>
-        <div className="form-error">{error}</div>
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
+        </div>
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
   }
 
   return (
-    <main className="audit-page">
-      <div className="audit-page-header">
-        <h1 className="audit-page-title">{t.audit.title}</h1>
+    <main className="p-8">
+      <div className="flex items-center gap-4 mb-6">
+        <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
       </div>
 
       <AuditFiltersBar state={state} labels={{
@@ -184,10 +213,10 @@ export default function AuditPage() {
         allFlags: t.audit.allFlags,
       }} />
 
-      {error && <div className="form-error audit-error">{error}</div>}
+      {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {auditData && auditData.entries.length === 0 ? (
-        <div className="audit-empty">{t.audit.emptyState}</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">{t.audit.emptyState}</div>
       ) : auditData ? (
         <>
           <AuditTable auditData={auditData} locale={locale} headers={{

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { Locale, Messages } from './index';
 import { getDictionary } from './index';
 
@@ -20,6 +20,9 @@ export function LocaleProvider({
 }) {
   const t = useMemo(() => getDictionary(locale), [locale]);
   const value = useMemo(() => ({ locale, t }), [locale, t]);
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
   return (
     <LocaleContext.Provider value={value}>
       {children}

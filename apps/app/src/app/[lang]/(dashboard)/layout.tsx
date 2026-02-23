@@ -29,9 +29,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="dashboard-layout">
+    <div className="grid grid-cols-[var(--sidebar-width)_1fr] min-h-screen">
       <Sidebar />
-      <div className="dashboard-main">{children}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

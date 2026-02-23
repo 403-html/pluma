@@ -64,12 +64,12 @@ export function ProjectKeyField({
     const describedBy = [errorId, hintId].filter(Boolean).join(' ') || undefined;
     return (
       <>
-        <div className="project-key-input-wrapper">
+        <div className="flex flex-col gap-1">
           <input
             ref={inputRef}
             id={id}
             type="text"
-            className="form-input"
+            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             value={value}
             onChange={onChange}
             onBlur={onBlur}
@@ -78,13 +78,13 @@ export function ProjectKeyField({
             aria-invalid={!!error}
           />
           {error && (
-            <div id={`${id}-error`} className="project-key-error" role="alert">
+            <div id={`${id}-error`} className="text-sm text-destructive mt-1" role="alert">
               {error}
             </div>
           )}
         </div>
         {hint && !error && (
-          <p id={`${id}-hint`} className="form-helper-text">
+          <p id={`${id}-hint`} className="text-xs text-muted-foreground mt-1">
             {hint}
           </p>
         )}
@@ -94,17 +94,17 @@ export function ProjectKeyField({
 
   return (
     <>
-      <div className="project-key-preview">
+      <div className="flex items-center relative gap-2 px-3 py-2.5 bg-muted/30 border border-border rounded-md font-mono text-[0.95rem] min-h-[3rem] group">
         {value ? (
-          <code className="project-key-preview-text">{value}</code>
+          <code className="flex-1 font-mono text-[0.95rem] text-foreground">{value}</code>
         ) : (
-          <span className="project-key-preview-text" aria-label="placeholder">
+          <span className="flex-1 font-mono text-[0.95rem] text-foreground" aria-label="placeholder">
             {placeholder}
           </span>
         )}
         <button
           type="button"
-          className="project-key-edit-btn"
+          className="flex items-center justify-center cursor-pointer p-1 opacity-0 group-hover:opacity-100 transition-opacity rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-30"
           onClick={onEditStart}
           disabled={disabled}
           aria-label={editBtnLabel}
@@ -114,7 +114,7 @@ export function ProjectKeyField({
         </button>
       </div>
       {hint && (
-        <p id={`${id}-hint`} className="form-helper-text">
+        <p id={`${id}-hint`} className="text-xs text-muted-foreground mt-1">
           {hint}
         </p>
       )}

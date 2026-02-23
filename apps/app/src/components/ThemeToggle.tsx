@@ -14,13 +14,13 @@ export default function ThemeToggle() {
   }
 
   return (
-    <div className="setting-row">
-      <label htmlFor="theme-select" className="setting-row__label">
+    <div className="flex items-center gap-2">
+      <label htmlFor="theme-select" className="text-xs font-medium whitespace-nowrap">
         {t.ui.themeSwitcherLabel}
       </label>
       <select
         id="theme-select"
-        className="setting-row__select"
+        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer"
         value={theme}
         onChange={(e) => handleChange(e.target.value)}
       >

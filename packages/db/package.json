@@ -16,6 +16,7 @@
     "dist"
   ],
   "scripts": {
+    "postinstall": "node scripts/generate.mjs",
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

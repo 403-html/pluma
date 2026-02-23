@@ -5,6 +5,8 @@ import { useLocale } from '@/i18n/LocaleContext';
 import { changePassword } from '@/lib/api/auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function SettingsPage() {
   const { t, locale } = useLocale();
@@ -37,26 +39,25 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="settings-page">
-      <h1 className="settings-page-title">{t.settings.title}</h1>
+    <main className="p-8">
+      <h1 className="text-2xl font-semibold mb-8">{t.settings.title}</h1>
 
-      <section className="settings-section">
-        <h2 className="settings-section-title">{t.settings.generalSection}</h2>
+      <section className="mb-8 flex flex-col gap-4 last:mb-0">
+        <h2 className="text-lg font-semibold mb-4">{t.settings.generalSection}</h2>
         <LanguageSwitcher />
         <ThemeToggle />
       </section>
 
-      <section className="settings-section">
-        <h2 className="settings-section-title">{t.settings.passwordSection}</h2>
-        <form className="settings-form" onSubmit={handleChangePassword}>
-          <div className="form-group">
-            <label htmlFor="old-password" className="form-label">
+      <section className="mb-8 flex flex-col gap-4 last:mb-0">
+        <h2 className="text-lg font-semibold mb-4">{t.settings.passwordSection}</h2>
+        <form className="flex flex-col gap-4 max-w-sm" onSubmit={handleChangePassword}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="old-password" className="text-sm font-medium">
               {t.settings.oldPassword}
             </label>
-            <input
+            <Input
               id="old-password"
               type="password"
-              className="form-input"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               required
@@ -64,14 +65,13 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="new-password" className="form-label">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="new-password" className="text-sm font-medium">
               {t.settings.newPassword}
             </label>
-            <input
+            <Input
               id="new-password"
               type="password"
-              className="form-input"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -80,14 +80,14 @@ export default function SettingsPage() {
           </div>
 
           {message && (
-            <div className={message.type === 'success' ? 'form-success' : 'form-error'}>
+            <div className={message.type === 'success' ? 'text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2' : 'text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2'}>
               {message.text}
             </div>
           )}
 
-          <button type="submit" className="form-button" disabled={isChangingPassword}>
+          <Button type="submit" disabled={isChangingPassword}>
             {isChangingPassword ? t.settings.changePasswordLoading : t.settings.changePassword}
-          </button>
+          </Button>
         </form>
       </section>
     </main>

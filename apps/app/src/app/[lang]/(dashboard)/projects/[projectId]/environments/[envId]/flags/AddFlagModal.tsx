@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
 import Modal from '@/components/Modal';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
 import { createFlag } from '@/lib/api/flags';
 import { slugify, makeKeyUnique, isValidProjectKey } from '@/lib/projectKeyUtils';
@@ -110,14 +112,13 @@ export function AddFlagModal({
   return (
     <Modal titleId="add-flag-modal-title" title={t.flags.modalAddTitle} onClose={onClose}>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="flag-name" className="form-label">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="flag-name" className="text-sm font-medium">
             {t.flags.nameLabel}
           </label>
-          <input
+          <Input
             id="flag-name"
             type="text"
-            className="form-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t.flags.namePlaceholder}
@@ -126,8 +127,8 @@ export function AddFlagModal({
           />
         </div>
 
-        <div className="form-group form-group--spaced">
-          <label htmlFor="flag-key" className="form-label">
+        <div className="flex flex-col gap-1.5 mt-4">
+          <label htmlFor="flag-key" className="text-sm font-medium">
             {t.flags.keyLabel}
           </label>
 
@@ -146,13 +147,13 @@ export function AddFlagModal({
           />
         </div>
 
-        <div className="form-group form-group--spaced">
-          <label htmlFor="flag-description" className="form-label">
+        <div className="flex flex-col gap-1.5 mt-4">
+          <label htmlFor="flag-description" className="text-sm font-medium">
             {t.flags.descriptionLabel}
           </label>
           <textarea
             id="flag-description"
-            className="form-input"
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t.flags.descriptionPlaceholder}
@@ -162,18 +163,18 @@ export function AddFlagModal({
           />
         </div>
 
-        <div className="modal-actions">
-          <button
+        <div className="flex gap-3 justify-end mt-5">
+          <Button
             type="button"
-            className="btn-sm btn-sm--edit"
+            variant="secondary"
             onClick={onClose}
             disabled={isSubmitting}
           >
             {t.flags.cancelBtn}
-          </button>
-          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             {t.flags.createBtn}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

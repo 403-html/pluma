@@ -10,6 +10,7 @@ import {
 } from '@/lib/api/environments';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
+import { Button } from '@/components/ui/button';
 
 type ModalState =
   | { type: 'none' }
@@ -57,16 +58,17 @@ export default function EnvironmentsPage() {
 
   if (isLoading) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <button
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
             type="button"
-            className="btn-sm btn-sm--edit"
+            variant="outline"
+            size="sm"
             onClick={() => router.push(`/${locale}/projects`)}
           >
             {t.environments.backToProjects}
-          </button>
-          <h1 className="projects-page-title">{t.environments.title}</h1>
+          </Button>
+          <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
         </div>
         <p>{t.common.loading}</p>
       </main>
@@ -75,108 +77,115 @@ export default function EnvironmentsPage() {
 
   if (error && environments.length === 0) {
     return (
-      <main className="projects-page">
-        <div className="projects-page-header">
-          <button
+      <main className="p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
             type="button"
-            className="btn-sm btn-sm--edit"
+            variant="outline"
+            size="sm"
             onClick={() => router.push(`/${locale}/projects`)}
           >
             {t.environments.backToProjects}
-          </button>
-          <h1 className="projects-page-title">{t.environments.title}</h1>
+          </Button>
+          <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
         </div>
-        <div className="form-error">{error}</div>
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
   }
 
   return (
-    <main className="projects-page">
-      <div className="projects-page-header">
-        <button
+    <main className="p-8">
+      <div className="flex items-center gap-4 mb-6">
+        <Button
           type="button"
-          className="btn-sm btn-sm--edit"
+          variant="outline"
+          size="sm"
           onClick={() => router.push(`/${locale}/projects`)}
         >
           {t.environments.backToProjects}
-        </button>
-        <h1 className="projects-page-title">{t.environments.title}</h1>
-        <button
+        </Button>
+        <h1 className="text-2xl font-semibold">{t.environments.title}</h1>
+        <Button
           type="button"
-          className="btn-primary"
+          className="ml-auto"
           onClick={() => { setError(null); setModalState({ type: 'add' }); }}
         >
           {t.environments.newEnvironment}
-        </button>
+        </Button>
       </div>
 
-      {error && <div className="form-error projects-error">{error}</div>}
+      {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {environments.length === 0 ? (
-        <div className="projects-empty">{t.environments.emptyState}</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">{t.environments.emptyState}</div>
       ) : (
-        <table className="projects-table">
+        <table className="w-full border-collapse" aria-label={t.environments.title}>
           <thead>
             <tr>
-              <th>{t.environments.colName}</th>
-              <th>{t.environments.colKey}</th>
-              <th>{t.environments.colFlags}</th>
-              <th>{t.environments.colActions}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colName}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colKey}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colFlags}</th>
+              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colActions}</th>
             </tr>
           </thead>
           <tbody>
             {environments.map((env) => (
-              <tr key={env.id}>
-                <td>{env.name}</td>
-                <td>
-                  <span className="project-key-badge">{env.key}</span>
+              <tr key={env.id} className="transition-colors hover:bg-muted/40">
+                <td className="px-3 py-3 border-b border-border/20 align-middle">{env.name}</td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">{env.key}</span>
                 </td>
-                <td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
                   {env.flagStats.enabled}/{env.flagStats.total} on
                 </td>
-                <td>
+                <td className="px-3 py-3 border-b border-border/20 align-middle">
                   {deletingId === env.id ? (
-                    <div className="delete-confirm-actions">
-                      <span className="delete-confirm-text">{t.environments.confirmDelete}</span>
-                      <button
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs text-destructive">{t.environments.confirmDelete}</span>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--danger"
+                        variant="destructive"
+                        size="sm"
                         onClick={() => handleDelete(env.id)}
                       >
                         {t.environments.confirmDeleteBtn}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--edit"
+                        variant="outline"
+                        size="sm"
                         onClick={() => setDeletingId(null)}
                       >
                         {t.environments.cancelBtn}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
-                    <div className="project-actions">
-                      <button
+                    <div className="flex gap-2">
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--edit"
+                        variant="outline"
+                        size="sm"
                         onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
                       >
                         {t.environments.flagsBtn}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--edit"
+                        variant="outline"
+                        size="sm"
                         onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
                       >
                         {t.environments.editBtn}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="btn-sm btn-sm--danger"
+                        variant="destructive"
+                        size="sm"
                         onClick={() => setDeletingId(env.id)}
                       >
                         {t.environments.deleteBtn}
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </td>

@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
-import '../globals.css';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import { ThemeProvider } from '@/components/ThemeContext';
@@ -30,15 +28,10 @@ export default async function RootLayout({
   const { lang } = await params;
   const locale = resolveLocale(lang);
   return (
-    <html lang={locale}>
-      <body>
-        <Script src="/theme-init.js" strategy="beforeInteractive" />
-        <LocaleProvider locale={locale}>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
-        </LocaleProvider>
-      </body>
-    </html>
+    <LocaleProvider locale={locale}>
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
+    </LocaleProvider>
   );
 }

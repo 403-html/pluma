@@ -21,13 +21,13 @@ export default function LanguageSwitcher() {
   const canSwitch = SUPPORTED_LOCALES.length >= 2;
 
   return (
-    <div className="lang-switcher">
-      <label htmlFor="lang-select" className="lang-switcher__label">
+    <div className="flex items-center gap-2">
+      <label htmlFor="lang-select" className="text-xs font-medium whitespace-nowrap">
         {t.ui.languageSelectorLabel}
       </label>
       <select
         id="lang-select"
-        className="lang-switcher__select"
+        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         value={locale}
         onChange={(e) => handleChange(e.target.value)}
         disabled={!canSwitch}

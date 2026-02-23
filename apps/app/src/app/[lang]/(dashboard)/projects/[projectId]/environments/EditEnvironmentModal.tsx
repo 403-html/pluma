@@ -7,6 +7,8 @@ import Modal from '@/components/Modal';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
 import { updateEnvironment, type EnvironmentSummary } from '@/lib/api/environments';
 import { isValidProjectKey } from '@/lib/projectKeyUtils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export function EditEnvironmentModal({
   env,
@@ -73,14 +75,13 @@ export function EditEnvironmentModal({
   return (
     <Modal titleId="edit-environment-modal-title" title={t.environments.modalEditTitle} onClose={onClose}>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="environment-name-edit" className="form-label">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="environment-name-edit" className="text-sm font-medium">
             {t.environments.nameLabel}
           </label>
-          <input
+          <Input
             id="environment-name-edit"
             type="text"
-            className="form-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t.environments.namePlaceholder}
@@ -89,8 +90,8 @@ export function EditEnvironmentModal({
           />
         </div>
 
-        <div className="form-group form-group--spaced">
-          <label htmlFor="environment-key-edit" className="form-label">
+        <div className="flex flex-col gap-1.5 mt-4">
+          <label htmlFor="environment-key-edit" className="text-sm font-medium">
             {t.environments.keyLabel}
           </label>
           <ProjectKeyField
@@ -107,18 +108,19 @@ export function EditEnvironmentModal({
           />
         </div>
 
-        <div className="modal-actions">
-          <button
+        <div className="flex gap-3 justify-end mt-5">
+          <Button
             type="button"
-            className="btn-sm btn-sm--edit"
+            variant="outline"
+            size="sm"
             onClick={onClose}
             disabled={isSubmitting}
           >
             {t.environments.cancelBtn}
-          </button>
-          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             {t.environments.saveBtn}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>
