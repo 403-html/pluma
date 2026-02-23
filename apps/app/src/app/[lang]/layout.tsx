@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
-import '../globals.css';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import { ThemeProvider } from '@/components/ThemeContext';
-
-const themeInitScript = `(function(){try{var t=localStorage.getItem('pluma-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');}else{if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark');}}}catch(e){}})();`;
 
 type Props = { params: Promise<{ lang: string }> };
 
@@ -31,17 +28,10 @@ export default async function RootLayout({
   const { lang } = await params;
   const locale = resolveLocale(lang);
   return (
-    <html lang={locale}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body>
-        <LocaleProvider locale={locale}>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
-        </LocaleProvider>
-      </body>
-    </html>
+    <LocaleProvider locale={locale}>
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
+    </LocaleProvider>
   );
 }
