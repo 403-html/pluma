@@ -39,7 +39,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="p-8 max-w-md mx-auto">
+    <main className="p-8">
       <h1 className="text-2xl font-semibold mb-8">{t.settings.title}</h1>
 
       <section className="mb-8 flex flex-col gap-4 last:mb-0">
