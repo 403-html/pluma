@@ -71,7 +71,7 @@ async function checkAuth(request: NextRequest): Promise<boolean> {
   }
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Determine the locale from the first path segment.
