@@ -27,11 +27,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement;
     if (theme === 'dark') {
       root.setAttribute('data-theme', 'dark');
-    } else if (theme === 'light') {
-      root.setAttribute('data-theme', 'light');
-    } else {
-      root.removeAttribute('data-theme');
+      return;
     }
+    if (theme === 'light') {
+      root.setAttribute('data-theme', 'light');
+      return;
+    }
+    // system — mirror OS preference via data-theme so CSS only needs one dark block
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function applySystemTheme(dark: boolean) {
+      if (dark) {
+        root.setAttribute('data-theme', 'dark');
+      } else {
+        root.removeAttribute('data-theme');
+      }
+    }
+    function onMqChange(e: MediaQueryListEvent) {
+      applySystemTheme(e.matches);
+    }
+    applySystemTheme(mq.matches);
+    mq.addEventListener('change', onMqChange);
+    return () => mq.removeEventListener('change', onMqChange);
   }, [theme]);
 
   function setTheme(next: Theme) {
