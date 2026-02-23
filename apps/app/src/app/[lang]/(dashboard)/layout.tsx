@@ -31,7 +31,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 ml-60 p-8">{children}</div>
+      <div className="flex-1 ml-[var(--sidebar-width)] p-8">{children}</div>
     </div>
   );
 }

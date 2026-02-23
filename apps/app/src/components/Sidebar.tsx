@@ -5,6 +5,29 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
 import { logout } from '@/lib/api/auth';
 
+type SidebarButtonProps = {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+};
+
+function SidebarButton({ icon, label, onClick, disabled, danger = false }: SidebarButtonProps) {
+  const base = "w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed";
+  return (
+    <button
+      type="button"
+      className={danger ? `${base} text-[#ff6b6b] hover:bg-[#ff6b6b]/10` : base}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <span className="text-xl leading-none" aria-hidden="true">{icon}</span>
+      <span className="flex-1 text-left">{label}</span>
+    </button>
+  );
+}
+
 export default function Sidebar() {
   const { t, locale } = useLocale();
   const router = useRouter();
@@ -23,7 +46,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-60 bg-[#1a1a1a] text-white flex flex-col z-50">
+    <aside className="fixed left-0 top-0 bottom-0 w-[var(--sidebar-width)] bg-[var(--pluma-oxford-navy)] text-white flex flex-col z-50">
       <div className="flex-1 overflow-y-auto">
         {/* Logo/branding section - can be expanded in the future */}
         <div className="px-4 py-6 border-b border-white/10">
@@ -32,53 +55,15 @@ export default function Sidebar() {
 
         {/* Main navigation - can be expanded with more menu items */}
         <nav className="py-2 px-2">
-          <button
-            type="button"
-            className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => router.push(`/${locale}/projects`)}
-          >
-            <span className="text-xl leading-none" aria-hidden="true">
-              ⚑
-            </span>
-            <span className="flex-1 text-left">{t.sidebar.projects}</span>
-          </button>
-          <button
-            type="button"
-            className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => router.push(`/${locale}/audit`)}
-          >
-            <span className="text-xl leading-none" aria-hidden="true">
-              ✎
-            </span>
-            <span className="flex-1 text-left">{t.sidebar.audit}</span>
-          </button>
+          <SidebarButton icon="⚑" label={t.sidebar.projects} onClick={() => router.push(`/${locale}/projects`)} />
+          <SidebarButton icon="✎" label={t.sidebar.audit} onClick={() => router.push(`/${locale}/audit`)} />
         </nav>
       </div>
 
       {/* Bottom actions */}
       <div className="border-t border-white/10 py-4 px-2 flex flex-col gap-2">
-        <button
-          type="button"
-          className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => router.push(`/${locale}/settings`)}
-          disabled={isLoggingOut}
-        >
-          <span className="text-xl leading-none" aria-hidden="true">
-            ⚙
-          </span>
-          <span className="flex-1 text-left">{t.sidebar.settings}</span>
-        </button>
-        <button
-          type="button"
-          className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-[#ff6b6b] hover:bg-[#ff6b6b]/10"
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-        >
-          <span className="text-xl leading-none" aria-hidden="true">
-            →
-          </span>
-          <span className="flex-1 text-left">{t.sidebar.logout}</span>
-        </button>
+        <SidebarButton icon="⚙" label={t.sidebar.settings} onClick={() => router.push(`/${locale}/settings`)} disabled={isLoggingOut} />
+        <SidebarButton icon="→" label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
     </aside>
   );

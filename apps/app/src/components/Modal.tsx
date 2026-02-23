@@ -13,7 +13,6 @@ export default function Modal({ titleId, title, onClose, children }: ModalProps)
   return (
     <div
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]"
-      aria-hidden="true"
       onClick={onClose}
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
     >

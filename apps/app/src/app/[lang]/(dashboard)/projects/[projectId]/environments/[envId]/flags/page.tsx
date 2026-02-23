@@ -127,7 +127,7 @@ export default function FlagsPage() {
       {flags.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">{t.flags.emptyState}</div>
       ) : (
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse" aria-label={t.flags.title}>
           <thead>
             <tr>
               <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colName}</th>
@@ -152,6 +152,7 @@ export default function FlagsPage() {
                       checked={flag.enabled}
                       onChange={() => handleToggle(flag.flagId, flag.enabled)}
                       className="cursor-pointer"
+                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
                     />
                     {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                   </label>

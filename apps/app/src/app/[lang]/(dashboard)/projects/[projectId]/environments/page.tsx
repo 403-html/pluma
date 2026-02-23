@@ -120,7 +120,7 @@ export default function EnvironmentsPage() {
       {environments.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">{t.environments.emptyState}</div>
       ) : (
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse" aria-label={t.environments.title}>
           <thead>
             <tr>
               <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colName}</th>

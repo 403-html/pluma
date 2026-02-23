@@ -93,7 +93,7 @@ export default function ProjectsPage() {
       {projects.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">{t.projects.emptyState}</div>
       ) : (
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse" aria-label={t.projects.title}>
           <thead>
             <tr>
               <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colName}</th>
