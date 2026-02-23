@@ -18,7 +18,7 @@ function SidebarButton({ icon, label, onClick, disabled, danger = false }: Sideb
   return (
     <button
       type="button"
-      className={danger ? `${base} text-[#ff6b6b] hover:bg-[#ff6b6b]/10` : base}
+      className={danger ? `${base} text-[var(--pluma-punch-red)] hover:bg-[var(--pluma-punch-red)]/10` : base}
       onClick={onClick}
       disabled={disabled}
     >
