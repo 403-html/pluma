@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { AddEnvironmentModal } from './AddEnvironmentModal';
+import { AddFlagModal } from './AddFlagModal';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 
 const meta = {
-  title: 'Environments/AddEnvironmentModal',
-  component: AddEnvironmentModal,
+  title: 'Flags/AddFlagModal',
+  component: AddFlagModal,
   decorators: [
     (Story) => (
       <LocaleProvider locale="en">
@@ -13,7 +13,7 @@ const meta = {
       </LocaleProvider>
     ),
   ],
-} satisfies Meta<typeof AddEnvironmentModal>;
+} satisfies Meta<typeof AddFlagModal>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -28,15 +28,15 @@ function DefaultStory() {
         className="btn-primary"
         onClick={() => setIsOpen(true)}
       >
-        Open Add Environment Modal
+        Open Add Flag Modal
       </button>
       {isOpen && (
-        <AddEnvironmentModal
+        <AddFlagModal
           projectId="demo-project-id"
-          existingKeys={['production', 'staging']}
+          existingKeys={['existing-flag']}
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
-            alert('Environment created successfully!');
+            alert('Flag created successfully!');
             setIsOpen(false);
           }}
           onError={(message) => {
@@ -52,7 +52,7 @@ export const Default: Story = {
   render: () => <DefaultStory />,
 };
 
-function WithExistingEnvironmentsStory() {
+function WithExistingKeysStory() {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -65,12 +65,12 @@ function WithExistingEnvironmentsStory() {
         Open Modal
       </button>
       {isOpen && (
-        <AddEnvironmentModal
+        <AddFlagModal
           projectId="demo-project-id"
-          existingKeys={['production', 'staging', 'development', 'qa', 'uat']}
+          existingKeys={['flag-one', 'flag-two', 'my-flag']}
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
-            alert('Environment created!');
+            alert('Flag created!');
             setIsOpen(false);
           }}
           onError={(message) => alert(`Error: ${message}`)}
@@ -80,38 +80,6 @@ function WithExistingEnvironmentsStory() {
   );
 }
 
-export const WithExistingEnvironments: Story = {
-  render: () => <WithExistingEnvironmentsStory />,
-};
-
-function EmptyProjectStory() {
-  const [isOpen, setIsOpen] = useState(true);
-
-  return (
-    <div>
-      <button
-        type="button"
-        className="btn-primary"
-        onClick={() => setIsOpen(true)}
-      >
-        Open Modal
-      </button>
-      {isOpen && (
-        <AddEnvironmentModal
-          projectId="demo-project-id"
-          existingKeys={[]}
-          onClose={() => setIsOpen(false)}
-          onSuccess={() => {
-            alert('First environment created!');
-            setIsOpen(false);
-          }}
-          onError={(message) => alert(`Error: ${message}`)}
-        />
-      )}
-    </div>
-  );
-}
-
-export const EmptyProject: Story = {
-  render: () => <EmptyProjectStory />,
+export const WithExistingKeys: Story = {
+  render: () => <WithExistingKeysStory />,
 };

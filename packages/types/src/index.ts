@@ -43,7 +43,6 @@ export type ProjectSummary = Omit<Project, 'createdAt' | 'updatedAt'> & {
   createdAt: string;
   updatedAt: string;
   environments: Array<{ id: string; key: string; name: string }>;
-  flagStats: { enabled: number; total: number };
 };
 
 // SDK Tokens

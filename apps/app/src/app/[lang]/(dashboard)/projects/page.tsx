@@ -98,7 +98,6 @@ export default function ProjectsPage() {
             <tr>
               <th>{t.projects.colName}</th>
               <th>{t.projects.colKey}</th>
-              <th>{t.projects.colFlags}</th>
               <th>{t.projects.colActions}</th>
             </tr>
           </thead>
@@ -114,9 +113,6 @@ export default function ProjectsPage() {
                 <td><span className="projects-table-cell-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
                 <td>
                   <span className="project-key-badge" onClick={(e) => e.stopPropagation()}>{project.key}</span>
-                </td>
-                <td>
-                  <span className="projects-table-cell-text" onClick={(e) => e.stopPropagation()}>{project.flagStats.enabled}/{project.flagStats.total} on</span>
                 </td>
                 <td onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (

@@ -33,24 +33,10 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
       take: PAGE_SIZE,
       include: {
         environments: { select: { id: true, key: true, name: true } },
-        _count: { select: { featureFlags: true } },
-        featureFlags: {
-          where: { flagConfigs: { some: { enabled: true } } },
-          select: { id: true },
-        },
       },
     });
 
-    return projects.map((project) => {
-      const { featureFlags, _count, ...rest } = project;
-      return {
-        ...rest,
-        flagStats: {
-          total: _count.featureFlags,
-          enabled: featureFlags.length,
-        },
-      };
-    });
+    return projects;
   });
 
   fastify.get('/projects/:id', { preHandler: [adminAuthHook] }, async (request, reply) => {

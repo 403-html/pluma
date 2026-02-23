@@ -95,11 +95,6 @@ describe('API Projects', () => {
           { id: 'env-1', key: 'dev', name: 'Development' },
           { id: 'env-2', key: 'prod', name: 'Production' },
         ],
-        _count: { featureFlags: 3 },
-        featureFlags: [
-          { id: 'flag-1' },
-          { id: 'flag-3' },
-        ],
       },
     ]);
 
@@ -118,8 +113,6 @@ describe('API Projects', () => {
     expect(projects).toHaveLength(1);
     expect(projects[0]).toHaveProperty('environments');
     expect(projects[0].environments).toHaveLength(2);
-    expect(projects[0]).toHaveProperty('flagStats');
-    expect(projects[0].flagStats).toEqual({ total: 3, enabled: 2 });
     expect(projects[0]).not.toHaveProperty('featureFlags');
   });
 
