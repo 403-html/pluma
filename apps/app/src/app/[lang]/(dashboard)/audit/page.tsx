@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 const ACTION_BADGE_CLASSES: Record<AuditAction, string> = {
-  create: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-  update: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-  delete: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-  enable: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-  disable: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+  create: 'bg-green-200 text-green-900 dark:bg-green-900/40 dark:text-green-300',
+  update: 'bg-blue-200 text-blue-900 dark:bg-blue-900/40 dark:text-blue-300',
+  delete: 'bg-red-200 text-red-900 dark:bg-red-900/40 dark:text-red-300',
+  enable: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-300',
+  disable: 'bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400',
 };
 
 function getActionBadgeClass(action: AuditAction): string {
