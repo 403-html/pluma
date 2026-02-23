@@ -16,6 +16,16 @@
   --color-border: #dddddd;
   --color-border-subtle: #eeeeee;
   --color-border-strong: #e5e5e5;
+
+  /* Audit action badge colors */
+  --badge-create-bg: #d1fae5;
+  --badge-create-color: #059669;
+  --badge-update-bg: #dbeafe;
+  --badge-update-color: #0070f3;
+  --badge-delete-bg: #fee2e2;
+  --badge-delete-color: #dc2626;
+  --badge-disable-bg: #f3f4f6;
+  --badge-disable-color: #6b7280;
 }
 
 [data-theme="dark"] {
@@ -30,6 +40,16 @@
   --color-border: #444444;
   --color-border-subtle: #383838;
   --color-border-strong: #444444;
+
+  /* Audit action badge colors — muted for dark backgrounds */
+  --badge-create-bg: #064e3b;
+  --badge-create-color: #6ee7b7;
+  --badge-update-bg: #1e3a5f;
+  --badge-update-color: #93c5fd;
+  --badge-delete-bg: #7f1d1d;
+  --badge-delete-color: #fca5a5;
+  --badge-disable-bg: #374151;
+  --badge-disable-color: #9ca3af;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,6 +65,16 @@
     --color-border: #444444;
     --color-border-subtle: #383838;
     --color-border-strong: #444444;
+
+    /* Audit action badge colors — muted for dark backgrounds */
+    --badge-create-bg: #064e3b;
+    --badge-create-color: #6ee7b7;
+    --badge-update-bg: #1e3a5f;
+    --badge-update-color: #93c5fd;
+    --badge-delete-bg: #7f1d1d;
+    --badge-delete-color: #fca5a5;
+    --badge-disable-bg: #374151;
+    --badge-disable-color: #9ca3af;
   }
 }
 
@@ -725,7 +755,7 @@ p {
 .audit-page-title {
   font-size: 1.75rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .audit-filters {
@@ -745,23 +775,24 @@ p {
 .audit-filter-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 .audit-filter-select {
   padding: 0.5rem 0.75rem;
   font-size: 0.95rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
   font-family: inherit;
-  background: #fff;
+  background: var(--color-bg-input);
+  color: var(--color-text);
   cursor: pointer;
 }
 
 .audit-filter-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #f5f5f5;
+  background: var(--color-bg-subtle);
 }
 
 .audit-filter-select:focus {
@@ -779,14 +810,14 @@ p {
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: #888;
+  color: var(--color-text-faint);
   padding: 0.5rem 0.75rem;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid var(--color-border-subtle);
 }
 
 .audit-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-subtle);
   vertical-align: middle;
 }
 
@@ -796,12 +827,12 @@ p {
 
 .audit-timestamp {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--color-text-secondary);
 }
 
 .audit-actor {
   font-size: 0.9rem;
-  color: #333;
+  color: var(--color-text);
 }
 
 .audit-action-badge {
@@ -814,39 +845,39 @@ p {
 }
 
 .audit-action-badge--create {
-  background: #d1fae5;
-  color: #059669;
+  background: var(--badge-create-bg);
+  color: var(--badge-create-color);
 }
 
 .audit-action-badge--update {
-  background: #dbeafe;
-  color: #0070f3;
+  background: var(--badge-update-bg);
+  color: var(--badge-update-color);
 }
 
 .audit-action-badge--delete {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--badge-delete-bg);
+  color: var(--badge-delete-color);
 }
 
 .audit-action-badge--enable {
-  background: #d1fae5;
-  color: #059669;
+  background: var(--badge-create-bg);
+  color: var(--badge-create-color);
 }
 
 .audit-action-badge--disable {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--badge-disable-bg);
+  color: var(--badge-disable-color);
 }
 
 .audit-entity {
   font-size: 0.9rem;
-  color: #333;
+  color: var(--color-text);
 }
 
 .audit-details {
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.8rem;
-  color: #555;
+  color: var(--color-text-secondary);
   max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -857,7 +888,7 @@ p {
 .audit-empty {
   text-align: center;
   padding: 3rem 1rem;
-  color: #888;
+  color: var(--color-text-faint);
   font-size: 0.95rem;
 }
 
@@ -875,7 +906,7 @@ p {
 
 .audit-page-info {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--color-text-secondary);
 }
 
 .btn-sm:disabled {
