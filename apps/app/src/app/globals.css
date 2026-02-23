@@ -118,7 +118,12 @@ body {
     --color-border-strong: #e5e5e5;
   }
 
-  /* Dark mode variables — explicit user choice */
+  /*
+   * Dark mode — two blocks, identical values:
+   * 1. [data-theme="dark"]  — set by ThemeContext after hydration
+   * 2. @media + :root:not([data-theme]) — pre-hydration paint; system-dark
+   *    users see dark immediately before React mounts
+   */
   [data-theme="dark"] {
     /* oxford-navy #1d3557 */
     --background: 215 50% 10%;
@@ -170,5 +175,50 @@ body {
     --color-border-strong: #444444;
   }
 
+  /* Pre-hydration dark: CSS handles system-dark before ThemeContext mounts */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --background: 215 50% 10%;
+      --foreground: 105 55% 96%;
+      --card: 215 50% 14%;
+      --card-foreground: 105 55% 96%;
+      --popover: 215 50% 14%;
+      --popover-foreground: 105 55% 96%;
+      --primary: 182 43% 76%;
+      --primary-foreground: 215 50% 23%;
+      --secondary: 215 50% 20%;
+      --secondary-foreground: 105 55% 96%;
+      --muted: 215 50% 20%;
+      --muted-foreground: 182 43% 60%;
+      --accent: 215 50% 20%;
+      --accent-foreground: 105 55% 96%;
+      --destructive: 356 77% 56%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 215 40% 30%;
+      --input: 215 40% 30%;
+      --ring: 182 43% 76%;
+      --chart-1: 220 70% 50%;
+      --chart-2: 160 60% 45%;
+      --chart-3: 30 80% 55%;
+      --chart-4: 280 65% 60%;
+      --chart-5: 340 75% 55%;
+      --pluma-bg: var(--pluma-oxford-navy);
+      --pluma-text: var(--pluma-honeydew);
+      --pluma-accent: var(--pluma-punch-red);
+      --pluma-muted: var(--pluma-cerulean);
+      --pluma-surface: var(--pluma-frosted-blue);
+      --color-bg: #1e1e1e;
+      --color-bg-subtle: #2a2a2a;
+      --color-bg-hover: #333333;
+      --color-bg-input: #2a2a2a;
+      --color-text: #e0e0e0;
+      --color-text-secondary: #aaaaaa;
+      --color-text-faint: #888888;
+      --color-text-placeholder: #666666;
+      --color-border: #444444;
+      --color-border-subtle: #383838;
+      --color-border-strong: #444444;
+    }
+  }
 }
 
