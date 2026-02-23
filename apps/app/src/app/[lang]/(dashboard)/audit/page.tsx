@@ -61,6 +61,31 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
   );
 }
 
+const SELECT_CLASS = "text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring";
+
+interface FilterSelectProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  allLabel: string;
+  options: { id: string; name: string }[];
+}
+
+function FilterSelect({ id, label, value, onChange, disabled, allLabel, options }: FilterSelectProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-xs font-medium text-muted-foreground">{label}</label>
+      <select id={id} className={SELECT_CLASS} value={value}
+        onChange={(e) => onChange(e.target.value)} disabled={disabled}>
+        <option value="">{allLabel}</option>
+        {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+      </select>
+    </div>
+  );
+}
+
 interface AuditFiltersProps {
   state: AuditFilterState;
   labels: {
@@ -77,34 +102,14 @@ function AuditFiltersBar({ state, labels }: AuditFiltersProps) {
   const { projects, environments, flags, selectedProjectId, selectedEnvId, selectedFlagId,
     handleProjectChange, handleEnvChange, handleFlagChange } = state;
 
-  const selectClass = "text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring";
-
   return (
     <div className="flex flex-wrap items-end gap-4 mb-6">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="project-filter" className="text-xs font-medium text-muted-foreground">{labels.filterProject}</label>
-        <select id="project-filter" className={selectClass} value={selectedProjectId}
-          onChange={(e) => handleProjectChange(e.target.value)}>
-          <option value="">{labels.allProjects}</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="env-filter" className="text-xs font-medium text-muted-foreground">{labels.filterEnvironment}</label>
-        <select id="env-filter" className={selectClass} value={selectedEnvId}
-          onChange={(e) => handleEnvChange(e.target.value)} disabled={!selectedProjectId}>
-          <option value="">{labels.allEnvironments}</option>
-          {environments.map((env) => <option key={env.id} value={env.id}>{env.name}</option>)}
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="flag-filter" className="text-xs font-medium text-muted-foreground">{labels.filterFlag}</label>
-        <select id="flag-filter" className={selectClass} value={selectedFlagId}
-          onChange={(e) => handleFlagChange(e.target.value)} disabled={!selectedProjectId}>
-          <option value="">{labels.allFlags}</option>
-          {flags.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-        </select>
-      </div>
+      <FilterSelect id="project-filter" label={labels.filterProject} allLabel={labels.allProjects}
+        value={selectedProjectId} onChange={handleProjectChange} options={projects} />
+      <FilterSelect id="env-filter" label={labels.filterEnvironment} allLabel={labels.allEnvironments}
+        value={selectedEnvId} onChange={handleEnvChange} disabled={!selectedProjectId} options={environments} />
+      <FilterSelect id="flag-filter" label={labels.filterFlag} allLabel={labels.allFlags}
+        value={selectedFlagId} onChange={handleFlagChange} disabled={!selectedProjectId} options={flags} />
     </div>
   );
 }
