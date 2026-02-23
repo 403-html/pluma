@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 const ACTION_BADGE_CLASSES: Record<AuditAction, string> = {
-  create: 'bg-green-600 text-white dark:bg-green-900/60 dark:text-green-300',
-  update: 'bg-blue-600 text-white dark:bg-blue-900/60 dark:text-blue-300',
-  delete: 'bg-red-600 text-white dark:bg-red-900/60 dark:text-red-300',
-  enable: 'bg-emerald-600 text-white dark:bg-emerald-900/60 dark:text-emerald-300',
-  disable: 'bg-zinc-500 text-white dark:bg-zinc-700 dark:text-zinc-300',
+  // Creation-like / enabling actions → secondary-style badge
+  create: 'bg-secondary text-secondary-foreground',
+  enable: 'bg-secondary text-secondary-foreground',
+  // Non-destructive updates / toggles → muted-style badge
+  update: 'bg-muted text-foreground',
+  disable: 'bg-muted text-muted-foreground',
+  // Destructive actions → destructive-style badge
+  delete: 'bg-destructive text-destructive-foreground',
 };
 
 function getActionBadgeClass(action: AuditAction): string {
