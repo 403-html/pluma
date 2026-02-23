@@ -70,7 +70,7 @@ export default function EnvironmentsPage() {
       <main className="p-8">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
-          title={projectName ?? t.environments.title}
+          title={projectName ?? '…'}
         />
         <p>{t.common.loading}</p>
       </main>
@@ -82,7 +82,7 @@ export default function EnvironmentsPage() {
       <main className="p-8">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
-          title={projectName ?? t.environments.title}
+          title={projectName ?? '…'}
         />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
@@ -93,7 +93,7 @@ export default function EnvironmentsPage() {
     <main className="p-8">
       <PageHeader 
         breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
-        title={projectName ?? t.environments.title}
+        title={projectName ?? '…'}
         actions={
           <Button
             type="button"
