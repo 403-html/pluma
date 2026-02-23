@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { writeAuditLog } from '../../lib/audit';
 
 const PAGE_SIZE = 100;
 
@@ -49,13 +50,19 @@ const flagConfigUpdateBodySchema = z.object({
 
 /**
  * Validates that the environment and flag exist and belong to the same project.
- * Returns the ids on success, or replies with an error and returns null.
+ * Returns the context data on success, or replies with an error and returns null.
  */
 async function validateFlagEnvironmentMatch(
   envId: string,
   flagId: string,
   reply: FastifyReply,
-): Promise<{ envId: string; flagId: string } | null> {
+): Promise<{
+  envId: string;
+  flagId: string;
+  projectId: string;
+  envKey: string;
+  flagKey: string;
+} | null> {
   const environment = await prisma.environment.findUnique({
     where: { id: envId },
   });
@@ -85,7 +92,13 @@ async function validateFlagEnvironmentMatch(
     return null;
   }
 
-  return { envId, flagId };
+  return {
+    envId,
+    flagId,
+    projectId: environment.projectId,
+    envKey: environment.key,
+    flagKey: flag.key,
+  };
 }
 
 export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
@@ -215,6 +228,27 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
 
         return upserted;
       });
+
+      // Log enable/disable actions separately when enabled field is changed
+      if (parsedBody.data.enabled !== undefined) {
+        try {
+          await writeAuditLog({
+            action: config.enabled ? 'enable' : 'disable',
+            entityType: 'flagConfig',
+            entityId: `${config.envId}:${config.flagId}`,
+            projectId: validated.projectId,
+            envId: config.envId,
+            envKey: validated.envKey,
+            flagId: config.flagId,
+            flagKey: validated.flagKey,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+            details: parsedBody.data,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, envId: config.envId, flagId: config.flagId }, 'PATCH /flagConfigs: failed to write audit log');
+        }
+      }
 
       return config;
     },

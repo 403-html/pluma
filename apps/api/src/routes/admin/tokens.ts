@@ -4,6 +4,7 @@ import { randomBytes, createHash } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { writeAuditLog } from '../../lib/audit';
 
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'pluma_sdk_';
@@ -98,6 +99,20 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
         select: { id: true, projectId: true, name: true, createdAt: true, revokedAt: true },
       });
 
+      try {
+        await writeAuditLog({
+          action: 'create',
+          entityType: 'token',
+          entityId: sdkToken.id,
+          projectId: sdkToken.projectId,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+          details: { name: sdkToken.name },
+        });
+      } catch (auditError) {
+        request.log.error({ err: auditError, tokenId: sdkToken.id }, 'POST /projects/:id/tokens: failed to write audit log');
+      }
+
       return reply.code(StatusCodes.CREATED).send({ ...sdkToken, token: rawToken });
     },
   );
@@ -126,6 +141,19 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
           },
           data: { revokedAt: new Date() },
         });
+
+        try {
+          await writeAuditLog({
+            action: 'delete',
+            entityType: 'token',
+            entityId: parsedParams.data.tokenId,
+            projectId: parsedParams.data.id,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, tokenId: parsedParams.data.tokenId }, 'DELETE /projects/:id/tokens/:tokenId: failed to write audit log');
+        }
 
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
