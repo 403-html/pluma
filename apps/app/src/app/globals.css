@@ -1,9 +1,43 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* Bridge shadcn CSS variables into Tailwind v4 color utilities */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
 }
 
 :root {
@@ -742,7 +776,7 @@ p {
 }
 
 
-/* shadcn/ui CSS variables */
+/* shadcn/ui CSS variables — mapped to Pluma palette */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -751,19 +785,24 @@ p {
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    /* cerulean #457b9d */
+    --primary: 204 39% 44%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    /* frosted-blue tint for hover surfaces */
+    --accent: 182 43% 90%;
+    --accent-foreground: 215 50% 23%;
+    /* punch-red #e63946 */
+    --destructive: 356 77% 56%;
+    --destructive-foreground: 0 0% 100%;
+    /* frosted-blue #a8dadc */
+    --border: 182 43% 76%;
+    --input: 182 43% 76%;
+    /* cerulean for focus ring */
+    --ring: 204 39% 44%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -773,25 +812,29 @@ p {
   }
 
   [data-theme="dark"] {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* oxford-navy #1d3557 */
+    --background: 215 50% 10%;
+    --foreground: 105 55% 96%;
+    --card: 215 50% 14%;
+    --card-foreground: 105 55% 96%;
+    --popover: 215 50% 14%;
+    --popover-foreground: 105 55% 96%;
+    /* frosted-blue #a8dadc as primary on dark */
+    --primary: 182 43% 76%;
+    --primary-foreground: 215 50% 23%;
+    --secondary: 215 50% 20%;
+    --secondary-foreground: 105 55% 96%;
+    --muted: 215 50% 20%;
+    --muted-foreground: 182 43% 60%;
+    --accent: 215 50% 20%;
+    --accent-foreground: 105 55% 96%;
+    /* punch-red #e63946 */
+    --destructive: 356 77% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 40% 30%;
+    --input: 215 40% 30%;
+    /* frosted-blue for focus ring on dark */
+    --ring: 182 43% 76%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
