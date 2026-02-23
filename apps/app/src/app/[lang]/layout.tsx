@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import { ThemeProvider } from '@/components/ThemeContext';
-import '@/app/globals.css';
 
 type Props = { params: Promise<{ lang: string }> };
 
