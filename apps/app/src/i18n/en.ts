@@ -152,7 +152,6 @@ export const en = {
   },
   audit: {
     title: 'Audit Log',
-    searchPlaceholder: 'Filter by keyword…',
     filterProject: 'Project',
     filterEnvironment: 'Environment',
     filterFlag: 'Flag',
@@ -165,10 +164,10 @@ export const en = {
     colEntity: 'Entity',
     colDetails: 'Details',
     emptyState: 'No audit entries found.',
-    loadingError: 'Failed to load audit log',
     prevPage: 'Previous',
     nextPage: 'Next',
     pageInfo: 'Page {page}',
+  },
   flags: {
     title: 'Flags',
     backToEnvironments: '← Environments',
