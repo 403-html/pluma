@@ -7,6 +7,7 @@ import { register } from '@/lib/api/auth';
 import { StatusCodes } from 'http-status-codes';
 import { useLocale } from '@/i18n/LocaleContext';
 import FormField from '@/components/FormField';
+import { Button } from '@/components/ui/button';
 
 export default function RegisterForm() {
   const { locale, t } = useLocale();
@@ -47,9 +48,9 @@ export default function RegisterForm() {
           <FormField id="email" label={t.register.emailLabel} type="email" value={email} onChange={setEmail} placeholder={t.register.emailPlaceholder} />
           <FormField id="password" label={t.register.passwordLabel} type="password" value={password} onChange={setPassword} placeholder={t.register.passwordPlaceholder} />
           {error && <div className="form-error">{error}</div>}
-          <button type="submit" disabled={loading} className="form-button">
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? t.register.submitLoading : t.register.submitIdle}
-          </button>
+          </Button>
         </form>
         <p className="auth-footer">
           {t.register.footerText}{' '}

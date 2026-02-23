@@ -199,3 +199,27 @@ The proxy auto-detects the locale from `Accept-Language` and `generateStaticPara
 | `notFound` | 404 page |
 | `errors` | API error messages (network failures, etc.) |
 | `ui` | UI components (language switcher, etc.) |
+
+## Theming
+
+This app uses [Tailwind CSS v4](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/).
+
+### Pluma Palette
+
+The following CSS variables are defined in `src/app/globals.css` and available globally:
+
+| Token | Variable | Hex |
+|---|---|---|
+| Punch Red | `--pluma-punch-red` | `#e63946` |
+| Honeydew | `--pluma-honeydew` | `#f1faee` |
+| Frosted Blue | `--pluma-frosted-blue` | `#a8dadc` |
+| Cerulean | `--pluma-cerulean` | `#457b9d` |
+| Oxford Navy | `--pluma-oxford-navy` | `#1d3557` |
+
+Semantic tokens (`--pluma-bg`, `--pluma-text`, `--pluma-accent`, `--pluma-muted`, `--pluma-surface`) automatically switch between light and dark values.
+
+Components do **not** rely on a single global stylesheet — each component can be styled independently using Tailwind utility classes or shadcn component variants.
+
+### Demo
+
+shadcn/ui components are used in the existing login, register, and settings pages, providing a real-world demonstration rather than a standalone demo route.

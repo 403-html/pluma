@@ -5,6 +5,8 @@ import { useLocale } from '@/i18n/LocaleContext';
 import { changePassword } from '@/lib/api/auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function SettingsPage() {
   const { t, locale } = useLocale();
@@ -53,10 +55,9 @@ export default function SettingsPage() {
             <label htmlFor="old-password" className="form-label">
               {t.settings.oldPassword}
             </label>
-            <input
+            <Input
               id="old-password"
               type="password"
-              className="form-input"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               required
@@ -68,10 +69,9 @@ export default function SettingsPage() {
             <label htmlFor="new-password" className="form-label">
               {t.settings.newPassword}
             </label>
-            <input
+            <Input
               id="new-password"
               type="password"
-              className="form-input"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -85,9 +85,9 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <button type="submit" className="form-button" disabled={isChangingPassword}>
+          <Button type="submit" className="w-full" disabled={isChangingPassword}>
             {isChangingPassword ? t.settings.changePasswordLoading : t.settings.changePassword}
-          </button>
+          </Button>
         </form>
       </section>
     </main>

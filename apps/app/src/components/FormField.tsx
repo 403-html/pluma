@@ -1,3 +1,5 @@
+import { Input } from "@/components/ui/input";
+
 type FormFieldProps = {
   id: string;
   label: string;
@@ -13,13 +15,12 @@ export default function FormField({ id, label, type, value, onChange, placeholde
       <label htmlFor={id} className="form-label">
         {label}
       </label>
-      <input
+      <Input
         id={id}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required
-        className="form-input"
         placeholder={placeholder}
       />
     </div>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { login } from '@/lib/api/auth';
 import { useLocale } from '@/i18n/LocaleContext';
 import FormField from '@/components/FormField';
+import { Button } from '@/components/ui/button';
 
 function isSafeReturnUrl(url: string | null): url is string {
   if (typeof url !== 'string') return false;
@@ -56,9 +57,9 @@ function LoginFormContent() {
           <FormField id="email" label={t.login.emailLabel} type="email" value={email} onChange={setEmail} placeholder={t.login.emailPlaceholder} />
           <FormField id="password" label={t.login.passwordLabel} type="password" value={password} onChange={setPassword} placeholder={t.login.passwordPlaceholder} />
           {error && <div className="form-error">{error}</div>}
-          <button type="submit" disabled={loading} className="form-button">
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? t.login.submitLoading : t.login.submitIdle}
-          </button>
+          </Button>
         </form>
         <p className="auth-footer">
           {t.login.footerText}{' '}
