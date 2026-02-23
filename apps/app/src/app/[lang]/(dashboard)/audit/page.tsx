@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { listAuditLog, type AuditFilters, type AuditPage as AuditPageData } from '@/lib/api/audit';
-import type { AuditLogEntry, ProjectSummary } from '@pluma/types';
+import type { AuditAction, AuditLogEntry, ProjectSummary } from '@pluma/types';
 
 interface Flag {
   id: string;
@@ -17,7 +17,7 @@ interface Environment {
   name: string;
 }
 
-function getActionBadgeStyle(action: string): string {
+function getActionBadgeStyle(action: AuditAction): string {
   const baseClass = 'audit-action-badge';
   switch (action) {
     case 'create': return `${baseClass} ${baseClass}--create`;
@@ -29,8 +29,9 @@ function getActionBadgeStyle(action: string): string {
   }
 }
 
-function formatDetails(details: Record<string, unknown> | null | undefined): string {
-  if (!details || Object.keys(details).length === 0) return '—';
+function formatDetails(details: unknown): string {
+  if (details === null || details === undefined) return '—';
+  if (typeof details === 'object' && Object.keys(details as object).length === 0) return '—';
   // Use compact JSON format (no indentation) to fit in table cell
   return JSON.stringify(details);
 }

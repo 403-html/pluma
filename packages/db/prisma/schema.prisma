@@ -122,8 +122,8 @@ model AuditLog {
   details    Json?
   createdAt  DateTime @default(now())
 
-  @@index([projectId])
-  @@index([flagId])
-  @@index([envId])
   @@index([createdAt])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([flagId, createdAt(sort: Desc)])
+  @@index([envId, createdAt(sort: Desc)])
 }

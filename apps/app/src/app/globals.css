@@ -16,6 +16,7 @@
   --color-border: #dddddd;
   --color-border-subtle: #eeeeee;
   --color-border-strong: #e5e5e5;
+  --color-accent: #0070f3;
 
   /* Audit action badge colors */
   --badge-create-bg: #d1fae5;
@@ -40,6 +41,7 @@
   --color-border: #444444;
   --color-border-subtle: #383838;
   --color-border-strong: #444444;
+  --color-accent: #3b9eff;
 
   /* Audit action badge colors — muted for dark backgrounds */
   --badge-create-bg: #064e3b;
@@ -65,6 +67,7 @@
     --color-border: #444444;
     --color-border-subtle: #383838;
     --color-border-strong: #444444;
+    --color-accent: #3b9eff;
 
     /* Audit action badge colors — muted for dark backgrounds */
     --badge-create-bg: #064e3b;
@@ -797,7 +800,7 @@ p {
 
 .audit-filter-select:focus {
   outline: none;
-  border-color: #0070f3;
+  border-color: var(--color-accent);
 }
 
 .audit-table {

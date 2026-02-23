@@ -154,17 +154,21 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return created;
       });
 
-      await writeAuditLog({
-        action: 'create',
-        entityType: 'flag',
-        entityId: flag.id,
-        entityKey: flag.key,
-        projectId: flag.projectId,
-        flagId: flag.id,
-        flagKey: flag.key,
-        actorId: request.sessionUserId!,
-        actorEmail: request.sessionUser!.email,
-      });
+      try {
+        await writeAuditLog({
+          action: 'create',
+          entityType: 'flag',
+          entityId: flag.id,
+          entityKey: flag.key,
+          projectId: flag.projectId,
+          flagId: flag.id,
+          flagKey: flag.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+        });
+      } catch (auditError) {
+        request.log.error({ err: auditError, flagId: flag.id }, 'POST /flags: failed to write audit log');
+      }
 
       return reply.code(StatusCodes.CREATED).send(flag);
     } catch (error) {
@@ -212,18 +216,22 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           return updated;
         });
 
-        await writeAuditLog({
-          action: 'update',
-          entityType: 'flag',
-          entityId: flag.id,
-          entityKey: flag.key,
-          projectId: flag.projectId,
-          flagId: flag.id,
-          flagKey: flag.key,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
-          details: parsedBody.data,
-        });
+        try {
+          await writeAuditLog({
+            action: 'update',
+            entityType: 'flag',
+            entityId: flag.id,
+            entityKey: flag.key,
+            projectId: flag.projectId,
+            flagId: flag.id,
+            flagKey: flag.key,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+            details: parsedBody.data,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, flagId: flag.id }, 'PATCH /flags/:flagId: failed to write audit log');
+        }
 
         return flag;
       } catch (error) {
@@ -270,17 +278,21 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           return flag;
         });
 
-        await writeAuditLog({
-          action: 'delete',
-          entityType: 'flag',
-          entityId: deletedFlag.id,
-          entityKey: deletedFlag.key,
-          projectId: deletedFlag.projectId,
-          flagId: deletedFlag.id,
-          flagKey: deletedFlag.key,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
-        });
+        try {
+          await writeAuditLog({
+            action: 'delete',
+            entityType: 'flag',
+            entityId: deletedFlag.id,
+            entityKey: deletedFlag.key,
+            projectId: deletedFlag.projectId,
+            flagId: deletedFlag.id,
+            flagKey: deletedFlag.key,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, flagId: deletedFlag.id }, 'DELETE /flags/:flagId: failed to write audit log');
+        }
 
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {

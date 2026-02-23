@@ -132,6 +132,6 @@ export interface AuditLogEntry {
   flagKey?: string | null;
   actorId: string;
   actorEmail: string;
-  details?: Record<string, unknown> | null;
+  details?: unknown;
   createdAt: string;
 }

@@ -115,17 +115,21 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
           },
         });
 
-        await writeAuditLog({
-          action: 'create',
-          entityType: 'environment',
-          entityId: environment.id,
-          entityKey: environment.key,
-          projectId: environment.projectId,
-          envId: environment.id,
-          envKey: environment.key,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
-        });
+        try {
+          await writeAuditLog({
+            action: 'create',
+            entityType: 'environment',
+            entityId: environment.id,
+            entityKey: environment.key,
+            projectId: environment.projectId,
+            envId: environment.id,
+            envKey: environment.key,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, envId: environment.id }, 'POST /environments: failed to write audit log');
+        }
 
         return reply.code(StatusCodes.CREATED).send(environment);
       } catch (error) {
@@ -165,18 +169,22 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
           data: { ...parsedBody.data, configVersion: { increment: 1 } },
         });
 
-        await writeAuditLog({
-          action: 'update',
-          entityType: 'environment',
-          entityId: environment.id,
-          entityKey: environment.key,
-          projectId: environment.projectId,
-          envId: environment.id,
-          envKey: environment.key,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
-          details: parsedBody.data,
-        });
+        try {
+          await writeAuditLog({
+            action: 'update',
+            entityType: 'environment',
+            entityId: environment.id,
+            entityKey: environment.key,
+            projectId: environment.projectId,
+            envId: environment.id,
+            envKey: environment.key,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+            details: parsedBody.data,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, envId: environment.id }, 'PATCH /environments/:envId: failed to write audit log');
+        }
 
         return environment;
       } catch (error) {
@@ -223,17 +231,21 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
           where: { id: parsedParams.data.envId },
         });
 
-        await writeAuditLog({
-          action: 'delete',
-          entityType: 'environment',
-          entityId: environment.id,
-          entityKey: environment.key,
-          projectId: environment.projectId,
-          envId: environment.id,
-          envKey: environment.key,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
-        });
+        try {
+          await writeAuditLog({
+            action: 'delete',
+            entityType: 'environment',
+            entityId: environment.id,
+            entityKey: environment.key,
+            projectId: environment.projectId,
+            envId: environment.id,
+            envKey: environment.key,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, envId: environment.id }, 'DELETE /environments/:envId: failed to write audit log');
+        }
 
         return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {

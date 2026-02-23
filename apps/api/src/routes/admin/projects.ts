@@ -72,16 +72,20 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         data: parsedBody.data,
       });
 
-      await writeAuditLog({
-        action: 'create',
-        entityType: 'project',
-        entityId: project.id,
-        entityKey: project.key,
-        projectId: project.id,
-        projectKey: project.key,
-        actorId: request.sessionUserId!,
-        actorEmail: request.sessionUser!.email,
-      });
+      try {
+        await writeAuditLog({
+          action: 'create',
+          entityType: 'project',
+          entityId: project.id,
+          entityKey: project.key,
+          projectId: project.id,
+          projectKey: project.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+        });
+      } catch (auditError) {
+        request.log.error({ err: auditError, projectId: project.id }, 'POST /projects: failed to write audit log');
+      }
 
       return reply.code(StatusCodes.CREATED).send(project);
     } catch (error) {
@@ -114,17 +118,21 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         data: parsedBody.data,
       });
 
-      await writeAuditLog({
-        action: 'update',
-        entityType: 'project',
-        entityId: project.id,
-        entityKey: project.key,
-        projectId: project.id,
-        projectKey: project.key,
-        actorId: request.sessionUserId!,
-        actorEmail: request.sessionUser!.email,
-        details: parsedBody.data,
-      });
+      try {
+        await writeAuditLog({
+          action: 'update',
+          entityType: 'project',
+          entityId: project.id,
+          entityKey: project.key,
+          projectId: project.id,
+          projectKey: project.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+          details: parsedBody.data,
+        });
+      } catch (auditError) {
+        request.log.error({ err: auditError, projectId: project.id }, 'PATCH /projects/:id: failed to write audit log');
+      }
 
       return project;
     } catch (error) {
@@ -164,16 +172,20 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
         where: { id: parsedParams.data.id },
       });
 
-      await writeAuditLog({
-        action: 'delete',
-        entityType: 'project',
-        entityId: project.id,
-        entityKey: project.key,
-        projectId: project.id,
-        projectKey: project.key,
-        actorId: request.sessionUserId!,
-        actorEmail: request.sessionUser!.email,
-      });
+      try {
+        await writeAuditLog({
+          action: 'delete',
+          entityType: 'project',
+          entityId: project.id,
+          entityKey: project.key,
+          projectId: project.id,
+          projectKey: project.key,
+          actorId: request.sessionUserId!,
+          actorEmail: request.sessionUser!.email,
+        });
+      } catch (auditError) {
+        request.log.error({ err: auditError, projectId: project.id }, 'DELETE /projects/:id: failed to write audit log');
+      }
 
       return reply.code(StatusCodes.NO_CONTENT).send();
     } catch (error) {

@@ -231,19 +231,23 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
 
       // Log enable/disable actions separately when enabled field is changed
       if (parsedBody.data.enabled !== undefined) {
-        await writeAuditLog({
-          action: config.enabled ? 'enable' : 'disable',
-          entityType: 'flagConfig',
-          entityId: `${config.envId}:${config.flagId}`,
-          projectId: validated.projectId,
-          envId: config.envId,
-          envKey: validated.envKey,
-          flagId: config.flagId,
-          flagKey: validated.flagKey,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
-          details: parsedBody.data,
-        });
+        try {
+          await writeAuditLog({
+            action: config.enabled ? 'enable' : 'disable',
+            entityType: 'flagConfig',
+            entityId: `${config.envId}:${config.flagId}`,
+            projectId: validated.projectId,
+            envId: config.envId,
+            envKey: validated.envKey,
+            flagId: config.flagId,
+            flagKey: validated.flagKey,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+            details: parsedBody.data,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, envId: config.envId, flagId: config.flagId }, 'PATCH /flagConfigs: failed to write audit log');
+        }
       }
 
       return config;

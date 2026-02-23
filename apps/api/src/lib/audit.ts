@@ -22,9 +22,16 @@ export interface AuditParams {
  *
  * Call this after every successful admin mutation (create / update / delete /
  * enable / disable) to maintain a tamper-evident trail of who changed what and
- * when.  The call is synchronous — await it so that a write failure surfaces
- * immediately rather than being silently swallowed.
+ * when.
+ *
+ * To ensure transactional coupling with a mutation, pass a Prisma
+ * TransactionClient obtained from `prisma.$transaction` as the second
+ * argument. Otherwise, the shared Prisma client is used by default.
  */
-export async function writeAuditLog(params: AuditParams): Promise<void> {
-  await prisma.auditLog.create({ data: params });
+export async function writeAuditLog(
+  params: AuditParams,
+  client?: Prisma.TransactionClient,
+): Promise<void> {
+  const db = client ?? prisma;
+  await db.auditLog.create({ data: params });
 }
