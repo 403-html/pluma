@@ -46,7 +46,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[var(--sidebar-width)] bg-[var(--pluma-oxford-navy)] text-white flex flex-col z-50">
+    <aside className="sticky top-0 h-screen overflow-y-auto w-[var(--sidebar-width)] bg-[var(--pluma-oxford-navy)] text-white flex flex-col z-50">
       <div className="flex-1 overflow-y-auto">
         {/* Logo/branding section - can be expanded in the future */}
         <div className="px-4 py-6 border-b border-white/10">
