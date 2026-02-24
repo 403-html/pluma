@@ -92,7 +92,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
       const sdkToken = await prisma.sdkToken.create({
         data: {
           projectId,
-          envId: envId ?? null,
+          envId,
           name,
           tokenHash,
           tokenPrefix,
