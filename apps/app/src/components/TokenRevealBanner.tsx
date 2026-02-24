@@ -13,6 +13,8 @@ interface TokenRevealBannerProps {
   dismissLabel: string;
   title: string;
   desc: string;
+  /** Localised label for the key line, e.g. "Key {name} for {project}". */
+  keyLabel: string;
 }
 
 export default function TokenRevealBanner({
@@ -22,7 +24,12 @@ export default function TokenRevealBanner({
   dismissLabel,
   title,
   desc,
+  keyLabel,
 }: TokenRevealBannerProps) {
+  const formattedKeyLabel = keyLabel
+    .replace('{name}', token.name)
+    .replace('{project}', projectName);
+
   return (
     <div
       role="alert"
@@ -33,8 +40,7 @@ export default function TokenRevealBanner({
           <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-1">{title}</p>
           <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-2">{desc}</p>
           <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-2">
-            Key <span className="font-semibold">{token.name}</span> for{' '}
-            <span className="font-semibold">{projectName}</span>
+            {formattedKeyLabel}
           </p>
           <div className="flex items-center gap-2 rounded-md border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-emerald-950/60 px-3 py-2">
             <CopyPill value={token.token} variant="inline" />

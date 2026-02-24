@@ -196,6 +196,7 @@ export const en = {
     createError: 'Failed to create API key',
     tokenRevealTitle: 'API key created — copy it now',
     tokenRevealDesc: 'This is the only time the full key will be shown. Store it somewhere safe.',
+    tokenRevealKeyLabel: 'Key {name} for {project}',
     dismiss: 'Dismiss',
     loadingProjects: 'Loading projects…',
     noProjects: 'No projects found.',
