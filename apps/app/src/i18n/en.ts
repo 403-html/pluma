@@ -199,6 +199,8 @@ export const en = {
     dismiss: 'Dismiss',
     loadingProjects: 'Loading projects…',
     noProjects: 'No projects found.',
+    nameRequired: 'Name is required',
+    projectRequired: 'Project is required',
   },
   flags: {
     title: 'Flags',

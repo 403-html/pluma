@@ -214,11 +214,11 @@ export default function OrganizationPage() {
     setCreateError(null);
 
     if (!newKeyName.trim()) {
-      setCreateError(org.nameLabel + ' is required');
+      setCreateError(org.nameRequired);
       return;
     }
     if (!selectedProjectId) {
-      setCreateError(org.projectLabel + ' is required');
+      setCreateError(org.projectRequired);
       return;
     }
 
