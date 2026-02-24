@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Copy, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// How long the success/error feedback is shown before reverting to idle
+const FEEDBACK_DURATION_MS = 1500;
+
 interface CopyPillProps {
   value: string;
   className?: string;
@@ -14,8 +17,8 @@ type CopyState = 'idle' | 'success' | 'error';
 export function CopyPill({ value, className = '' }: CopyPillProps) {
   const [state, setState] = useState<CopyState>('idle');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDisabled = value.trim() === '';
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -25,7 +28,7 @@ export function CopyPill({ value, className = '' }: CopyPillProps) {
   }, []);
 
   const handleCopy = async () => {
-    // Clear any existing timeout
+    if (isDisabled) return;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -37,40 +40,42 @@ export function CopyPill({ value, className = '' }: CopyPillProps) {
       setState('error');
     }
 
-    // Revert to idle after 1500ms for both success and error states
     timeoutRef.current = setTimeout(() => {
       setState('idle');
       timeoutRef.current = null;
-    }, 1500);
-  };
-
-  const getStateClasses = () => {
-    if (state === 'success') {
-      return 'text-green-600 dark:text-green-400';
-    }
-    if (state === 'error') {
-      return 'text-destructive';
-    }
-    return 'text-muted-foreground';
+    }, FEEDBACK_DURATION_MS);
   };
 
   const Icon = state === 'success' ? Check : state === 'error' ? X : Copy;
+  const stateClasses =
+    state === 'success'
+      ? 'text-green-600 dark:text-green-400'
+      : state === 'error'
+        ? 'text-destructive'
+        : 'text-muted-foreground';
+  const ariaLabel =
+    state === 'success'
+      ? 'Copied!'
+      : state === 'error'
+        ? 'Failed to copy'
+        : `Copy ${value} to clipboard`;
 
   return (
     <button
       type="button"
       onClick={handleCopy}
-      aria-label={`Copy ${value} to clipboard`}
+      disabled={isDisabled}
+      aria-label={ariaLabel}
       title={value}
       className={cn(
         'font-mono text-xs bg-muted px-2 py-0.5 rounded inline-flex items-center gap-1.5 cursor-pointer transition-colors',
-        'hover:bg-muted/80',
-        getStateClasses(),
+        'hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50',
+        stateClasses,
         className
       )}
     >
       <span>{value}</span>
-      <Icon size={12} />
+      <Icon size={12} aria-hidden="true" />
     </button>
   );
 }
