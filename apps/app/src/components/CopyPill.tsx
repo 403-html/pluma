@@ -60,7 +60,8 @@ export function CopyPill({ value, className = '' }: CopyPillProps) {
     <button
       type="button"
       onClick={handleCopy}
-      aria-label="Copy value to clipboard"
+      aria-label={`Copy ${value} to clipboard`}
+      title={value}
       className={cn(
         'font-mono text-xs bg-muted px-2 py-0.5 rounded inline-flex items-center gap-1.5 cursor-pointer transition-colors',
         'hover:bg-muted/80',
