@@ -32,8 +32,10 @@ export function TargetingInput({
 }: TargetingInputProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = `${id}-listbox`;
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -45,6 +47,17 @@ export function TargetingInput({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Reset highlight when the visible option list changes
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [query, isOpen]);
+
+  // Scroll highlighted option into view
+  useEffect(() => {
+    if (highlightedIndex < 0) return;
+    document.getElementById(`${id}-option-${highlightedIndex}`)?.scrollIntoView({ block: 'nearest' });
+  }, [highlightedIndex, id]);
 
   // Derived: filtered suggestions (exclude already-selected, match query case-insensitively)
   const filteredSuggestions = suggestions.filter(
@@ -64,6 +77,7 @@ export function TargetingInput({
       onAdd(value);
       setQuery('');
       setIsOpen(false);
+      setHighlightedIndex(-1);
       inputRef.current?.focus();
     }
   }
@@ -75,17 +89,42 @@ export function TargetingInput({
     }
     setQuery('');
     setIsOpen(false);
+    setHighlightedIndex(-1);
     inputRef.current?.focus();
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
+    const totalOptions = filteredSuggestions.length + (showAddOption ? 1 : 0);
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (trimmedQuery) {
+      if (!isOpen && hasDropdownContent) {
+        setIsOpen(true);
+        setHighlightedIndex(0);
+      } else if (totalOptions > 0) {
+        setHighlightedIndex((i) => (i + 1) % totalOptions);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (totalOptions > 0) {
+        setHighlightedIndex((i) => (i <= 0 ? totalOptions - 1 : i - 1));
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (isOpen && highlightedIndex >= 0) {
+        if (highlightedIndex < filteredSuggestions.length) {
+          handleSelect(filteredSuggestions[highlightedIndex]);
+        } else {
+          handleAdd(trimmedQuery);
+        }
+      } else if (trimmedQuery) {
         handleAdd(trimmedQuery);
       }
+    } else if (e.key === 'Tab') {
+      setIsOpen(false);
+      setHighlightedIndex(-1);
     } else if (e.key === 'Escape') {
       setIsOpen(false);
+      setHighlightedIndex(-1);
     } else if (e.key === 'Backspace' && query === '' && tags.length > 0) {
       onRemove(tags[tags.length - 1]);
     }
@@ -125,6 +164,10 @@ export function TargetingInput({
           aria-expanded={isOpen && hasDropdownContent}
           aria-autocomplete="list"
           aria-haspopup="listbox"
+          aria-controls={listboxId}
+          aria-activedescendant={
+            isOpen && highlightedIndex >= 0 ? `${id}-option-${highlightedIndex}` : undefined
+          }
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -140,25 +183,29 @@ export function TargetingInput({
       {/* Dropdown */}
       {isOpen && hasDropdownContent && (
         <ul
+          id={listboxId}
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-[200px] overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md py-1"
         >
-          {filteredSuggestions.map((suggestion) => {
+          {filteredSuggestions.map((suggestion, index) => {
             const isDisabled = disabledValues.includes(suggestion);
+            const isHighlighted = highlightedIndex === index;
             return (
               <li
                 key={suggestion}
+                id={`${id}-option-${index}`}
                 role="option"
-                aria-selected={false}
+                aria-selected={isHighlighted}
                 aria-disabled={isDisabled}
                 onMouseDown={(e) => {
                   e.preventDefault(); // Prevent default mousedown behavior which would blur the input before selection completes
                   handleSelect(suggestion);
                 }}
+                onMouseEnter={() => setHighlightedIndex(index)}
                 className={
                   isDisabled
                     ? 'flex items-center justify-between px-3 py-1.5 text-sm text-muted-foreground cursor-not-allowed select-none'
-                    : 'flex items-center justify-between px-3 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground select-none'
+                    : `flex items-center justify-between px-3 py-1.5 text-sm cursor-pointer select-none ${isHighlighted ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`
                 }
               >
                 <span>{suggestion}</span>
@@ -171,21 +218,27 @@ export function TargetingInput({
             );
           })}
 
-          {showAddOption && (
-            <li
-              role="option"
-              aria-selected={false}
-              aria-label={`${addOptionLabel} "${trimmedQuery}"`}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                handleAdd(trimmedQuery);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground select-none border-t border-border/40"
-            >
-              <span className="font-medium">{addOptionLabel}</span>
-              <span className="text-muted-foreground">"{trimmedQuery}"</span>
-            </li>
-          )}
+          {showAddOption && (() => {
+            const addIndex = filteredSuggestions.length;
+            const isHighlighted = highlightedIndex === addIndex;
+            return (
+              <li
+                id={`${id}-option-${addIndex}`}
+                role="option"
+                aria-selected={isHighlighted}
+                aria-label={`${addOptionLabel} "${trimmedQuery}"`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleAdd(trimmedQuery);
+                }}
+                onMouseEnter={() => setHighlightedIndex(addIndex)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm cursor-pointer select-none border-t border-border/40 ${isHighlighted ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`}
+              >
+                <span className="font-medium">{addOptionLabel}</span>
+                <span className={isHighlighted ? '' : 'text-muted-foreground'}>"{trimmedQuery}"</span>
+              </li>
+            );
+          })()}
         </ul>
       )}
     </div>
