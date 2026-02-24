@@ -9,6 +9,8 @@ export type FlagEntry = {
   name: string;
   description: string | null;
   enabled: boolean;
+  allowList: string[];
+  denyList: string[];
 };
 
 async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
@@ -170,6 +172,30 @@ export async function toggleFlagEnabled(
 
     if (!response.ok) {
       const message = await parseErrorMessage(response, 'Failed to toggle flag');
+      return { ok: false, message };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, message: 'Unable to reach the server. Check your connection.' };
+  }
+}
+
+export async function updateFlagConfig(
+  envId: string,
+  flagId: string,
+  data: { allowList?: string[]; denyList?: string[] }
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const response = await fetch(`/api/v1/environments/${envId}/flags/${flagId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response, 'Failed to update flag targeting');
       return { ok: false, message };
     }
 

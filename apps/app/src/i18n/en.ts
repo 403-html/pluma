@@ -203,6 +203,12 @@ export const en = {
     enabledLabel: 'Enabled',
     disabledLabel: 'Disabled',
     toggleError: 'Failed to toggle flag',
+    targetingTitle: 'Targeting',
+    allowListLabel: 'Allow List',
+    denyListLabel: 'Deny List',
+    targetingPlaceholder: 'Enter user ID…',
+    targetingConflictError: 'A user ID cannot appear in both the allow list and deny list.',
+    targetingPendingError: 'Press Enter or comma to confirm the entered user ID before saving.',
   },
 } as const;
 

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  PROJECT_ID, OTHER_PROJECT_ID, ENV_ID, FLAG_ID, AUTH_COOKIE,
+  OTHER_PROJECT_ID, ENV_ID, FLAG_ID, AUTH_COOKIE,
   mockSession, mockEnvironment, mockFlag, mockFlagConfig,
 } from './fixtures';
 
@@ -115,6 +115,41 @@ describe('Flag Config routes', () => {
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload.data[0]).toHaveProperty('enabled', false);
+    });
+
+    it('should include allowList and denyList from the config row', async () => {
+      const configWithLists = { ...mockFlagConfig, allowList: ['user-a', 'user-b'], denyList: ['user-c'] };
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
+      prismaMock.flagConfig.findMany.mockResolvedValue([configWithLists]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/flags`,
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.data[0]).toHaveProperty('allowList', ['user-a', 'user-b']);
+      expect(payload.data[0]).toHaveProperty('denyList', ['user-c']);
+    });
+
+    it('should default allowList and denyList to [] when no config exists', async () => {
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findMany.mockResolvedValue([mockFlag]);
+      prismaMock.flagConfig.findMany.mockResolvedValue([]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/flags`,
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.data[0]).toHaveProperty('allowList', []);
+      expect(payload.data[0]).toHaveProperty('denyList', []);
     });
 
     it('should return nextCursor when there are more flags than PAGE_SIZE', async () => {

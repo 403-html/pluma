@@ -225,6 +225,7 @@ export default function FlagsPage() {
       {modalState.type === 'edit' && (
         <EditFlagModal
           flag={modalState.flag}
+          envId={envId}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
