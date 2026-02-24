@@ -1,11 +1,4 @@
-async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data.message === 'string' ? data.message : fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { parseErrorMessage } from './utils';
 
 export interface SdkToken {
   id: string;

@@ -5,10 +5,7 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
-
-const TOKEN_BYTES = 32;
-const TOKEN_PREFIX = 'pluma_sdk_';
-const TOKEN_PREFIX_LENGTH = 12;
+import { TOKEN_BYTES, TOKEN_PREFIX, TOKEN_PREFIX_LENGTH } from '../../lib/tokenConstants';
 
 const tokenBodySchema = z.object({
   name: z.string().min(1).max(100),

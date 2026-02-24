@@ -2,6 +2,7 @@ import type { AuthUser } from '@pluma/types';
 import { MAX_EMAIL_LENGTH, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '@pluma/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
+import { parseErrorMessage } from './utils';
 
 /**
  * Serialized API response shape — `createdAt` is a JSON string, not a `Date`.
@@ -13,15 +14,6 @@ export type AuthResult =
   | { ok: true; user: AuthUserResponse }
   | { ok: false; message: string; status: number };
 
-
-async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data.message === 'string' ? data.message : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 export async function login(email: string, password: string, locale: Locale): Promise<AuthResult> {
   const t = getDictionary(locale);
