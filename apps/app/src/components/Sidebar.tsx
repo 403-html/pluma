@@ -37,7 +37,11 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const isActive = (segment: string) => pathname?.includes(`/${segment}`) ?? false;
+  const isActive = (segment: string): boolean => {
+    if (!pathname) return false;
+    const parts = pathname.split('/');
+    return (parts[2] ?? '') === segment;
+  };
 
   async function handleLogout() {
     setIsLoggingOut(true);
