@@ -5,7 +5,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "predev": "pnpm --filter @pluma/types build",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
