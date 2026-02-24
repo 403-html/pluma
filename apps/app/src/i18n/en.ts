@@ -176,7 +176,7 @@ export const en = {
     newApiKey: 'New API Key',
     colName: 'Name',
     colProject: 'Project',
-    colKey: 'Key',
+    colKey: 'Key Preview',
     colCreated: 'Created',
     colActions: 'Actions',
     emptyState: 'No API keys yet. Create your first key to get started.',

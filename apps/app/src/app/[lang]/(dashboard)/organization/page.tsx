@@ -46,8 +46,10 @@ async function parseErrorMessage(response: Response, fallback: string): Promise<
   }
 }
 
+const MASK_BULLETS = '••••••••';
+
 function maskToken(tokenPrefix: string): string {
-  return `${tokenPrefix}••••••••`;
+  return `${tokenPrefix}${MASK_BULLETS}`;
 }
 
 const SELECT_CLASS =
