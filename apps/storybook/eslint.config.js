@@ -5,7 +5,6 @@ export default [
   {
     ignores: [
       "storybook-static",
-      "public/mockServiceWorker.js",
     ],
   },
   ...typescript,
