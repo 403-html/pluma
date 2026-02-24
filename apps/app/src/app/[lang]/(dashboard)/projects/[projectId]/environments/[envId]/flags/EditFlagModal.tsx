@@ -156,7 +156,7 @@ export function EditFlagModal({
     setKeyError(null);
   }
 
-  function setsEqual(a: string[], b: string[]): boolean {
+  function arrayContentsEqual(a: string[], b: string[]): boolean {
     if (a.length !== b.length) return false;
     const setB = new Set(b);
     return a.every((v) => setB.has(v));
@@ -180,8 +180,8 @@ export function EditFlagModal({
       return;
     }
 
-    const allowChanged = !setsEqual(allowList, flag.allowList);
-    const denyChanged = !setsEqual(denyList, flag.denyList);
+    const allowChanged = !arrayContentsEqual(allowList, flag.allowList);
+    const denyChanged = !arrayContentsEqual(denyList, flag.denyList);
 
     if (allowChanged || denyChanged) {
       const configPayload: { allowList?: string[]; denyList?: string[] } = {};
