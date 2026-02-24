@@ -92,7 +92,7 @@ export function TargetingInput({
   }
 
   function handleFocus() {
-    if (hasDropdownContent) setIsOpen(true);
+    setIsOpen(true);
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -152,7 +152,7 @@ export function TargetingInput({
                 aria-selected={false}
                 aria-disabled={isDisabled}
                 onMouseDown={(e) => {
-                  e.preventDefault(); // Prevent input blur
+                  e.preventDefault(); // Prevent default mousedown behavior which would blur the input before selection completes
                   handleSelect(suggestion);
                 }}
                 className={
