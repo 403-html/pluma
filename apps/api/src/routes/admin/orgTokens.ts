@@ -35,7 +35,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
         include: { project: true },
       });
 
-      const result = tokens.map((t: (typeof tokens)[number]) => ({
+      const result = tokens.map((t) => ({
         id: t.id,
         name: t.name,
         tokenPrefix: t.tokenPrefix,
