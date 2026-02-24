@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
+import { CopyPill } from '@/components/CopyPill';
 
 type ModalState =
   | { type: 'none' }
@@ -142,7 +143,7 @@ export default function FlagsPage() {
               <tr key={flag.flagId} className="transition-colors hover:bg-muted/40">
                 <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.name}</td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">{flag.key}</span>
+                  <CopyPill value={flag.key} />
                 </td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.description || '—'}</td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle">

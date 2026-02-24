@@ -11,6 +11,7 @@ import {
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
+import { CopyPill } from '@/components/CopyPill';
 
 type ModalState =
   | { type: 'none' }
@@ -112,8 +113,8 @@ export default function ProjectsPage() {
                 }}
               >
                 <td className="px-3 py-3 border-b border-border/20 align-middle"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block" onClick={(e) => e.stopPropagation()}>{project.key}</span>
+                <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
+                  <CopyPill value={project.key} />
                 </td>
                 <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (
