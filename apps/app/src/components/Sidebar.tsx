@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Building2 } from 'lucide-react';
+import { Flag, ScrollText, Building2, Settings, LogOut } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { logout } from '@/lib/api/auth';
 
@@ -25,7 +25,7 @@ function SidebarButton({ icon, label, onClick, disabled, danger = false, active 
       onClick={onClick}
       disabled={disabled}
     >
-      <span className="text-xl leading-none" aria-hidden="true">{icon}</span>
+      <span className="shrink-0" aria-hidden="true">{icon}</span>
       <span className="flex-1 text-left">{label}</span>
     </button>
   );
@@ -61,21 +61,21 @@ export default function Sidebar() {
 
         {/* Main navigation */}
         <nav className="py-2 px-2">
-          <SidebarButton icon="⚑" label={t.sidebar.projects} onClick={() => router.push(`/${locale}/projects`)} active={isActive('projects')} />
-          <SidebarButton icon="✎" label={t.sidebar.audit} onClick={() => router.push(`/${locale}/audit`)} active={isActive('audit')} />
+          <SidebarButton icon={<Flag size={20} />} label={t.sidebar.projects} onClick={() => router.push(`/${locale}/projects`)} active={isActive('projects')} />
+          <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => router.push(`/${locale}/audit`)} active={isActive('audit')} />
         </nav>
       </div>
 
       {/* Bottom actions */}
       <div className="border-t border-white/10 py-4 px-2 flex flex-col gap-2">
         <SidebarButton
-          icon={<Building2 size={20} aria-hidden="true" />}
+          icon={<Building2 size={20} />}
           label={t.sidebar.organization}
           onClick={() => router.push(`/${locale}/organization`)}
           active={isActive('organization')}
         />
-        <SidebarButton icon="⚙" label={t.sidebar.settings} onClick={() => router.push(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
-        <SidebarButton icon="→" label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
+        <SidebarButton icon={<Settings size={20} />} label={t.sidebar.settings} onClick={() => router.push(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
+        <SidebarButton icon={<LogOut size={20} />} label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
     </aside>
   );

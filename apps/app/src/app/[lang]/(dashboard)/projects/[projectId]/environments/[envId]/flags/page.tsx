@@ -10,6 +10,7 @@ import {
   type FlagEntry,
 } from '@/lib/api/flags';
 import EmptyState from '@/components/EmptyState';
+import { Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
@@ -127,7 +128,7 @@ export default function FlagsPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {flags.length === 0 ? (
-        <EmptyState message={t.flags.emptyState} />
+        <EmptyState message={t.flags.emptyState} icon={Flag} />
       ) : (
         <table className="w-full border-collapse" aria-label={t.flags.title}>
           <thead>

@@ -7,6 +7,7 @@ import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Button } from '@/components/ui/button';
 import { formatDateTime } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
+import { ScrollText } from 'lucide-react';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -218,7 +219,7 @@ export default function AuditPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {auditData && auditData.entries.length === 0 ? (
-        <EmptyState message={t.audit.emptyState} />
+        <EmptyState message={t.audit.emptyState} icon={ScrollText} />
       ) : auditData ? (
         <>
           <AuditTable auditData={auditData} locale={locale} headers={{

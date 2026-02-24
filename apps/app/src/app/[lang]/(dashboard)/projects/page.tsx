@@ -9,6 +9,7 @@ import {
   type ProjectSummary,
 } from '@/lib/api/projects';
 import EmptyState from '@/components/EmptyState';
+import { Layers } from 'lucide-react';
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
@@ -93,7 +94,7 @@ export default function ProjectsPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {projects.length === 0 ? (
-        <EmptyState message={t.projects.emptyState} />
+        <EmptyState message={t.projects.emptyState} icon={Layers} />
       ) : (
         <table className="w-full border-collapse" aria-label={t.projects.title}>
           <thead>
