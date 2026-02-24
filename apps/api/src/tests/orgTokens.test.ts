@@ -59,17 +59,24 @@ const { prismaMock } = vi.hoisted(() => ({
 
 vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
 
+/**
+ * Derived from the TOKEN_PREFIX constant ('pluma_sdk_') used in route files.
+ * The first 10 chars are always 'pluma_sdk_'; the remaining 2 are arbitrary hex.
+ * Update this if TOKEN_PREFIX in the route files changes.
+ */
+const MOCK_TOKEN_PREFIX = 'pluma_sdk_' + 'aa'; // 12 chars total (TOKEN_PREFIX_LENGTH)
+
 /** mockSdkToken enriched with tokenPrefix and nested project for org-level responses */
 const mockSdkTokenWithProject = {
   ...mockSdkToken,
-  tokenPrefix: 'pluma_sdk_aa',
+  tokenPrefix: MOCK_TOKEN_PREFIX,
   project: { id: PROJECT_ID, name: 'Test Project' },
 };
 
 /** mockSdkToken enriched with tokenPrefix only (for create responses) */
 const mockSdkTokenWithPrefix = {
   ...mockSdkToken,
-  tokenPrefix: 'pluma_sdk_aa',
+  tokenPrefix: MOCK_TOKEN_PREFIX,
 };
 
 describe('Org-level Token routes', () => {
@@ -107,7 +114,7 @@ describe('Org-level Token routes', () => {
       expect(payload[0]).toMatchObject({
         id: TOKEN_ID,
         name: mockSdkToken.name,
-        tokenPrefix: 'pluma_sdk_aa',
+        tokenPrefix: MOCK_TOKEN_PREFIX,
         projectId: PROJECT_ID,
         projectName: 'Test Project',
         envId: ENV_ID,

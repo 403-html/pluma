@@ -8,6 +8,7 @@ import { writeAuditLog } from '../../lib/audit';
 
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'pluma_sdk_';
+const TOKEN_PREFIX_LENGTH = 12;
 
 const orgTokenBodySchema = z.object({
   projectId: z.uuid(),
@@ -87,7 +88,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
 
       const rawToken = TOKEN_PREFIX + randomBytes(TOKEN_BYTES).toString('hex');
       const tokenHash = createHash('sha256').update(rawToken).digest('hex');
-      const tokenPrefix = rawToken.slice(0, 12);
+      const tokenPrefix = rawToken.slice(0, TOKEN_PREFIX_LENGTH);
 
       const sdkToken = await prisma.sdkToken.create({
         data: {
