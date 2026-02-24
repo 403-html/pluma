@@ -22,7 +22,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
   const { logger = true } = options;
 
   const fastify = Fastify({
-    logger,
+    logger: logger ? { level: process.env.LOG_LEVEL ?? 'warn' } : false,
   });
 
   // Register plugins
