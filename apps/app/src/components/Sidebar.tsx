@@ -1,24 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { Building2 } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { logout } from '@/lib/api/auth';
 
 type SidebarButtonProps = {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   disabled?: boolean;
   danger?: boolean;
+  active?: boolean;
 };
 
-function SidebarButton({ icon, label, onClick, disabled, danger = false }: SidebarButtonProps) {
+function SidebarButton({ icon, label, onClick, disabled, danger = false, active = false }: SidebarButtonProps) {
   const base = "w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed";
+  const activeClass = active ? 'bg-white/15' : '';
   return (
     <button
       type="button"
-      className={danger ? `${base} text-destructive hover:bg-destructive/10` : base}
+      className={danger ? `${base} ${activeClass} text-destructive hover:bg-destructive/10` : `${base} ${activeClass}`}
       onClick={onClick}
       disabled={disabled}
     >
@@ -31,7 +34,10 @@ function SidebarButton({ icon, label, onClick, disabled, danger = false }: Sideb
 export default function Sidebar() {
   const { t, locale } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const isActive = (segment: string) => pathname?.includes(`/${segment}`) ?? false;
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -53,16 +59,22 @@ export default function Sidebar() {
           <h2 className="text-2xl font-bold">Pluma</h2>
         </div>
 
-        {/* Main navigation - can be expanded with more menu items */}
+        {/* Main navigation */}
         <nav className="py-2 px-2">
-          <SidebarButton icon="⚑" label={t.sidebar.projects} onClick={() => router.push(`/${locale}/projects`)} />
-          <SidebarButton icon="✎" label={t.sidebar.audit} onClick={() => router.push(`/${locale}/audit`)} />
+          <SidebarButton icon="⚑" label={t.sidebar.projects} onClick={() => router.push(`/${locale}/projects`)} active={isActive('projects')} />
+          <SidebarButton icon="✎" label={t.sidebar.audit} onClick={() => router.push(`/${locale}/audit`)} active={isActive('audit')} />
+          <SidebarButton
+            icon={<Building2 size={20} aria-hidden="true" />}
+            label={t.sidebar.organization}
+            onClick={() => router.push(`/${locale}/organization`)}
+            active={isActive('organization')}
+          />
         </nav>
       </div>
 
       {/* Bottom actions */}
       <div className="border-t border-white/10 py-4 px-2 flex flex-col gap-2">
-        <SidebarButton icon="⚙" label={t.sidebar.settings} onClick={() => router.push(`/${locale}/settings`)} disabled={isLoggingOut} />
+        <SidebarButton icon="⚙" label={t.sidebar.settings} onClick={() => router.push(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
         <SidebarButton icon="→" label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
     </aside>
