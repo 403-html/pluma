@@ -1,21 +1,14 @@
 import './globals.css';
+import { cookies } from 'next/headers';
 
-/**
- * FOUC prevention: The inline script below runs synchronously before first paint,
- * setting data-theme="dark" on <html> when the user's preference is dark (either
- * stored explicitly or inferred from the OS). Without this, users on dark-mode systems
- * would see a flash of light mode until React hydrates and ThemeContext runs.
- * dangerouslySetInnerHTML is intentional here — next/script "beforeInteractive" cannot
- * be used in a nested layout (it needs the true root layout), and an external public/
- * file requires a network round-trip. An inline script is the only zero-latency option.
- */
-const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var d=document.documentElement;if(s==='dark'||((!s||s==='system')&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.setAttribute('data-theme','dark');}}catch(e){}})();`;
+const THEME_COOKIE = 'pluma-theme';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get(THEME_COOKIE)?.value;
+  const dataTheme = themeCookie === 'dark' ? 'dark' : themeCookie === 'light' ? 'light' : undefined;
   return (
-    <html suppressHydrationWarning>
-      {/* eslint-disable-next-line react/no-danger -- See themeInitScript comment above for why dangerouslySetInnerHTML is used here */}
-      <head><script dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head>
+    <html data-theme={dataTheme}>
       <body>{children}</body>
     </html>
   );

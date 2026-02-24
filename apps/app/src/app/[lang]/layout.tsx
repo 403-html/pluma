@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
-import { ThemeProvider } from '@/components/ThemeContext';
+import { ThemeProvider, type Theme } from '@/components/ThemeContext';
+import { cookies } from 'next/headers';
+
+const THEME_COOKIE = 'pluma-theme';
 
 type Props = { params: Promise<{ lang: string }> };
 
@@ -27,9 +30,12 @@ export default async function RootLayout({
 }>) {
   const { lang } = await params;
   const locale = resolveLocale(lang);
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(THEME_COOKIE)?.value;
+  const initialTheme: Theme = (raw === 'light' || raw === 'dark' || raw === 'system') ? raw : 'system';
   return (
     <LocaleProvider locale={locale}>
-      <ThemeProvider>
+      <ThemeProvider initialTheme={initialTheme}>
         {children}
       </ThemeProvider>
     </LocaleProvider>
