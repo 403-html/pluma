@@ -13,7 +13,6 @@ const config: StorybookConfig = {
     name: "@storybook/react-vite",
     options: {},
   },
-  staticDirs: ["../public"],
   async viteFinal(config) {
     // Vite in Storybook will bundle files from the Next app. Next's
     // top-level "use client" directive is meaningful for Next's RSC runtime

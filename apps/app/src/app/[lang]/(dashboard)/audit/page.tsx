@@ -2,6 +2,7 @@
 
 import { useLocale } from '@/i18n/LocaleContext';
 import type { AuditLogEntry, AuditAction } from '@pluma/types';
+import type { ProjectSummary } from '@pluma/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Button } from '@/components/ui/button';
@@ -169,9 +170,14 @@ function AuditPagination({ currentPage, hasPrev, hasNext, onPrev, onNext, prevLa
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function AuditPage() {
+export interface AuditPageProps {
+  initialAuditData?: AuditPageData;
+  initialProjects?: ProjectSummary[];
+}
+
+export default function AuditPage({ initialAuditData, initialProjects }: AuditPageProps = {}) {
   const { t, locale } = useLocale();
-  const state = useAuditFilters();
+  const state = useAuditFilters({ initialAuditData, initialProjects });
   const { auditData, isLoading, error, currentPage, handlePrevPage, handleNextPage } = state;
 
   const hasNextPage = auditData != null && currentPage * auditData.pageSize < auditData.total;
