@@ -73,6 +73,7 @@ model SdkToken {
   environment Environment? @relation(fields: [envId], references: [id], onDelete: Cascade)
   name        String
   tokenHash   String       @unique
+  tokenPrefix String       @default("")
   createdAt   DateTime     @default(now())
   revokedAt   DateTime?
 }

@@ -89,12 +89,14 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
 
       const rawToken = TOKEN_PREFIX + randomBytes(TOKEN_BYTES).toString('hex');
       const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+      const tokenPrefix = rawToken.slice(0, 12);
 
       const sdkToken = await prisma.sdkToken.create({
         data: {
           projectId: parsedParams.data.id,
           name: parsedBody.data.name,
           tokenHash,
+          tokenPrefix,
         },
         select: { id: true, projectId: true, name: true, createdAt: true, revokedAt: true },
       });

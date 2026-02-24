@@ -88,6 +88,7 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
 
       const rawToken = TOKEN_PREFIX + randomBytes(TOKEN_BYTES).toString('hex');
       const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+      const tokenPrefix = rawToken.slice(0, 12);
 
       const sdkToken = await prisma.sdkToken.create({
         data: {
@@ -95,6 +96,7 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
           envId: parsedParams.data.envId,
           name: parsedBody.data.name,
           tokenHash,
+          tokenPrefix,
         },
         select: { id: true, envId: true, projectId: true, name: true, createdAt: true },
       });
