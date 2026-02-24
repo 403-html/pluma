@@ -70,7 +70,7 @@ export function TargetingInput({
 
   function handleAdd(value: string) {
     const v = value.trim();
-    if (v && !tags.includes(v)) {
+    if (v && !tags.includes(v) && !disabledValues.includes(v)) {
       onAdd(v);
     }
     setQuery('');

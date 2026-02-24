@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
 import Modal from '@/components/Modal';
@@ -43,7 +43,10 @@ export function EditFlagModal({
   const hasConflict = conflictIds.length > 0;
 
   // Union of both lists as the suggestions pool
-  const suggestionPool = [...new Set([...allowList, ...denyList])];
+  const suggestionPool = useMemo(
+    () => [...new Set([...allowList, ...denyList])],
+    [allowList, denyList],
+  );
 
   function handleEditKey() {
     setIsKeyEditing(true);
