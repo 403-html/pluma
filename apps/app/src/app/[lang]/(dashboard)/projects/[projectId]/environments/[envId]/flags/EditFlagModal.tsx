@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
 import { TargetingInput } from '@/components/TargetingInput';
+import { TargetingNotice } from '@/components/TargetingNotice';
 import { updateFlag, updateFlagConfig, type FlagEntry } from '@/lib/api/flags';
 import { isValidProjectKey } from '@/lib/projectKeyUtils';
 
@@ -180,7 +181,13 @@ export function EditFlagModal({
         <div className="mt-6 border-t border-border/40 pt-4">
           <h3 className="text-sm font-semibold mb-3">{t.flags.targetingTitle}</h3>
 
-          <div className="flex flex-col gap-1.5">
+          <TargetingNotice
+            title={t.flags.targetingNoticeTitle}
+            body={t.flags.targetingNoticeBody}
+            codeSnippet={t.flags.targetingNoticeCode}
+          />
+
+          <div className="flex flex-col gap-1.5 mt-4">
             <label htmlFor="flag-allow-list" className="text-sm font-medium">
               {t.flags.allowListLabel}
             </label>

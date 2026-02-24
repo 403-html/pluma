@@ -212,6 +212,9 @@ export const en = {
     targetingDisabledValueHint: 'In other list',
     targetingConflictError: 'A user ID cannot appear in both the allow list and deny list.',
     targetingPendingError: 'Press Enter or comma to confirm the entered user ID before saving.',
+    targetingNoticeTitle: 'How targeting works',
+    targetingNoticeBody: 'IDs you add here are matched against the subjectKey you pass to the SDK evaluator. User IDs are never collected automatically — enter the ones you want to target in advance.',
+    targetingNoticeCode: "evaluator({ subjectKey: 'user-id' })",
   },
 } as const;
 
