@@ -1,50 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Trash2, Plus, AlertCircle, Key } from 'lucide-react';
+import { Trash2, Plus, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Modal from '@/components/Modal';
-import { CopyPill } from '@/components/CopyPill';
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-interface SdkToken {
-  id: string;
-  name: string;
-  tokenPrefix: string;
-  projectId: string;
-  projectName: string;
-  envId: string | null;
-  createdAt: string;
-}
-
-interface ProjectSummary {
-  id: string;
-  name: string;
-  key: string;
-}
-
-interface CreatedToken {
-  id: string;
-  name: string;
-  tokenPrefix: string;
-  token: string;
-  projectId: string;
-  createdAt: string;
-}
+import EmptyState from '@/components/EmptyState';
+import TokenRevealBanner from '@/components/TokenRevealBanner';
+import { listOrgTokens, createOrgToken, revokeOrgToken, type SdkToken, type CreatedToken } from '@/lib/api/tokens';
+import { listProjects, type ProjectSummary } from '@/lib/api/projects';
+import { formatDate } from '@/lib/dateUtils';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data.message === 'string' ? data.message : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 const MASK_BULLETS = '••••••••';
 
@@ -63,54 +31,6 @@ function LoadingSkeleton() {
       {[1, 2, 3].map((i) => (
         <div key={i} className="h-12 bg-muted rounded-md" />
       ))}
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
-      <Key size={36} aria-hidden="true" className="opacity-30" />
-      <p className="text-sm">{message}</p>
-    </div>
-  );
-}
-
-interface TokenRevealBannerProps {
-  token: CreatedToken;
-  projectName: string;
-  onDismiss: () => void;
-  dismissLabel: string;
-  title: string;
-  desc: string;
-}
-
-function TokenRevealBanner({ token, projectName, onDismiss, dismissLabel, title, desc }: TokenRevealBannerProps) {
-  return (
-    <div
-      role="alert"
-      className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/40 p-4"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-1">{title}</p>
-          <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-3">{desc}</p>
-          <div className="flex items-center gap-2 rounded-md border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-emerald-950/60 px-3 py-2">
-            <CopyPill value={token.token} variant="inline" />
-          </div>
-          <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-500">
-            {token.name} · {projectName}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="shrink-0 text-xs text-emerald-700 dark:text-emerald-400 underline hover:no-underline focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          aria-label={dismissLabel}
-        >
-          {dismissLabel}
-        </button>
-      </div>
     </div>
   );
 }
@@ -149,24 +69,14 @@ export default function OrganizationPage() {
   const fetchTokens = useCallback(async () => {
     setIsLoadingTokens(true);
     setLoadError(null);
-    try {
-      const response = await fetch('/api/v1/tokens', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const msg = await parseErrorMessage(response, org.loadingError);
-        setLoadError(msg);
-        return;
-      }
-      const data: SdkToken[] = await response.json();
-      setTokens(data);
-    } catch {
-      setLoadError(org.loadingError);
-    } finally {
-      setIsLoadingTokens(false);
+    const result = await listOrgTokens();
+    if (result.ok) {
+      setTokens(result.tokens);
+    } else {
+      setLoadError(result.message);
     }
-  }, [org.loadingError]);
+    setIsLoadingTokens(false);
+  }, []);
 
   useEffect(() => {
     void fetchTokens();
@@ -180,27 +90,16 @@ export default function OrganizationPage() {
     setSelectedProjectId('');
     setCreateError(null);
     setIsLoadingProjects(true);
-    try {
-      const response = await fetch('/api/v1/projects', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const msg = await parseErrorMessage(response, org.loadingError);
-        setCreateError(msg);
-        setIsLoadingProjects(false);
-        return;
+    const result = await listProjects();
+    if (result.ok) {
+      setProjects(result.projects);
+      if (result.projects.length > 0) {
+        setSelectedProjectId(result.projects[0].id);
       }
-      const data: ProjectSummary[] = await response.json();
-      setProjects(data);
-      if (data.length > 0) {
-        setSelectedProjectId(data[0].id);
-      }
-    } catch {
-      setCreateError(org.loadingError);
-    } finally {
-      setIsLoadingProjects(false);
+    } else {
+      setCreateError(result.message);
     }
+    setIsLoadingProjects(false);
   }
 
   function handleCloseModal() {
@@ -225,33 +124,22 @@ export default function OrganizationPage() {
     }
 
     setIsCreating(true);
-    try {
-      const response = await fetch('/api/v1/tokens', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newKeyName.trim(), projectId: selectedProjectId }),
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const msg = await parseErrorMessage(response, org.createError);
-        setCreateError(msg);
-        return;
-      }
-      const data: CreatedToken = await response.json();
-
-      // Store the raw token for one-time display
-      setCreatedToken(data);
-      const project = projects.find((p) => p.id === selectedProjectId);
-      setCreatedProjectName(project?.name ?? '');
-
-      // Close modal and refresh list
-      setIsModalOpen(false);
-      void fetchTokens();
-    } catch {
-      setCreateError(org.createError);
-    } finally {
+    const result = await createOrgToken(newKeyName, selectedProjectId);
+    if (!result.ok) {
+      setCreateError(result.message);
       setIsCreating(false);
+      return;
     }
+
+    // Store the raw token for one-time display
+    setCreatedToken(result.token);
+    const project = projects.find((p) => p.id === selectedProjectId);
+    setCreatedProjectName(project?.name ?? '');
+
+    // Close modal and refresh list
+    setIsModalOpen(false);
+    setIsCreating(false);
+    void fetchTokens();
   }
 
   // ── Revoke token ────────────────────────────────────────────────────────────
@@ -259,30 +147,21 @@ export default function OrganizationPage() {
   async function handleRevoke(id: string) {
     setIsRevoking(true);
     setRevokeError(null);
-    try {
-      const response = await fetch(`/api/v1/tokens/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const msg = await parseErrorMessage(response, org.revokeError);
-        setRevokeError(msg);
-        setPendingRevokeId(null);
-        return;
-      }
-      // Optimistically remove from list
-      setTokens((prev) => prev.filter((tk) => tk.id !== id));
+    const result = await revokeOrgToken(id);
+    if (!result.ok) {
+      setRevokeError(result.message);
       setPendingRevokeId(null);
-      // Also clear the reveal banner if it matches the revoked token
-      if (createdToken?.id === id) {
-        setCreatedToken(null);
-      }
-    } catch {
-      setRevokeError(org.revokeError);
-      setPendingRevokeId(null);
-    } finally {
       setIsRevoking(false);
+      return;
     }
+    // Optimistically remove from list
+    setTokens((prev) => prev.filter((tk) => tk.id !== id));
+    setPendingRevokeId(null);
+    // Also clear the reveal banner if it matches the revoked token
+    if (createdToken?.id === id) {
+      setCreatedToken(null);
+    }
+    setIsRevoking(false);
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -366,7 +245,7 @@ export default function OrganizationPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 align-middle text-muted-foreground whitespace-nowrap">
-                      {new Date(token.createdAt).toLocaleDateString(locale)}
+                      {formatDate(token.createdAt, locale)}
                     </td>
                     <td className="px-4 py-3 align-middle">
                       {pendingRevokeId === token.id ? (

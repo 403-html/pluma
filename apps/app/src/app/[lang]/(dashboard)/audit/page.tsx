@@ -5,6 +5,7 @@ import type { AuditLogEntry, AuditAction } from '@pluma/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Button } from '@/components/ui/button';
+import { formatDateTime } from '@/lib/dateUtils';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,7 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
   return (
     <tr className="transition-colors hover:bg-muted/40">
       <td className="px-3 py-3 border-b border-border/20 align-middle text-sm text-muted-foreground whitespace-nowrap">
-        {new Date(entry.createdAt).toLocaleString(locale)}
+        {formatDateTime(entry.createdAt, locale)}
       </td>
       <td className="px-3 py-3 border-b border-border/20 align-middle text-sm">
         {entry.actorEmail}
