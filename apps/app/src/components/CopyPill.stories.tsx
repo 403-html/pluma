@@ -42,3 +42,23 @@ export const Short: Story = {
     value: 'k1',
   },
 };
+
+/**
+ * CopyPill with clipboard write failure mocked.
+ * Simulates an error when attempting to copy, to validate error-state UI.
+ */
+export const ClipboardError: Story = {
+  args: {
+    value: 'project-key-error',
+  },
+  decorators: [
+    (StoryComponent) => {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        // Simulate clipboard failure for this story.
+        navigator.clipboard.writeText = () =>
+          Promise.reject(new Error('Simulated clipboard write failure'));
+      }
+      return <StoryComponent />;
+    },
+  ],
+};
