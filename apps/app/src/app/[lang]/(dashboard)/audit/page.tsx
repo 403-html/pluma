@@ -5,6 +5,7 @@ import type { AuditLogEntry, AuditAction } from '@pluma/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/PageHeader';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ function AuditFiltersBar({ state, labels }: AuditFiltersProps) {
     handleProjectChange, handleEnvChange, handleFlagChange } = state;
 
   return (
-    <div className="flex flex-wrap items-end gap-4 mb-6">
+    <div className="flex flex-wrap items-end gap-4">
       <FilterSelect id="project-filter" label={labels.filterProject} allLabel={labels.allProjects}
         value={selectedProjectId} onChange={handleProjectChange} options={projects} />
       <FilterSelect id="env-filter" label={labels.filterEnvironment} allLabel={labels.allEnvironments}
@@ -179,9 +180,7 @@ export default function AuditPage() {
   if (isLoading && !auditData) {
     return (
       <main className="p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
-        </div>
+        <PageHeader title={t.audit.title} />
         <p>{t.common.loading}</p>
       </main>
     );
@@ -190,9 +189,7 @@ export default function AuditPage() {
   if (error && !auditData) {
     return (
       <main className="p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
-        </div>
+        <PageHeader title={t.audit.title} />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
@@ -200,18 +197,19 @@ export default function AuditPage() {
 
   return (
     <main className="p-8">
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
-      </div>
-
-      <AuditFiltersBar state={state} labels={{
-        filterProject: t.audit.filterProject,
-        allProjects: t.audit.allProjects,
-        filterEnvironment: t.audit.filterEnvironment,
-        allEnvironments: t.audit.allEnvironments,
-        filterFlag: t.audit.filterFlag,
-        allFlags: t.audit.allFlags,
-      }} />
+      <PageHeader 
+        title={t.audit.title}
+        actions={
+          <AuditFiltersBar state={state} labels={{
+            filterProject: t.audit.filterProject,
+            allProjects: t.audit.allProjects,
+            filterEnvironment: t.audit.filterEnvironment,
+            allEnvironments: t.audit.allEnvironments,
+            filterFlag: t.audit.filterFlag,
+            allFlags: t.audit.allFlags,
+          }} />
+        }
+      />
 
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 

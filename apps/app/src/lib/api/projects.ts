@@ -33,6 +33,27 @@ export async function listProjects(): Promise<
   }
 }
 
+export async function getProject(
+  id: string
+): Promise<{ ok: true; project: ProjectSummary } | { ok: false; message: string }> {
+  try {
+    const response = await fetch(`/api/v1/projects/${id}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response, 'Failed to load project');
+      return { ok: false, message };
+    }
+
+    const project: ProjectSummary = await response.json();
+    return { ok: true, project };
+  } catch {
+    return { ok: false, message: 'Unable to reach the server. Check your connection.' };
+  }
+}
+
 export async function createProject(
   key: string,
   name: string

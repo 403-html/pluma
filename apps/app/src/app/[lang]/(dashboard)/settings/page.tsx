@@ -7,6 +7,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function SettingsPage() {
   const { t, locale } = useLocale();
@@ -40,7 +41,7 @@ export default function SettingsPage() {
 
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold mb-8">{t.settings.title}</h1>
+      <PageHeader title={t.settings.title} />
 
       <section className="mb-8 flex flex-col gap-4 last:mb-0">
         <h2 className="text-lg font-semibold mb-4">{t.settings.generalSection}</h2>
