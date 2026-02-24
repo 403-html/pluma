@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
   listFlagsForEnvironment,
@@ -11,9 +11,12 @@ import {
 } from '@/lib/api/flags';
 import EmptyState from '@/components/EmptyState';
 import { Flag } from 'lucide-react';
+import { getProject } from '@/lib/api/projects';
+import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
+import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
 
 type ModalState =
@@ -23,11 +26,12 @@ type ModalState =
 
 export default function FlagsPage() {
   const { t, locale } = useLocale();
-  const router = useRouter();
   const params = useParams();
   const projectId = params.projectId as string;
   const envId = params.envId as string;
   const [flags, setFlags] = useState<FlagEntry[]>([]);
+  const [projectName, setProjectName] = useState<string | null>(null);
+  const [envName, setEnvName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
@@ -38,14 +42,25 @@ export default function FlagsPage() {
   const loadFlags = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const result = await listFlagsForEnvironment(envId);
-    if (result.ok) {
-      setFlags(result.flags);
+    const [flagsResult, projectResult, envsResult] = await Promise.all([
+      listFlagsForEnvironment(envId),
+      getProject(projectId),
+      listEnvironments(projectId),
+    ]);
+    if (flagsResult.ok) {
+      setFlags(flagsResult.flags);
     } else {
-      setError(result.message);
+      setError(flagsResult.message);
+    }
+    if (projectResult.ok) {
+      setProjectName(projectResult.project.name);
+    }
+    if (envsResult.ok) {
+      const env = envsResult.environments.find(e => e.id === envId);
+      if (env) setEnvName(env.name);
     }
     setIsLoading(false);
-  }, [envId]);
+  }, [envId, projectId]);
 
   useEffect(() => {
     loadFlags();
@@ -73,16 +88,13 @@ export default function FlagsPage() {
   if (isLoading) {
     return (
       <main className="p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
-          >
-            {t.flags.backToEnvironments}
-          </Button>
-          <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
-        </div>
+        <PageHeader 
+          breadcrumbs={[
+            { label: t.projects.title, href: `/${locale}/projects` },
+            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` }
+          ]}
+          title={envName ?? '…'}
+        />
         <p>{t.common.loading}</p>
       </main>
     );
@@ -91,16 +103,13 @@ export default function FlagsPage() {
   if (error && flags.length === 0) {
     return (
       <main className="p-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
-          >
-            {t.flags.backToEnvironments}
-          </Button>
-          <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
-        </div>
+        <PageHeader 
+          breadcrumbs={[
+            { label: t.projects.title, href: `/${locale}/projects` },
+            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` }
+          ]}
+          title={envName ?? '…'}
+        />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
     );
@@ -108,22 +117,20 @@ export default function FlagsPage() {
 
   return (
     <main className="p-8">
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push(`/${locale}/projects/${projectId}/environments`)}
-        >
-          {t.flags.backToEnvironments}
-        </Button>
-        <h1 className="text-2xl font-semibold">{t.flags.title}</h1>
-        <Button
-          className="ml-auto"
-          onClick={() => { setError(null); setModalState({ type: 'add' }); }}
-        >
-          {t.flags.newFlag}
-        </Button>
-      </div>
+      <PageHeader 
+        breadcrumbs={[
+          { label: t.projects.title, href: `/${locale}/projects` },
+          { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` }
+        ]}
+        title={envName ?? '…'}
+        actions={
+          <Button
+            onClick={() => { setError(null); setModalState({ type: 'add' }); }}
+          >
+            {t.flags.newFlag}
+          </Button>
+        }
+      />
 
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
