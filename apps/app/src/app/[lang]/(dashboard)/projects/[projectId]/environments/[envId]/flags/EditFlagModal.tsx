@@ -39,9 +39,8 @@ export function EditFlagModal({
   const [allowList, setAllowList] = useState<string[]>(flag.allowList);
   const [denyList, setDenyList] = useState<string[]>(flag.denyList);
 
-  // Conflict validation: intersection between current tags
-  const conflictIds = allowList.filter((id) => denyList.includes(id));
-  const hasConflict = conflictIds.length > 0;
+  // Conflict validation: check if any id exists in both lists
+  const hasConflict = allowList.some((id) => denyList.includes(id));
 
   // Union of both lists as the suggestions pool
   const suggestionPool = useMemo(
