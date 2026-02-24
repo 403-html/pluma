@@ -8,6 +8,7 @@ import {
   deleteProject,
   type ProjectSummary,
 } from '@/lib/api/projects';
+import EmptyState from '@/components/EmptyState';
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
@@ -92,7 +93,7 @@ export default function ProjectsPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {projects.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">{t.projects.emptyState}</div>
+        <EmptyState message={t.projects.emptyState} />
       ) : (
         <table className="w-full border-collapse" aria-label={t.projects.title}>
           <thead>

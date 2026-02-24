@@ -6,6 +6,7 @@ import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Button } from '@/components/ui/button';
 import { formatDateTime } from '@/lib/dateUtils';
+import EmptyState from '@/components/EmptyState';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -217,7 +218,7 @@ export default function AuditPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {auditData && auditData.entries.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">{t.audit.emptyState}</div>
+        <EmptyState message={t.audit.emptyState} />
       ) : auditData ? (
         <>
           <AuditTable auditData={auditData} locale={locale} headers={{

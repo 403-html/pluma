@@ -8,6 +8,7 @@ import {
   deleteEnvironment,
   type EnvironmentSummary,
 } from '@/lib/api/environments';
+import EmptyState from '@/components/EmptyState';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,7 @@ export default function EnvironmentsPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {environments.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">{t.environments.emptyState}</div>
+        <EmptyState message={t.environments.emptyState} />
       ) : (
         <table className="w-full border-collapse" aria-label={t.environments.title}>
           <thead>

@@ -9,6 +9,7 @@ import {
   toggleFlagEnabled,
   type FlagEntry,
 } from '@/lib/api/flags';
+import EmptyState from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
@@ -126,7 +127,7 @@ export default function FlagsPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {flags.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">{t.flags.emptyState}</div>
+        <EmptyState message={t.flags.emptyState} />
       ) : (
         <table className="w-full border-collapse" aria-label={t.flags.title}>
           <thead>
