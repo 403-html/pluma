@@ -35,6 +35,7 @@ export function TargetingInput({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
   const listboxId = `${id}-listbox`;
 
   // Close dropdown on outside click
@@ -42,21 +43,31 @@ export function TargetingInput({
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setHighlightedIndex(-1);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset highlight when the visible option list changes
+  // Reset highlight when the query changes (not when isOpen changes, to avoid
+  // cancelling the highlight set by ArrowDown in the same render cycle)
   useEffect(() => {
     setHighlightedIndex(-1);
-  }, [query, isOpen]);
+  }, [query]);
 
-  // Scroll highlighted option into view
+  // Scroll highlighted option into view within the listbox only (avoids scrolling the page)
   useEffect(() => {
-    if (highlightedIndex < 0) return;
-    document.getElementById(`${id}-option-${highlightedIndex}`)?.scrollIntoView({ block: 'nearest' });
+    if (highlightedIndex < 0 || !listboxRef.current) return;
+    const option = listboxRef.current.querySelector<HTMLElement>(`#${CSS.escape(`${id}-option-${highlightedIndex}`)}`);
+    if (!option) return;
+    const list = listboxRef.current;
+    const optionBottom = option.offsetTop + option.offsetHeight;
+    if (option.offsetTop < list.scrollTop) {
+      list.scrollTop = option.offsetTop;
+    } else if (optionBottom > list.scrollTop + list.clientHeight) {
+      list.scrollTop = optionBottom - list.clientHeight;
+    }
   }, [highlightedIndex, id]);
 
   // Derived: filtered suggestions (exclude already-selected, match query case-insensitively)
@@ -183,6 +194,7 @@ export function TargetingInput({
       {/* Dropdown */}
       {isOpen && hasDropdownContent && (
         <ul
+          ref={listboxRef}
           id={listboxId}
           role="listbox"
           className="absolute z-50 mt-1 w-full max-h-[200px] overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md py-1"
