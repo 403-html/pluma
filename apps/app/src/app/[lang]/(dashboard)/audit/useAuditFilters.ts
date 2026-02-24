@@ -34,6 +34,14 @@ export interface AuditFilterState {
   handleNextPage: () => void;
 }
 
+/**
+ * Options for `useAuditFilters`.
+ *
+ * Pass `initialAuditData` and/or `initialProjects` to seed the hook with
+ * static data (e.g. Storybook stories). When either value is provided the
+ * corresponding API fetch is skipped entirely for the lifetime of the hook
+ * instance — use this only in contexts where live data loading is not needed.
+ */
 export interface UseAuditFiltersOptions {
   initialAuditData?: AuditPageData;
   initialProjects?: ProjectSummary[];
@@ -85,7 +93,11 @@ export function useAuditFilters(options: UseAuditFiltersOptions = {}): AuditFilt
       });
       if (response.ok) {
         const data: Flag[] = await response.json();
-        setFlags(data);
+        if (Array.isArray(data)) {
+          setFlags(data);
+        } else {
+          setFlags([]);
+        }
       } else {
         setFlags([]);
       }

@@ -170,6 +170,13 @@ function AuditPagination({ currentPage, hasPrev, hasNext, onPrev, onNext, prevLa
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+/**
+ * Optional props for `AuditPage`.
+ *
+ * These props are intended for Storybook stories and testing only.
+ * When provided they seed the page with static data and disable all
+ * API fetches — do not use them in production routes.
+ */
 export interface AuditPageProps {
   initialAuditData?: AuditPageData;
   initialProjects?: ProjectSummary[];

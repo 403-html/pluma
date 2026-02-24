@@ -8,9 +8,7 @@ import type { Preview } from "@storybook/react-vite";
 if (typeof window !== 'undefined') {
   const realFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
-    const url = typeof input === 'string' ? input
-      : input instanceof URL ? input.href
-      : (input as Request).url;
+    const url = input instanceof Request ? input.url : String(input);
     if (url.startsWith('/api/') || url.startsWith('/sdk/')) {
       return Promise.resolve(new Response(null, { status: 404 }));
     }
