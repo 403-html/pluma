@@ -16,11 +16,19 @@ export function TargetingNotice({ title, body, codeSnippet, dismissLabel }: Targ
   const [visible, setVisible] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setVisible(localStorage.getItem(DISMISSED_KEY) !== 'true');
+    try {
+      setVisible(localStorage.getItem(DISMISSED_KEY) !== 'true');
+    } catch {
+      setVisible(true);
+    }
   }, []);
 
   function handleDismiss() {
-    localStorage.setItem(DISMISSED_KEY, 'true');
+    try {
+      localStorage.setItem(DISMISSED_KEY, 'true');
+    } catch {
+      // storage unavailable; dismiss for this session only
+    }
     setVisible(false);
   }
 

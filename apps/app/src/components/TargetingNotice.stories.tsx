@@ -12,7 +12,7 @@ type Story = StoryObj<typeof TargetingNotice>;
 export const Default: Story = {
   args: {
     title: 'How targeting works',
-    body: 'IDs you add here are matched against the subjectKey you pass to the SDK evaluator. User IDs are never collected automatically — enter the ones you want to target in advance.',
+    body: 'IDs are matched against the subjectKey passed to the SDK evaluator. Add known IDs - they are never auto-collected.',
     codeSnippet: "evaluator({ subjectKey: 'user-id' })",
     dismissLabel: 'Dismiss targeting notice',
   },
