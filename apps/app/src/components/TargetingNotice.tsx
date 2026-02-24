@@ -35,12 +35,12 @@ export function TargetingNotice({ title, body, codeSnippet, dismissLabel }: Targ
   if (!visible) return null;
 
   return (
-    <div className="flex gap-2.5 rounded-md border border-blue-600 bg-blue-700 px-3 py-2.5 text-sm dark:border-blue-900 dark:bg-blue-950/40">
-      <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-200 dark:text-blue-400" aria-hidden="true" />
+    <div className="flex gap-2.5 rounded-md border border-border bg-accent px-3 py-2.5 text-sm">
+      <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
       <div className="flex-1 space-y-1">
-        <p className="font-medium text-blue-100 dark:text-blue-200">{title}</p>
-        <p className="text-blue-200 dark:text-blue-300">{body}</p>
-        <code className="block rounded bg-blue-900 px-2 py-0.5 font-mono text-xs text-blue-100 dark:bg-blue-900/60 dark:text-blue-200">
+        <p className="font-medium text-accent-foreground">{title}</p>
+        <p className="text-muted-foreground">{body}</p>
+        <code className="block rounded bg-muted px-2 py-0.5 font-mono text-xs text-foreground">
           {codeSnippet}
         </code>
       </div>
@@ -48,7 +48,7 @@ export function TargetingNotice({ title, body, codeSnippet, dismissLabel }: Targ
         type="button"
         aria-label={dismissLabel}
         onClick={handleDismiss}
-        className="shrink-0 self-start text-blue-200 hover:text-white dark:text-blue-500 dark:hover:text-blue-300"
+        className="shrink-0 self-start text-muted-foreground hover:text-foreground"
       >
         <X className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
