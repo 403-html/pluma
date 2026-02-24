@@ -11,17 +11,17 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'pluma-theme';
+const THEME_COOKIE = 'pluma-theme';
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'system';
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark' || stored === 'system') {
-      return stored;
-    }
-    return 'system';
-  });
+export function ThemeProvider({
+  children,
+  initialTheme = 'system',
+}: {
+  children: React.ReactNode;
+  initialTheme?: Theme;
+}) {
+  const [theme, setThemeState] = useState<Theme>(initialTheme);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -52,7 +52,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   function setTheme(next: Theme) {
     setThemeState(next);
-    localStorage.setItem(STORAGE_KEY, next);
+    document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
   }
 
   return (
