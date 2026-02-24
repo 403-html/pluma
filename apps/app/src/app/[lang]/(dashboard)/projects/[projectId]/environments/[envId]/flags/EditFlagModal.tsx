@@ -1,95 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
 import Modal from '@/components/Modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
+import { TargetingInput } from '@/components/TargetingInput';
 import { updateFlag, updateFlagConfig, type FlagEntry } from '@/lib/api/flags';
 import { isValidProjectKey } from '@/lib/projectKeyUtils';
-
-// ─── Tag Input ────────────────────────────────────────────────────────────────
-
-function TagInput({
-  id,
-  tags,
-  inputValue,
-  onInputChange,
-  onAdd,
-  onRemove,
-  placeholder,
-  disabled,
-}: {
-  id: string;
-  tags: string[];
-  inputValue: string;
-  onInputChange: (value: string) => void;
-  onAdd: (value: string) => void;
-  onRemove: (value: string) => void;
-  placeholder: string;
-  disabled: boolean;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  function commit(raw: string) {
-    const value = raw.trim();
-    if (value && !tags.includes(value)) {
-      onAdd(value);
-    }
-    onInputChange('');
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      commit(inputValue);
-    } else if (e.key === 'Backspace' && inputValue === '' && tags.length > 0) {
-      onRemove(tags[tags.length - 1]);
-    }
-  }
-
-  return (
-    <div
-      className="flex flex-wrap gap-1.5 min-h-[38px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-within:ring-1 focus-within:ring-ring cursor-text"
-      onClick={() => inputRef.current?.focus()}
-    >
-      {tags.map((tag) => (
-        <span
-          key={tag}
-          className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs font-medium text-foreground"
-        >
-          {tag}
-          <button
-            type="button"
-            aria-label={`Remove ${tag}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!disabled) onRemove(tag);
-            }}
-            disabled={disabled}
-            className="leading-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed"
-          >
-            ×
-          </button>
-        </span>
-      ))}
-      <input
-        ref={inputRef}
-        id={id}
-        type="text"
-        value={inputValue}
-        onChange={(e) => onInputChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={tags.length === 0 ? placeholder : ''}
-        disabled={disabled}
-        className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
-        autoComplete="off"
-      />
-    </div>
-  );
-}
 
 // ─── Edit Flag Modal ───────────────────────────────────────────────────────────
 
@@ -117,13 +37,13 @@ export function EditFlagModal({
   // Targeting state
   const [allowList, setAllowList] = useState<string[]>(flag.allowList);
   const [denyList, setDenyList] = useState<string[]>(flag.denyList);
-  const [allowInput, setAllowInput] = useState('');
-  const [denyInput, setDenyInput] = useState('');
 
   // Conflict validation: intersection between current tags
   const conflictIds = allowList.filter((id) => denyList.includes(id));
   const hasConflict = conflictIds.length > 0;
-  const hasPendingInput = allowInput.trim() !== '' || denyInput.trim() !== '';
+
+  // Union of both lists as the suggestions pool
+  const suggestionPool = [...new Set([...allowList, ...denyList])];
 
   function handleEditKey() {
     setIsKeyEditing(true);
@@ -164,7 +84,7 @@ export function EditFlagModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (hasConflict || hasPendingInput) return;
+    if (hasConflict) return;
 
     setIsSubmitting(true);
 
@@ -199,7 +119,7 @@ export function EditFlagModal({
     onSuccess();
   }
 
-  const submitDisabled = isSubmitting || hasConflict || hasPendingInput;
+  const submitDisabled = isSubmitting || hasConflict;
 
   return (
     <Modal titleId="edit-flag-modal-title" title={t.flags.modalEditTitle} onClose={onClose}>
@@ -261,15 +181,18 @@ export function EditFlagModal({
             <label htmlFor="flag-allow-list" className="text-sm font-medium">
               {t.flags.allowListLabel}
             </label>
-            <TagInput
+            <TargetingInput
               id="flag-allow-list"
               tags={allowList}
-              inputValue={allowInput}
-              onInputChange={setAllowInput}
+              suggestions={suggestionPool}
               onAdd={(v) => setAllowList((prev) => [...prev, v])}
               onRemove={(v) => setAllowList((prev) => prev.filter((x) => x !== v))}
-              placeholder={t.flags.targetingPlaceholder}
+              placeholder={t.flags.targetingSearchPlaceholder}
               disabled={isSubmitting}
+              disabledValues={denyList}
+              addOptionLabel={t.flags.targetingAddOption}
+              disabledValueHint={t.flags.targetingDisabledValueHint}
+              errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
             />
           </div>
 
@@ -277,26 +200,24 @@ export function EditFlagModal({
             <label htmlFor="flag-deny-list" className="text-sm font-medium">
               {t.flags.denyListLabel}
             </label>
-            <TagInput
+            <TargetingInput
               id="flag-deny-list"
               tags={denyList}
-              inputValue={denyInput}
-              onInputChange={setDenyInput}
+              suggestions={suggestionPool}
               onAdd={(v) => setDenyList((prev) => [...prev, v])}
               onRemove={(v) => setDenyList((prev) => prev.filter((x) => x !== v))}
-              placeholder={t.flags.targetingPlaceholder}
+              placeholder={t.flags.targetingSearchPlaceholder}
               disabled={isSubmitting}
+              disabledValues={allowList}
+              addOptionLabel={t.flags.targetingAddOption}
+              disabledValueHint={t.flags.targetingDisabledValueHint}
+              errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
             />
           </div>
 
           {hasConflict && (
-            <p role="alert" className="mt-2 text-xs text-destructive">
+            <p id="flag-targeting-conflict-error" role="alert" className="mt-2 text-xs text-destructive">
               {t.flags.targetingConflictError}
-            </p>
-          )}
-          {!hasConflict && hasPendingInput && (
-            <p role="alert" className="mt-2 text-xs text-destructive">
-              {t.flags.targetingPendingError}
             </p>
           )}
         </div>

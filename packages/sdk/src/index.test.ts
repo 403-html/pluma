@@ -312,15 +312,24 @@ describe("PlumaSnapshotCache", () => {
       expect(evaluator.isEnabled("a")).toBe(true);
     });
 
-    it("no subjectKey with non-empty allowList falls through to base enabled state", async () => {
+    it("non-empty allowList blocks access when no subjectKey is provided", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["only-this"], denyList: [] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator(); // no subjectKey
-      // allowList/denyList are explicit overrides; without a subject they are skipped,
-      // so evaluation falls through to base enabled state.
-      expect(evaluator.isEnabled("feat")).toBe(true);
+      // Strict whitelist: no subject cannot be in the list, so access is denied.
+      expect(evaluator.isEnabled("feat")).toBe(false);
+    });
+
+    it("non-empty allowList blocks an unlisted subject even when the flag is enabled", async () => {
+      stubFetch(makeSnapshot([
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [] },
+      ]));
+      const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+      const evaluator = await cache.evaluator({ subjectKey: "other" });
+      // Strict whitelist: "other" is not in allowList, so access is denied even though enabled=true.
+      expect(evaluator.isEnabled("feat")).toBe(false);
     });
 
     it("no subjectKey with empty allowList uses base enabled state", async () => {
@@ -341,7 +350,7 @@ describe("PlumaSnapshotCache", () => {
       // vip subject: child's allowList grants explicit access (overrides parent's enabled=false)
       const vipEval = await cache.evaluator({ subjectKey: "vip" });
       expect(vipEval.isEnabled("child")).toBe(true);
-      // non-vip subject: not in allowList, falls through to parent inheritance → parent.enabled=false
+      // non-vip subject: not in allowList, strict whitelist blocks access
       const otherEval = await cache.evaluator({ subjectKey: "other" });
       expect(otherEval.isEnabled("child")).toBe(false);
     });

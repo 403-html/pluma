@@ -101,11 +101,10 @@ export class PlumaSnapshotCache {
           return false;
         }
 
-        // 2. Allow list: subject explicitly granted regardless of enabled state.
-        //    If the subject is not in the list (or no subjectKey), fall through to
-        //    parent inheritance and base enabled state.
-        if (subjectKey !== undefined && flag.allowList.includes(subjectKey)) {
-          return true;
+        // 2. Allow list: if populated, it is a strict whitelist.
+        //    Only subjects explicitly listed are granted access; all others are blocked.
+        if (flag.allowList.length > 0) {
+          return subjectKey !== undefined && flag.allowList.includes(subjectKey);
         }
 
         // 3. Parent inheritance: walk up to the parent flag on the next iteration.
