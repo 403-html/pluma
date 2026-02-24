@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { listAuditLog, type AuditFilters, type AuditPage as AuditPageData } from '@/lib/api/audit';
 import type { ProjectSummary } from '@pluma/types';
 
@@ -34,12 +34,29 @@ export interface AuditFilterState {
   handleNextPage: () => void;
 }
 
-export function useAuditFilters(): AuditFilterState {
-  const [auditData, setAuditData] = useState<AuditPageData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+/**
+ * Options for `useAuditFilters`.
+ *
+ * Pass `initialAuditData` and/or `initialProjects` to seed the hook with
+ * static data (e.g. Storybook stories). When either value is provided the
+ * corresponding API fetch is skipped entirely for the lifetime of the hook
+ * instance — use this only in contexts where live data loading is not needed.
+ */
+export interface UseAuditFiltersOptions {
+  initialAuditData?: AuditPageData;
+  initialProjects?: ProjectSummary[];
+}
+
+export function useAuditFilters(options: UseAuditFiltersOptions = {}): AuditFilterState {
+  // Capture initial values in refs so callbacks don't depend on the options object
+  const skipAuditLoadRef = useRef(options.initialAuditData !== undefined);
+  const skipProjectsLoadRef = useRef(options.initialProjects !== undefined);
+
+  const [auditData, setAuditData] = useState<AuditPageData | null>(options.initialAuditData ?? null);
+  const [isLoading, setIsLoading] = useState(!skipAuditLoadRef.current);
   const [error, setError] = useState<string | null>(null);
 
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [projects, setProjects] = useState<ProjectSummary[]>(options.initialProjects ?? []);
   const [flags, setFlags] = useState<Flag[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
 
@@ -49,6 +66,7 @@ export function useAuditFilters(): AuditFilterState {
   const [currentPage, setCurrentPage] = useState(1);
 
   const loadProjects = useCallback(async () => {
+    if (skipProjectsLoadRef.current) return;
     try {
       const response = await fetch('/api/v1/projects', {
         method: 'GET',
@@ -75,7 +93,11 @@ export function useAuditFilters(): AuditFilterState {
       });
       if (response.ok) {
         const data: Flag[] = await response.json();
-        setFlags(data);
+        if (Array.isArray(data)) {
+          setFlags(data);
+        } else {
+          setFlags([]);
+        }
       } else {
         setFlags([]);
       }
@@ -85,6 +107,7 @@ export function useAuditFilters(): AuditFilterState {
   }, []);
 
   const loadAuditEntries = useCallback(async () => {
+    if (skipAuditLoadRef.current) return;
     setIsLoading(true);
     setError(null);
     const filters: AuditFilters = { page: currentPage };

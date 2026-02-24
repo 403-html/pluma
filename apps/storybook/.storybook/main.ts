@@ -31,7 +31,12 @@ const config: StorybookConfig = {
     };
     return {
       ...config,
+      // tailwindcss() processes CSS files; removeUseClientPlugin processes JS/TS files.
+      // They target different file types and do not interfere with each other.
       plugins: [...(config.plugins ?? []), removeUseClientPlugin],
+      css: {
+        postcss: resolve(__dirname, '../../app/postcss.config.cjs'),
+      },
       resolve: {
         ...config.resolve,
         alias: {

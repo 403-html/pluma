@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "..";
 
 /* Bridge shadcn CSS variables into Tailwind v4 color utilities */
 @theme inline {
