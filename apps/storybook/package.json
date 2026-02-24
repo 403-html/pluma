@@ -2,6 +2,7 @@
   "name": "@pluma/storybook",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "storybook build"
@@ -9,7 +10,10 @@
   "devDependencies": {
     "@storybook/react": "^10.2.10",
     "@storybook/react-vite": "^10.2.10",
+    "@tailwindcss/vite": "^4.2.1",
     "@types/node": "^25.2.3",
+    "msw": "^2.12.10",
+    "msw-storybook-addon": "^2.0.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "storybook": "^10.2.10",
@@ -17,5 +21,10 @@
     "vite": "^6.3.5",
     "eslint-plugin-storybook": "10.2.10",
     "@storybook/addon-docs": "^10.2.10"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

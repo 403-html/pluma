@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import type { StorybookConfig } from "@storybook/react-vite";
 import type { Plugin } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,6 +14,7 @@ const config: StorybookConfig = {
     name: "@storybook/react-vite",
     options: {},
   },
+  staticDirs: ["../public"],
   async viteFinal(config) {
     // Vite in Storybook will bundle files from the Next app. Next's
     // top-level "use client" directive is meaningful for Next's RSC runtime
@@ -31,7 +33,9 @@ const config: StorybookConfig = {
     };
     return {
       ...config,
-      plugins: [...(config.plugins ?? []), removeUseClientPlugin],
+      // tailwindcss() processes CSS files; removeUseClientPlugin processes JS/TS files.
+      // They target different file types and do not interfere with each other.
+      plugins: [...(config.plugins ?? []), tailwindcss(), removeUseClientPlugin],
       resolve: {
         ...config.resolve,
         alias: {
