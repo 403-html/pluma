@@ -19,7 +19,7 @@ export function PageHeader({ breadcrumbs, title, actions }: PageHeaderProps) {
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
           {breadcrumbs.map((crumb, index) => (
-            <span key={index} className="flex items-center gap-1">
+            <span key={`${crumb.href ?? ''}-${crumb.label}`} className="flex items-center gap-1">
               {index > 0 && <span aria-hidden="true">/</span>}
               {crumb.href ? (
                 <Link href={crumb.href} className="hover:text-foreground transition-colors">
