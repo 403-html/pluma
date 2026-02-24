@@ -49,7 +49,7 @@ export function CopyPill({ value, className = '' }: CopyPillProps) {
       return 'text-green-600 dark:text-green-400';
     }
     if (state === 'error') {
-      return 'text-red-500';
+      return 'text-destructive';
     }
     return 'text-muted-foreground';
   };
