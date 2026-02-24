@@ -42,8 +42,8 @@ export default function TokenRevealBanner({
           <p className="text-xs font-medium text-muted-foreground dark:text-emerald-400 mb-2">
             {formattedKeyLabel}
           </p>
-          <div className="flex items-center gap-2 rounded-md border border-border dark:border-emerald-800 bg-muted dark:bg-emerald-950/60 px-3 py-2">
-            <CopyPill value={token.token} variant="inline" />
+          <div className="flex items-center gap-2 rounded-md border border-foreground/20 dark:border-emerald-800 bg-foreground dark:bg-emerald-950/60 px-3 py-2">
+            <CopyPill value={token.token} variant="inline" className="text-background dark:text-emerald-300" />
           </div>
         </div>
         <button
