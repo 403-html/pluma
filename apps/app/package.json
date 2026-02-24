@@ -6,7 +6,7 @@
   "version": "0.1.0",
   "scripts": {
     "predev": "pnpm --filter @pluma/types build",
-    "dev": "NODE_OPTIONS=${NODE_OPTIONS:---max-old-space-size=4096} next dev --turbopack",
+    "dev": "NODE_OPTIONS=--max-old-space-size=4096 next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
