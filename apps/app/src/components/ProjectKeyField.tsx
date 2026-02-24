@@ -79,10 +79,7 @@ export function ProjectKeyField({
     <>
       <div className="flex items-center relative gap-2 px-3 py-2.5 bg-muted/30 border border-border rounded-md font-mono text-[0.95rem] min-h-[3rem] group">
         {value ? (
-          <CopyPill
-            value={value}
-            className="flex-1 text-[0.95rem] bg-transparent px-0 py-0 hover:bg-transparent text-foreground"
-          />
+          <CopyPill value={value} variant="inline" />
         ) : (
           <span className="flex-1 font-mono text-[0.95rem] text-foreground" aria-label="placeholder">
             {placeholder}
