@@ -215,6 +215,7 @@ export const en = {
     targetingNoticeTitle: 'How targeting works',
     targetingNoticeBody: 'IDs you add here are matched against the subjectKey you pass to the SDK evaluator. User IDs are never collected automatically — enter the ones you want to target in advance.',
     targetingNoticeCode: "evaluator({ subjectKey: 'user-id' })",
+    targetingNoticeDismiss: 'Dismiss targeting notice',
   },
 } as const;
 

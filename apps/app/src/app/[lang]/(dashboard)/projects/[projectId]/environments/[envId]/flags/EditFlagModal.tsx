@@ -126,113 +126,119 @@ export function EditFlagModal({
   const submitDisabled = isSubmitting || hasConflict;
 
   return (
-    <Modal titleId="edit-flag-modal-title" title={t.flags.modalEditTitle} onClose={onClose}>
+    <Modal titleId="edit-flag-modal-title" title={t.flags.modalEditTitle} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="flag-name-edit" className="text-sm font-medium">
-            {t.flags.nameLabel}
-          </label>
-          <Input
-            id="flag-name-edit"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t.flags.namePlaceholder}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
+        <div className="grid grid-cols-2 gap-x-6 items-start">
+          {/* ── Left column: flag metadata ──────────────────────────── */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="flag-name-edit" className="text-sm font-medium">
+                {t.flags.nameLabel}
+              </label>
+              <Input
+                id="flag-name-edit"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t.flags.namePlaceholder}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
 
-        <div className="flex flex-col gap-1.5 mt-4">
-          <label htmlFor="flag-key-edit" className="text-sm font-medium">
-            {t.flags.keyLabel}
-          </label>
-          <ProjectKeyField
-            id="flag-key-edit"
-            value={key}
-            isEditing={isKeyEditing}
-            error={keyError}
-            disabled={isSubmitting}
-            placeholder={t.flags.keyPlaceholder}
-            editBtnLabel={t.flags.keyEditBtnLabel}
-            onEditStart={handleEditKey}
-            onChange={handleKeyChange}
-            onBlur={handleKeyBlur}
-          />
-        </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="flag-key-edit" className="text-sm font-medium">
+                {t.flags.keyLabel}
+              </label>
+              <ProjectKeyField
+                id="flag-key-edit"
+                value={key}
+                isEditing={isKeyEditing}
+                error={keyError}
+                disabled={isSubmitting}
+                placeholder={t.flags.keyPlaceholder}
+                editBtnLabel={t.flags.keyEditBtnLabel}
+                onEditStart={handleEditKey}
+                onChange={handleKeyChange}
+                onBlur={handleKeyBlur}
+              />
+            </div>
 
-        <div className="flex flex-col gap-1.5 mt-4">
-          <label htmlFor="flag-description-edit" className="text-sm font-medium">
-            {t.flags.descriptionLabel}
-          </label>
-          <textarea
-            id="flag-description-edit"
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t.flags.descriptionPlaceholder}
-            disabled={isSubmitting}
-            maxLength={500}
-            rows={3}
-          />
-        </div>
-
-        {/* ── Targeting ───────────────────────────────────────────────── */}
-        <div className="mt-6 border-t border-border/40 pt-4">
-          <h3 className="text-sm font-semibold mb-3">{t.flags.targetingTitle}</h3>
-
-          <TargetingNotice
-            title={t.flags.targetingNoticeTitle}
-            body={t.flags.targetingNoticeBody}
-            codeSnippet={t.flags.targetingNoticeCode}
-          />
-
-          <div className="flex flex-col gap-1.5 mt-4">
-            <label htmlFor="flag-allow-list" className="text-sm font-medium">
-              {t.flags.allowListLabel}
-            </label>
-            <TargetingInput
-              id="flag-allow-list"
-              tags={allowList}
-              suggestions={suggestionPool}
-              onAdd={(v) => setAllowList((prev) => [...prev, v])}
-              onRemove={(v) => setAllowList((prev) => prev.filter((x) => x !== v))}
-              placeholder={t.flags.targetingSearchPlaceholder}
-              disabled={isSubmitting}
-              disabledValues={denyList}
-              addOptionLabel={t.flags.targetingAddOption}
-              disabledValueHint={t.flags.targetingDisabledValueHint}
-              errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="flag-description-edit" className="text-sm font-medium">
+                {t.flags.descriptionLabel}
+              </label>
+              <textarea
+                id="flag-description-edit"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t.flags.descriptionPlaceholder}
+                disabled={isSubmitting}
+                maxLength={500}
+                rows={3}
+              />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 mt-4">
-            <label htmlFor="flag-deny-list" className="text-sm font-medium">
-              {t.flags.denyListLabel}
-            </label>
-            <TargetingInput
-              id="flag-deny-list"
-              tags={denyList}
-              suggestions={suggestionPool}
-              onAdd={(v) => setDenyList((prev) => [...prev, v])}
-              onRemove={(v) => setDenyList((prev) => prev.filter((x) => x !== v))}
-              placeholder={t.flags.targetingSearchPlaceholder}
-              disabled={isSubmitting}
-              disabledValues={allowList}
-              addOptionLabel={t.flags.targetingAddOption}
-              disabledValueHint={t.flags.targetingDisabledValueHint}
-              errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
-            />
-          </div>
+          {/* ── Right column: targeting ──────────────────────────────── */}
+          <div className="flex flex-col border-l border-border/40 pl-6">
+            <h3 className="text-sm font-semibold mb-3">{t.flags.targetingTitle}</h3>
 
-          {hasConflict && (
-            <p id="flag-targeting-conflict-error" role="alert" className="mt-2 text-xs text-destructive">
-              {t.flags.targetingConflictError}
-            </p>
-          )}
+            <TargetingNotice
+              title={t.flags.targetingNoticeTitle}
+              body={t.flags.targetingNoticeBody}
+              codeSnippet={t.flags.targetingNoticeCode}
+              dismissLabel={t.flags.targetingNoticeDismiss}
+            />
+
+            <div className="flex flex-col gap-1.5 mt-4">
+              <label htmlFor="flag-allow-list" className="text-sm font-medium">
+                {t.flags.allowListLabel}
+              </label>
+              <TargetingInput
+                id="flag-allow-list"
+                tags={allowList}
+                suggestions={suggestionPool}
+                onAdd={(v) => setAllowList((prev) => [...prev, v])}
+                onRemove={(v) => setAllowList((prev) => prev.filter((x) => x !== v))}
+                placeholder={t.flags.targetingSearchPlaceholder}
+                disabled={isSubmitting}
+                disabledValues={denyList}
+                addOptionLabel={t.flags.targetingAddOption}
+                disabledValueHint={t.flags.targetingDisabledValueHint}
+                errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5 mt-4">
+              <label htmlFor="flag-deny-list" className="text-sm font-medium">
+                {t.flags.denyListLabel}
+              </label>
+              <TargetingInput
+                id="flag-deny-list"
+                tags={denyList}
+                suggestions={suggestionPool}
+                onAdd={(v) => setDenyList((prev) => [...prev, v])}
+                onRemove={(v) => setDenyList((prev) => prev.filter((x) => x !== v))}
+                placeholder={t.flags.targetingSearchPlaceholder}
+                disabled={isSubmitting}
+                disabledValues={allowList}
+                addOptionLabel={t.flags.targetingAddOption}
+                disabledValueHint={t.flags.targetingDisabledValueHint}
+                errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
+              />
+            </div>
+
+            {hasConflict && (
+              <p id="flag-targeting-conflict-error" role="alert" className="mt-2 text-xs text-destructive">
+                {t.flags.targetingConflictError}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="flex gap-3 justify-end mt-5">
+        <div className="flex gap-3 justify-end mt-5 pt-4 border-t border-border/40">
           <Button
             type="button"
             variant="secondary"

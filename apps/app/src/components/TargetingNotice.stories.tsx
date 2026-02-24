@@ -14,5 +14,6 @@ export const Default: Story = {
     title: 'How targeting works',
     body: 'IDs you add here are matched against the subjectKey you pass to the SDK evaluator. User IDs are never collected automatically — enter the ones you want to target in advance.',
     codeSnippet: "evaluator({ subjectKey: 'user-id' })",
+    dismissLabel: 'Dismiss targeting notice',
   },
 };

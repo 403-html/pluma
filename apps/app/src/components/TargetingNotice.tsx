@@ -4,9 +4,10 @@ export interface TargetingNoticeProps {
   title: string;
   body: string;
   codeSnippet: string;
+  dismissLabel: string;
 }
 
-export function TargetingNotice({ title, body, codeSnippet }: TargetingNoticeProps) {
+export function TargetingNotice({ title, body, codeSnippet, dismissLabel: _dismissLabel }: TargetingNoticeProps) {
   return (
     <div className="flex gap-2.5 rounded-md border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm dark:border-blue-900 dark:bg-blue-950/40">
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500 dark:text-blue-400" aria-hidden="true" />
