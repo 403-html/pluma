@@ -7,6 +7,8 @@ import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 import { TOKEN_BYTES, TOKEN_PREFIX, TOKEN_PREFIX_LENGTH } from '../../lib/tokenConstants';
 
+const PAGE_SIZE = 100;
+
 const orgTokenBodySchema = z.object({
   projectId: z.uuid(),
   envId: z.uuid().optional(),
@@ -29,6 +31,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
       const tokens = await prisma.sdkToken.findMany({
         where: { revokedAt: null },
         orderBy: { createdAt: 'desc' },
+        take: PAGE_SIZE,
         include: { project: true },
       });
 
@@ -132,34 +135,35 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
         return reply.badRequest(ReasonPhrases.BAD_REQUEST);
       }
 
-      const token = await prisma.sdkToken.findUnique({
-        where: { id: parsedParams.data.id },
-      });
-
-      if (!token || token.revokedAt !== null) {
-        request.log.warn({ tokenId: parsedParams.data.id }, 'DELETE /tokens/:id rejected: token not found or already revoked');
-        return reply.code(StatusCodes.NOT_FOUND).send({ error: 'Token not found' });
-      }
-
-      await prisma.sdkToken.update({
-        where: { id: parsedParams.data.id },
-        data: { revokedAt: new Date() },
-      });
-
       try {
-        await writeAuditLog({
-          action: 'delete',
-          entityType: 'token',
-          entityId: parsedParams.data.id,
-          projectId: token.projectId,
-          actorId: request.sessionUserId!,
-          actorEmail: request.sessionUser!.email,
+        const revoked = await prisma.sdkToken.update({
+          where: { id: parsedParams.data.id, revokedAt: null },
+          data: { revokedAt: new Date() },
+          select: { projectId: true },
         });
-      } catch (auditError) {
-        request.log.error({ err: auditError, tokenId: parsedParams.data.id }, 'DELETE /tokens/:id: failed to write audit log');
-      }
 
-      return reply.code(StatusCodes.OK).send({ message: 'Token revoked' });
+        try {
+          await writeAuditLog({
+            action: 'delete',
+            entityType: 'token',
+            entityId: parsedParams.data.id,
+            projectId: revoked.projectId,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, tokenId: parsedParams.data.id }, 'DELETE /tokens/:id: failed to write audit log');
+        }
+
+        return reply.code(StatusCodes.OK).send({ message: 'Token revoked' });
+      } catch (error) {
+        if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
+          request.log.warn({ tokenId: parsedParams.data.id }, 'DELETE /tokens/:id rejected: token not found or already revoked');
+          return reply.code(StatusCodes.NOT_FOUND).send({ error: 'Token not found' });
+        }
+
+        throw error;
+      }
     },
   );
 }

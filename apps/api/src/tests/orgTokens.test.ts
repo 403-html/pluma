@@ -119,9 +119,9 @@ describe('Org-level Token routes', () => {
         projectName: 'Test Project',
         envId: ENV_ID,
       });
-      // Verify only active tokens are queried
+      // Verify only active tokens are queried with a take limit
       expect(prismaMock.sdkToken.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ revokedAt: null }) }),
+        expect.objectContaining({ where: expect.objectContaining({ revokedAt: null }), take: 100 }),
       );
     });
 
@@ -329,8 +329,7 @@ describe('Org-level Token routes', () => {
   // ─────────────────────────────────────────────────────────────────────────────
   describe('DELETE /api/v1/tokens/:id', () => {
     it('should return 200 and revoke the token', async () => {
-      prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkTokenWithPrefix);
-      prismaMock.sdkToken.update.mockResolvedValue({ ...mockSdkTokenWithPrefix, revokedAt: FIXED_DATE });
+      prismaMock.sdkToken.update.mockResolvedValue({ ...mockSdkTokenWithPrefix, revokedAt: FIXED_DATE, projectId: PROJECT_ID });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -343,14 +342,14 @@ describe('Org-level Token routes', () => {
       expect(payload).toHaveProperty('message', 'Token revoked');
       expect(prismaMock.sdkToken.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: TOKEN_ID },
+          where: { id: TOKEN_ID, revokedAt: null },
           data: expect.objectContaining({ revokedAt: expect.any(Date) }),
         }),
       );
     });
 
     it('should return 404 when token not found', async () => {
-      prismaMock.sdkToken.findUnique.mockResolvedValue(null);
+      prismaMock.sdkToken.update.mockRejectedValue({ code: 'P2025' });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -364,10 +363,7 @@ describe('Org-level Token routes', () => {
     });
 
     it('should return 404 when token is already revoked', async () => {
-      prismaMock.sdkToken.findUnique.mockResolvedValue({
-        ...mockSdkTokenWithPrefix,
-        revokedAt: FIXED_DATE,
-      });
+      prismaMock.sdkToken.update.mockRejectedValue({ code: 'P2025' });
 
       const response = await app.inject({
         method: 'DELETE',
