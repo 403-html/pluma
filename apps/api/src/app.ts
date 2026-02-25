@@ -8,6 +8,7 @@ import { registerAuthRoutes } from './routes/admin/auth';
 import { registerProjectRoutes } from './routes/admin/projects';
 import { registerTokenRoutes } from './routes/admin/tokens';
 import { registerEnvTokenRoutes } from './routes/admin/envTokens';
+import { registerOrgTokenRoutes } from './routes/admin/orgTokens';
 import { registerFlagRoutes } from './routes/admin/flags';
 import { registerEnvironmentRoutes } from './routes/admin/environments';
 import { registerFlagConfigRoutes } from './routes/admin/flagConfigs';
@@ -57,6 +58,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       await registerProjectRoutes(adminApi);
       await registerTokenRoutes(adminApi);
       await registerEnvTokenRoutes(adminApi);
+      await registerOrgTokenRoutes(adminApi);
       await registerFlagRoutes(adminApi);
       await registerEnvironmentRoutes(adminApi);
       await registerFlagConfigRoutes(adminApi);

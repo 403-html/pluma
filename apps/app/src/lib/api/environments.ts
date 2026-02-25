@@ -3,14 +3,7 @@ import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH } from '@pluma/types';
 
 export type { EnvironmentSummary };
 
-async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data.message === 'string' ? data.message : fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { parseErrorMessage } from './utils';
 
 export async function listEnvironments(projectId: string): Promise<
   { ok: true; environments: EnvironmentSummary[] } | { ok: false; message: string }

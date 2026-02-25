@@ -1,4 +1,5 @@
 import type { AuditLogEntry } from '@pluma/types';
+import { parseErrorMessage } from './utils';
 
 export interface AuditFilters {
   projectId?: string;
@@ -12,15 +13,6 @@ export interface AuditPage {
   page: number;
   pageSize: number;
   entries: AuditLogEntry[];
-}
-
-async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data.message === 'string' ? data.message : fallback;
-  } catch {
-    return fallback;
-  }
 }
 
 export async function listAuditLog(

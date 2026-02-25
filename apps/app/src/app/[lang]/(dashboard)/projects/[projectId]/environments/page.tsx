@@ -8,6 +8,8 @@ import {
   deleteEnvironment,
   type EnvironmentSummary,
 } from '@/lib/api/environments';
+import EmptyState from '@/components/EmptyState';
+import { Boxes } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
@@ -108,7 +110,7 @@ export default function EnvironmentsPage() {
       {error && <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4">{error}</div>}
 
       {environments.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">{t.environments.emptyState}</div>
+        <EmptyState message={t.environments.emptyState} icon={Boxes} />
       ) : (
         <table className="w-full border-collapse" aria-label={t.environments.title}>
           <thead>
