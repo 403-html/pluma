@@ -176,10 +176,10 @@ export async function toggleFlagEnabled(
 export async function updateFlagConfig(
   envId: string,
   flagId: string,
-  data: { allowList?: string[]; denyList?: string[] }
+  data: { enabled?: boolean; allowList?: string[]; denyList?: string[] }
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (data.allowList === undefined && data.denyList === undefined) {
-    return { ok: false, message: 'At least one of allowList or denyList must be provided.' };
+  if (Object.keys(data).length === 0) {
+    return { ok: false, message: 'At least one of enabled, allowList, or denyList must be provided.' };
   }
   try {
     const response = await fetch(`/api/v1/environments/${envId}/flags/${flagId}`, {
