@@ -60,6 +60,10 @@ export async function buildApp(options: BuildAppOptions = {}) {
             in: 'cookie',
             name: 'pluma_session',
           },
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+          },
         },
       },
     },
