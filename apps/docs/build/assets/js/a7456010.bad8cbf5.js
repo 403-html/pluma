@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunk_pluma_docs=globalThis.webpackChunk_pluma_docs||[]).push([[235],{88552(s){s.exports=JSON.parse('{"name":"docusaurus-plugin-content-pages","id":"default"}')}}]);
