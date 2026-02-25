@@ -46,24 +46,22 @@ const config: Config = {
   plugins: [
     [
       // API reference generation plugin.
-      // Run `pnpm --filter @pluma/docs gen-api-docs` (with the API server
-      // running at http://localhost:2137) to fetch the OpenAPI spec and emit
-      // markdown pages into docs/api/.
+      // Run `pnpm --filter @pluma/api gen-openapi` to export the OpenAPI spec
+      // to docs/openapi.json (no running server required), then run
+      // `pnpm --filter @pluma/docs gen-api-docs` to emit markdown pages into
+      // docs/api/.  The root `docs:gen-api-docs` script does both in one step.
       "docusaurus-plugin-openapi-docs",
       {
         id: "api",
         docsPluginId: "classic",
         config: {
           pluma: {
-            specPath: "http://localhost:2137/documentation/json",
+            specPath: "openapi.json",
             outputDir: "docs/api",
             sidebarOptions: {
               groupPathsBy: "tag",
               categoryLinkSource: "tag",
             },
-            // Keep the generated files so the static build does not need the
-            // API server at build time.
-            downloadUrl: "http://localhost:2137/documentation/json",
           },
         },
       },

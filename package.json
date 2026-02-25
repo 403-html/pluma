@@ -13,6 +13,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "pnpm -r test",
     "docs:dev": "pnpm --filter @pluma/docs start",
+    "docs:gen-api-docs": "pnpm --filter @pluma/api gen-openapi && pnpm --filter @pluma/docs gen-api-docs",
     "storybook": "pnpm --filter @pluma/storybook dev",
     "build-storybook": "pnpm --filter @pluma/storybook build"
   },

@@ -1,0 +1,799 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pluma API",
+    "description": "Feature flag management API for Pluma",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Server health and liveness" },
+    { "name": "Auth", "description": "Admin authentication and session management" },
+    { "name": "Projects", "description": "Project management" },
+    { "name": "Flags", "description": "Feature flag management" },
+    { "name": "Environments", "description": "Environment management" },
+    { "name": "Tokens", "description": "SDK token management" },
+    { "name": "Audit", "description": "Audit log queries" },
+    { "name": "SDK", "description": "SDK endpoints for flag evaluation" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "pluma_session"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Returns server liveness status and current timestamp.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  },
+                  "required": ["status", "timestamp"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/setup": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Check setup status",
+        "description": "Returns whether the system has been configured (i.e., at least one admin user exists). No authentication required.",
+        "responses": {
+          "200": {
+            "description": "System is configured",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "configured": { "type": "boolean" } } }
+              }
+            }
+          },
+          "404": {
+            "description": "System not yet configured",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "configured": { "type": "boolean" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register initial admin user",
+        "description": "Creates the first admin user. Returns 409 Conflict if any user already exists.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" },
+          "400": { "description": "Invalid payload" },
+          "409": { "description": "Admin user already exists" }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "description": "Validates credentials and creates a session cookie. Uses constant-time bcrypt comparison to prevent user enumeration via timing attacks.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Logged in successfully" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout",
+        "description": "Deletes the current session and clears the session cookie.",
+        "responses": {
+          "204": { "description": "Logged out" }
+        }
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Change password",
+        "description": "Changes the password for the currently authenticated user. Prevents reuse of the last 5 passwords.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPassword": { "type": "string" },
+                  "newPassword": { "type": "string" }
+                },
+                "required": ["oldPassword", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password changed" },
+          "400": { "description": "Invalid payload or password recently used" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get current user",
+        "description": "Returns the currently authenticated admin user.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "Current user" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List projects",
+        "description": "Returns all projects ordered by creation date, each including their environments.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of projects" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Create project",
+        "description": "Creates a new project. The project key must be unique across all projects.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" }
+                },
+                "required": ["key", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Project created" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "409": { "description": "Key already exists" }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Get project by ID",
+        "description": "Returns a single project by its UUID.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Project" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" }
+        }
+      },
+      "patch": {
+        "tags": ["Projects"],
+        "summary": "Update project",
+        "description": "Partially updates a project. At least one of key or name must be provided.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated project" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" },
+          "409": { "description": "Key already exists" }
+        }
+      },
+      "delete": {
+        "tags": ["Projects"],
+        "summary": "Delete project",
+        "description": "Permanently deletes a project and all associated data.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/tokens": {
+      "get": {
+        "tags": ["Tokens"],
+        "summary": "List project SDK tokens",
+        "description": "Lists all active (non-revoked) SDK tokens for a project.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "List of tokens" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project not found" }
+        }
+      },
+      "post": {
+        "tags": ["Tokens"],
+        "summary": "Create project SDK token",
+        "description": "Creates a new SDK token for a project. Returns the raw token once.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Token created (raw token returned once)" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project not found" }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/tokens/{tokenId}": {
+      "delete": {
+        "tags": ["Tokens"],
+        "summary": "Revoke project SDK token",
+        "description": "Revokes a project-scoped SDK token by setting revokedAt.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "tokenId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "204": { "description": "Token revoked" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Token not found or already revoked" }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/flags": {
+      "get": {
+        "tags": ["Flags"],
+        "summary": "List feature flags",
+        "description": "Returns all feature flags for a project, ordered by creation date.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "List of flags" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project not found" }
+        }
+      },
+      "post": {
+        "tags": ["Flags"],
+        "summary": "Create feature flag",
+        "description": "Creates a new feature flag under the specified project. Optionally supports parent flag nesting up to the configured depth limit.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "parentFlagId": { "type": "string", "format": "uuid" }
+                },
+                "required": ["key", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Flag created" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project not found" },
+          "409": { "description": "Flag key already exists" }
+        }
+      }
+    },
+    "/api/v1/flags/{flagId}": {
+      "patch": {
+        "tags": ["Flags"],
+        "summary": "Update feature flag",
+        "description": "Partially updates a feature flag. At least one of key, name, or description must be provided.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "flagId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string", "nullable": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated flag" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" },
+          "409": { "description": "Flag key already exists" }
+        }
+      },
+      "delete": {
+        "tags": ["Flags"],
+        "summary": "Delete feature flag",
+        "description": "Permanently deletes a feature flag and its associated configurations.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "flagId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/environments": {
+      "get": {
+        "tags": ["Environments"],
+        "summary": "List environments",
+        "description": "Returns all environments for a project, each including flag stats.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "List of environments" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project not found" }
+        }
+      },
+      "post": {
+        "tags": ["Environments"],
+        "summary": "Create environment",
+        "description": "Creates a new environment under the specified project. The environment key must be unique within the project.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" }
+                },
+                "required": ["key", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Environment created" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project not found" },
+          "409": { "description": "Environment key already exists" }
+        }
+      }
+    },
+    "/api/v1/environments/{envId}": {
+      "patch": {
+        "tags": ["Environments"],
+        "summary": "Update environment",
+        "description": "Partially updates an environment. At least one of key or name must be provided.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "envId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated environment" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" },
+          "409": { "description": "Key already exists" }
+        }
+      },
+      "delete": {
+        "tags": ["Environments"],
+        "summary": "Delete environment",
+        "description": "Permanently deletes an environment and all associated data.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "envId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/v1/environments/{envId}/flags": {
+      "get": {
+        "tags": ["Environments"],
+        "summary": "List flag configs for environment",
+        "description": "Returns a paginated list of flags for the project with their enabled state in this environment. Supports cursor-based pagination.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "envId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated flag configs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "type": "object" } },
+                    "nextCursor": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Environment not found" }
+        }
+      }
+    },
+    "/api/v1/environments/{envId}/flags/{flagId}": {
+      "patch": {
+        "tags": ["Environments"],
+        "summary": "Update flag config",
+        "description": "Toggles a flag in an environment and optionally sets allow/deny lists. Lazy-creates the config row.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "envId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "flagId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": { "type": "boolean" },
+                  "allowList": { "type": "array", "items": { "type": "string" } },
+                  "denyList": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated flag config" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Environment or flag not found" }
+        }
+      }
+    },
+    "/api/v1/environments/{envId}/sdk-tokens": {
+      "get": {
+        "tags": ["Tokens"],
+        "summary": "List env SDK tokens",
+        "description": "Lists all active (non-revoked) SDK tokens for an environment.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "envId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "List of tokens" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Environment not found" }
+        }
+      },
+      "post": {
+        "tags": ["Tokens"],
+        "summary": "Create env SDK token",
+        "description": "Creates a new env-scoped SDK token. Returns the raw token once.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "envId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Token created (raw token returned once)" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Environment not found" }
+        }
+      }
+    },
+    "/api/v1/sdk-tokens/{id}": {
+      "delete": {
+        "tags": ["Tokens"],
+        "summary": "Revoke env SDK token",
+        "description": "Revokes an env-scoped SDK token by id (immediate revocation).",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "204": { "description": "Token revoked" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Token not found or already revoked" }
+        }
+      }
+    },
+    "/api/v1/tokens": {
+      "get": {
+        "tags": ["Tokens"],
+        "summary": "List all SDK tokens",
+        "description": "Lists all active (non-revoked) SDK tokens across the entire org.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of tokens" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Tokens"],
+        "summary": "Create SDK token",
+        "description": "Creates a new org-level SDK token. Returns the raw token once.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": { "type": "string", "format": "uuid" },
+                  "envId": { "type": "string", "format": "uuid" },
+                  "name": { "type": "string" }
+                },
+                "required": ["projectId", "name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Token created (raw token returned once)" },
+          "400": { "description": "Invalid payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Project or environment not found" }
+        }
+      }
+    },
+    "/api/v1/tokens/{id}": {
+      "delete": {
+        "tags": ["Tokens"],
+        "summary": "Revoke SDK token",
+        "description": "Revokes an SDK token by id.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Token revoked" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Token not found" }
+        }
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "tags": ["Audit"],
+        "summary": "List audit log entries",
+        "description": "Returns a paginated, newest-first list of audit log entries. All query params are optional.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "projectId", "in": "query", "required": false, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "flagId", "in": "query", "required": false, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "envId", "in": "query", "required": false, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "page", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "default": 1 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated audit log",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" },
+                    "pageSize": { "type": "integer" },
+                    "entries": { "type": "array", "items": { "type": "object" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/sdk/v1/snapshot": {
+      "get": {
+        "tags": ["SDK"],
+        "summary": "Get flag snapshot",
+        "description": "Returns the current feature flag snapshot for the authenticated environment. Supports ETag / If-None-Match for cheap 304 Not Modified responses.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "if-none-match", "in": "header", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flag snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": { "type": "integer" },
+                    "projectKey": { "type": "string" },
+                    "envKey": { "type": "string" },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": { "type": "string" },
+                          "parentKey": { "type": "string", "nullable": true },
+                          "enabled": { "type": "boolean" },
+                          "inheritParent": { "type": "boolean" },
+                          "allowList": { "type": "array", "items": { "type": "string" } },
+                          "denyList": { "type": "array", "items": { "type": "string" } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": { "description": "Not Modified" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    }
+  }
+}
