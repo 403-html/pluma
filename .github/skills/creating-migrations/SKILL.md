@@ -64,19 +64,14 @@ git commit -m "feat(db): <your change description>"
 
 ## Full Lifecycle Example
 ```bash
-# 1. Edit schema
 vim packages/db/prisma/schema.prisma
 
-# 2. Generate client
 pnpm --filter @pluma/db db:generate
 
-# 3. Create migration
 pnpm --filter @pluma/db db:migrate --name add_user_avatar_url
 
-# 4. Review generated SQL
 cat packages/db/prisma/migrations/20260222215035_add_user_avatar_url/migration.sql
 
-# 5. Commit both
 git add packages/db/prisma/schema.prisma packages/db/prisma/migrations/
 git commit -m "feat(db): add avatar_url to User model"
 ```

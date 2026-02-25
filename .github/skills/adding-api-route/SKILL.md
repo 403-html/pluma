@@ -29,19 +29,15 @@ import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 
-// ── Zod schemas ────────────────────────────────────────────────────────────────
-// Params schema (URL path variables)
 const resourceParamsSchema = z.object({
   resourceId: z.uuid(),
 });
 
-// Body schema for create
 const resourceBodySchema = z.object({
   name: z.string().min(1).max(200),
   // add fields here
 });
 
-// Body schema for update — all fields optional, at least one required
 const resourceUpdateBodySchema = z
   .object({
     name: z.string().min(1).max(200).optional(),
@@ -51,24 +47,19 @@ const resourceUpdateBodySchema = z
     { message: 'At least one field is required' },
   );
 
-// ── Route registration ─────────────────────────────────────────────────────────
 export async function registerResourceRoutes(fastify: FastifyInstance) {
-  // GET list
   fastify.get('/resources', { preHandler: [adminAuthHook] }, async (request, reply) => {
     // validate, query, return
   });
 
-  // POST create
   fastify.post('/resources', { preHandler: [adminAuthHook] }, async (request, reply) => {
     // validate, transact, audit, return 201
   });
 
-  // PATCH update
   fastify.patch('/resources/:resourceId', { preHandler: [adminAuthHook] }, async (request, reply) => {
     // validate, transact, audit, return 200
   });
 
-  // DELETE
   fastify.delete('/resources/:resourceId', { preHandler: [adminAuthHook] }, async (request, reply) => {
     // validate, transact, audit, return 204
   });
@@ -196,7 +187,7 @@ import {
   // import other fixtures as needed
 } from './fixtures';
 
-// ── Prisma mock (MUST use vi.hoisted) ─────────────────────────────────────────
+// MUST use vi.hoisted — plain vi.mock doesn't hoist correctly with tsx
 const { prismaMock } = vi.hoisted(() => {
   const prismaMock = {
     project:     { findUnique: vi.fn() },
@@ -208,7 +199,6 @@ const { prismaMock } = vi.hoisted(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     $transaction: vi.fn() as any,
   };
-  // Wire $transaction to run the callback synchronously against the same mock
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismaMock.$transaction.mockImplementation((fn: (tx: any) => Promise<any>) => fn(prismaMock));
   return { prismaMock };

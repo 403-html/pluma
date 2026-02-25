@@ -67,23 +67,20 @@ Do not commit `.env` files. Only `.env.example` files are tracked in git.
 ## Step 4: Initialise the Database
 
 ```bash
-# Generate Prisma Client from schema
 pnpm --filter @pluma/db db:generate
 
-# Apply all migrations
 pnpm --filter @pluma/db db:migrate
 
-# (Optional) Seed with initial data
+# optional
 pnpm --filter @pluma/db db:seed
 ```
 
 ## Step 5: Start the Development Servers
 
 ```bash
-# All apps together (recommended)
+# recommended: all apps together
 pnpm --filter './apps/*' -r dev
 
-# Or individually
 pnpm --filter @pluma/app dev   # Next.js UI  → http://localhost:3000
 pnpm --filter @pluma/api dev   # Fastify API → http://localhost:2137
 ```

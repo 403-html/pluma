@@ -21,7 +21,6 @@ This skill documents how to run every test suite in the Pluma monorepo. Tests us
 ## Running All Tests
 
 ```bash
-# Run every test suite in the monorepo
 pnpm -r test
 ```
 
@@ -30,17 +29,14 @@ This runs `test` scripts across all workspace packages that define one.
 ## Running Tests by Package
 
 ```bash
-# API integration tests only
 pnpm --filter @pluma/api test
 
-# SDK unit tests only
 pnpm --filter @pluma/sdk test
 ```
 
 ## Running a Single Test File
 
 ```bash
-# From the package directory
 cd apps/api
 pnpm vitest run src/tests/<filename>.test.ts
 
@@ -51,7 +47,6 @@ pnpm vitest run src/index.test.ts
 ## Running Tests in Watch Mode
 
 ```bash
-# Watch a specific package during development
 cd apps/api && pnpm vitest
 
 cd packages/sdk && pnpm vitest

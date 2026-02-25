@@ -147,7 +147,6 @@ env:
 Use three stages: `deps` → `builder` → `runner`
 
 ```dockerfile
-# Stage 1: Install dependencies
 FROM node:22-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 WORKDIR /app
@@ -156,7 +155,6 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/*/package.json ./packages/*/
 RUN pnpm install --frozen-lockfile --prod=false
 
-# Stage 2: Build application
 FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 WORKDIR /app
@@ -164,7 +162,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm --filter=@pluma/api build
 
-# Stage 3: Production runtime
 FROM node:22-alpine AS runner
 RUN corepack enable
 WORKDIR /app
@@ -225,7 +222,6 @@ docker-compose.yml
 - Tags: `<version>`, `latest`, `<git-sha>`
 
 ```yaml
-# Example in CI
 tags: |
   ghcr.io/403-html/pluma-api:${{ github.sha }}
   ghcr.io/403-html/pluma-api:latest
@@ -309,7 +305,6 @@ File: `.github/dependabot.yml`
 ```yaml
 version: 2
 updates:
-  # pnpm dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -331,7 +326,6 @@ updates:
           - "eslint*"
     open-pull-requests-limit: 10
 
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -180,7 +180,7 @@ These rules are mandatory for all new code.
 - Use ES modules (`type: "module"` in package.json)
 - Use modern JavaScript/TypeScript features
 - Follow existing code style (ESLint will catch issues)
-- Write clear, self-documenting code with minimal comments
+- Write clear, self-documenting code with minimal comments — only when they explain WHY, not WHAT. This applies equally to all Copilot assets (skills, agent files, `copilot-instructions.md`).
 
 ### Database (Prisma)
 
