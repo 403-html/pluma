@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 // Table - outer wrapper + table element
-const Table = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+const Table = React.forwardRef<HTMLTableElement, React.TableHTMLAttributes<HTMLTableElement>>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={cn("overflow-x-auto rounded-md border border-border mt-4", className)} {...props}>
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded-md border border-border mt-4">
+      <table ref={ref} className={cn("w-full text-sm", className)} {...props}>
         {children}
       </table>
     </div>
