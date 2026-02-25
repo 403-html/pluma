@@ -178,6 +178,9 @@ export async function updateFlagConfig(
   flagId: string,
   data: { allowList?: string[]; denyList?: string[] }
 ): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (data.allowList === undefined && data.denyList === undefined) {
+    return { ok: false, message: 'At least one of allowList or denyList must be provided.' };
+  }
   try {
     const response = await fetch(`/api/v1/environments/${envId}/flags/${flagId}`, {
       method: 'PATCH',
