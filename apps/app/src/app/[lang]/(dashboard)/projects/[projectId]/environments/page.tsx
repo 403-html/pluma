@@ -14,13 +14,17 @@ import { getProject } from '@/lib/api/projects';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
+import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
   | { type: 'edit'; env: EnvironmentSummary };
+
+const PAGE_SIZE = 20;
 
 export default function EnvironmentsPage() {
   const { t, locale } = useLocale();
@@ -35,6 +39,7 @@ export default function EnvironmentsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const existingKeys = useMemo(() => environments.map(env => env.key), [environments]);
+  const { currentPage, paginatedItems: paginatedEnvironments, hasPrev, hasNext, goToPrev, goToNext } = usePagination(environments, PAGE_SIZE);
 
   const loadEnvironments = useCallback(async () => {
     setIsLoading(true);
@@ -70,7 +75,7 @@ export default function EnvironmentsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
           title={projectName ?? '…'}
@@ -82,7 +87,7 @@ export default function EnvironmentsPage() {
 
   if (error && environments.length === 0) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
           title={projectName ?? '…'}
@@ -93,7 +98,7 @@ export default function EnvironmentsPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
         title={projectName ?? '…'}
@@ -112,79 +117,94 @@ export default function EnvironmentsPage() {
       {environments.length === 0 ? (
         <EmptyState message={t.environments.emptyState} icon={Boxes} />
       ) : (
-        <table className="w-full border-collapse" aria-label={t.environments.title}>
-          <thead>
-            <tr>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colName}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colKey}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colFlags}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colActions}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {environments.map((env) => (
-              <tr key={env.id} className="transition-colors hover:bg-muted/40">
-                <td className="px-3 py-3 border-b border-border/20 align-middle">{env.name}</td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  <CopyPill value={env.key} />
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  {env.flagStats.enabled}/{env.flagStats.total} on
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  {deletingId === env.id ? (
-                    <div className="flex gap-2 items-center">
-                      <span className="text-xs text-destructive">{t.environments.confirmDelete}</span>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(env.id)}
-                      >
-                        {t.environments.confirmDeleteBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingId(null)}
-                      >
-                        {t.environments.cancelBtn}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
-                      >
-                        {t.environments.flagsBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
-                      >
-                        {t.environments.editBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeletingId(env.id)}
-                      >
-                        {t.environments.deleteBtn}
-                      </Button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Table aria-label={t.environments.title}>
+            <TableHeader>
+              <TableHeadRow>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colName}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colKey}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colFlags}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colActions}</TableHead>
+              </TableHeadRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedEnvironments.map((env) => (
+                <TableRow key={env.id}>
+                  <TableCell className="px-3 py-3">{env.name}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <CopyPill value={env.key} />
+                  </TableCell>
+                  <TableCell className="px-3 py-3">
+                    {env.flagStats.enabled}/{env.flagStats.total} on
+                  </TableCell>
+                  <TableCell className="px-3 py-3">
+                    {deletingId === env.id ? (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs text-destructive">{t.environments.confirmDelete}</span>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(env.id)}
+                        >
+                          {t.environments.confirmDeleteBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingId(null)}
+                        >
+                          {t.environments.cancelBtn}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
+                        >
+                          {t.environments.flagsBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
+                        >
+                          {t.environments.editBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingId(env.id)}
+                        >
+                          {t.environments.deleteBtn}
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {(hasPrev || hasNext) && (
+            <TablePagination
+              currentPage={currentPage}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              onPrev={goToPrev}
+              onNext={goToNext}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="shrink-0"
+            />
+          )}
+        </div>
       )}
 
       {modalState.type === 'add' && (

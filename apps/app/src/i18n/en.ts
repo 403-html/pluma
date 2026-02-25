@@ -56,6 +56,9 @@ export const en = {
   },
   common: {
     loading: 'Loading…',
+    prevPage: 'Previous',
+    nextPage: 'Next',
+    pageInfo: 'Page {page}',
   },
   sidebar: {
     projects: 'Projects',
@@ -165,9 +168,6 @@ export const en = {
     colEntity: 'Entity',
     colDetails: 'Details',
     emptyState: 'No audit entries found.',
-    prevPage: 'Previous',
-    nextPage: 'Next',
-    pageInfo: 'Page {page}',
   },
   organization: {
     title: 'Organization',

@@ -13,13 +13,17 @@ import { Layers } from 'lucide-react';
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
+import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
   | { type: 'edit'; project: ProjectSummary };
+
+const PAGE_SIZE = 20;
 
 export default function ProjectsPage() {
   const { t, locale } = useLocale();
@@ -31,6 +35,7 @@ export default function ProjectsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const existingKeys = useMemo(() => projects.map(p => p.key), [projects]);
+  const { currentPage, paginatedItems: paginatedProjects, hasPrev, hasNext, goToPrev, goToNext } = usePagination(projects, PAGE_SIZE);
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -60,7 +65,7 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.projects.title} />
         <p>{t.common.loading}</p>
       </main>
@@ -69,7 +74,7 @@ export default function ProjectsPage() {
 
   if (error && projects.length === 0) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.projects.title} />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
@@ -77,7 +82,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         title={t.projects.title}
         actions={
@@ -95,74 +100,89 @@ export default function ProjectsPage() {
       {projects.length === 0 ? (
         <EmptyState message={t.projects.emptyState} icon={Layers} />
       ) : (
-        <table className="w-full border-collapse" aria-label={t.projects.title}>
-          <thead>
-            <tr>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colName}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colKey}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colActions}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projects.map((project) => (
-              <tr
-                key={project.id}
-                className="cursor-pointer transition-colors hover:bg-muted/40"
-                onClick={() => {
-                  if (window.getSelection()?.toString()) return;
-                  router.push(`/${locale}/projects/${project.id}/environments`);
-                }}
-              >
-                <td className="px-3 py-3 border-b border-border/20 align-middle"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
-                  <CopyPill value={project.key} />
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
-                  {deletingId === project.id ? (
-                    <div className="flex gap-2 items-center">
-                      <span className="text-xs text-destructive">{t.projects.confirmDelete}</span>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(project.id)}
-                      >
-                        {t.projects.confirmDeleteBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingId(null)}
-                      >
-                        {t.projects.cancelBtn}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', project }); }}
-                      >
-                        {t.projects.editBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeletingId(project.id)}
-                      >
-                        {t.projects.deleteBtn}
-                      </Button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Table aria-label={t.projects.title}>
+            <TableHeader>
+              <TableHeadRow>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colName}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colKey}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colActions}</TableHead>
+              </TableHeadRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedProjects.map((project) => (
+                <TableRow
+                  key={project.id}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (window.getSelection()?.toString()) return;
+                    router.push(`/${locale}/projects/${project.id}/environments`);
+                  }}
+                >
+                  <TableCell className="px-3 py-3"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></TableCell>
+                  <TableCell className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                    <CopyPill value={project.key} />
+                  </TableCell>
+                  <TableCell className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                    {deletingId === project.id ? (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs text-destructive">{t.projects.confirmDelete}</span>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(project.id)}
+                        >
+                          {t.projects.confirmDeleteBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingId(null)}
+                        >
+                          {t.projects.cancelBtn}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setError(null); setModalState({ type: 'edit', project }); }}
+                        >
+                          {t.projects.editBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingId(project.id)}
+                        >
+                          {t.projects.deleteBtn}
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {(hasPrev || hasNext) && (
+            <TablePagination
+              currentPage={currentPage}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              onPrev={goToPrev}
+              onNext={goToNext}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="shrink-0"
+            />
+          )}
+        </div>
       )}
 
       {modalState.type === 'add' && (

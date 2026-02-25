@@ -9,7 +9,9 @@ import TokenRevealBanner from '@/components/TokenRevealBanner';
 import { useOrgTokens } from './_components/useOrgTokens';
 import CreateTokenModal from './_components/CreateTokenModal';
 import TokenTable from './_components/TokenTable';
+import { TablePagination } from '@/components/ui/table';
 import type { CreatedToken } from '@/lib/api/tokens';
+import { usePagination } from '@/hooks/usePagination';
 
 function LoadingSkeleton() {
   return (
@@ -20,6 +22,8 @@ function LoadingSkeleton() {
     </div>
   );
 }
+
+const PAGE_SIZE = 20;
 
 export default function OrganizationPage() {
   const { t, locale } = useLocale();
@@ -34,6 +38,7 @@ export default function OrganizationPage() {
   } = useOrgTokens(org.revokeError);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { currentPage: tokenPage, paginatedItems: paginatedTokens, hasPrev: hasTokenPrev, hasNext: hasTokenNext, goToPrev: goTokenPrev, goToNext: goTokenNext } = usePagination(tokens, PAGE_SIZE);
 
   function handleCreated(token: CreatedToken, projectName: string) {
     setCreatedToken(token);
@@ -43,10 +48,10 @@ export default function OrganizationPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <h1 className="text-2xl font-semibold mb-8">{org.title}</h1>
 
-      <section className="mb-8 last:mb-0">
+      <section className="flex-1 min-h-0 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-lg font-semibold">{org.apiKeysSection}</h2>
@@ -87,16 +92,31 @@ export default function OrganizationPage() {
         ) : tokens.length === 0 ? (
           <EmptyState message={org.emptyState} />
         ) : (
-          <TokenTable
-            tokens={tokens}
-            locale={locale}
-            labels={org}
-            pendingRevokeId={pendingRevokeId}
-            isRevoking={isRevoking}
-            onRevoke={(id) => { setPendingRevokeId(id); }}
-            onConfirmRevoke={handleRevoke}
-            onCancelRevoke={() => setPendingRevokeId(null)}
-          />
+          <div className="flex-1 min-h-0 flex flex-col">
+            <TokenTable
+              tokens={paginatedTokens}
+              locale={locale}
+              labels={org}
+              pendingRevokeId={pendingRevokeId}
+              isRevoking={isRevoking}
+              onRevoke={(id) => { setPendingRevokeId(id); }}
+              onConfirmRevoke={handleRevoke}
+              onCancelRevoke={() => setPendingRevokeId(null)}
+            />
+            {(hasTokenPrev || hasTokenNext) && (
+              <TablePagination
+                currentPage={tokenPage}
+                hasPrev={hasTokenPrev}
+                hasNext={hasTokenNext}
+                onPrev={goTokenPrev}
+                onNext={goTokenNext}
+                prevLabel={t.common.prevPage}
+                nextLabel={t.common.nextPage}
+                pageInfoTemplate={t.common.pageInfo}
+                className="shrink-0"
+              />
+            )}
+          </div>
         )}
       </section>
 

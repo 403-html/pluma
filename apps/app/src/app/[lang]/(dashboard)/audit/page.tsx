@@ -5,7 +5,7 @@ import type { AuditLogEntry, AuditAction } from '@pluma/types';
 import type { ProjectSummary } from '@pluma/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
-import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { formatDateTime } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import { ScrollText } from 'lucide-react';
@@ -42,27 +42,27 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
     : entry.entityType;
 
   return (
-    <tr className="transition-colors hover:bg-muted/40">
-      <td className="px-3 py-3 border-b border-border/20 align-middle text-sm text-muted-foreground whitespace-nowrap">
+    <TableRow>
+      <TableCell className="px-3 py-3 text-sm text-muted-foreground whitespace-nowrap">
         {formatDateTime(entry.createdAt, locale)}
-      </td>
-      <td className="px-3 py-3 border-b border-border/20 align-middle text-sm">
+      </TableCell>
+      <TableCell className="px-3 py-3 text-sm">
         {entry.actorEmail}
-      </td>
-      <td className="px-3 py-3 border-b border-border/20 align-middle">
+      </TableCell>
+      <TableCell className="px-3 py-3">
         <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${getActionBadgeClass(entry.action)}`}>
           {entry.action}
         </span>
-      </td>
-      <td className="px-3 py-3 border-b border-border/20 align-middle text-sm">
+      </TableCell>
+      <TableCell className="px-3 py-3 text-sm">
         <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">
           {entityDisplay}
         </span>
-      </td>
-      <td className="px-3 py-3 border-b border-border/20 align-middle text-xs text-muted-foreground max-w-xs truncate">
+      </TableCell>
+      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs truncate">
         {formatDetails(entry.details)}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -127,47 +127,22 @@ interface AuditTableProps {
 
 function AuditTable({ auditData, locale, headers }: AuditTableProps) {
   return (
-    <table className="w-full border-collapse">
-      <thead>
-        <tr>
-          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.timestamp}</th>
-          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.actor}</th>
-          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.action}</th>
-          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.entity}</th>
-          <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{headers.details}</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableHeadRow>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.timestamp}</TableHead>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.actor}</TableHead>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.action}</TableHead>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.entity}</TableHead>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.details}</TableHead>
+        </TableHeadRow>
+      </TableHeader>
+      <TableBody>
         {auditData.entries.map((entry) => (
           <AuditTableRow key={entry.id} entry={entry} locale={locale} />
         ))}
-      </tbody>
-    </table>
-  );
-}
-
-interface AuditPaginationProps {
-  currentPage: number;
-  hasPrev: boolean;
-  hasNext: boolean;
-  onPrev: () => void;
-  onNext: () => void;
-  prevLabel: string;
-  nextLabel: string;
-  pageInfoTemplate: string;
-}
-
-function AuditPagination({ currentPage, hasPrev, hasNext, onPrev, onNext, prevLabel, nextLabel, pageInfoTemplate }: AuditPaginationProps) {
-  return (
-    <div className="flex items-center gap-3 mt-4">
-      <Button variant="outline" size="sm" onClick={onPrev} disabled={!hasPrev}>
-        {prevLabel}
-      </Button>
-      <span className="text-sm text-muted-foreground">{pageInfoTemplate.replace('{page}', String(currentPage))}</span>
-      <Button variant="outline" size="sm" onClick={onNext} disabled={!hasNext}>
-        {nextLabel}
-      </Button>
-    </div>
+      </TableBody>
+    </Table>
   );
 }
 
@@ -195,7 +170,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
 
   if (isLoading && !auditData) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.audit.title} />
         <p>{t.common.loading}</p>
       </main>
@@ -204,7 +179,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
 
   if (error && !auditData) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.audit.title} />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
@@ -212,7 +187,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
   }
 
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         title={t.audit.title}
         actions={
@@ -232,7 +207,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
       {auditData && auditData.entries.length === 0 ? (
         <EmptyState message={t.audit.emptyState} icon={ScrollText} />
       ) : auditData ? (
-        <>
+        <div className="flex-1 min-h-0 flex flex-col">
           <AuditTable auditData={auditData} locale={locale} headers={{
             timestamp: t.audit.colTimestamp,
             actor: t.audit.colActor,
@@ -240,17 +215,20 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
             entity: t.audit.colEntity,
             details: t.audit.colDetails,
           }} />
-          <AuditPagination
-            currentPage={currentPage}
-            hasPrev={hasPrevPage}
-            hasNext={hasNextPage}
-            onPrev={handlePrevPage}
-            onNext={handleNextPage}
-            prevLabel={t.audit.prevPage}
-            nextLabel={t.audit.nextPage}
-            pageInfoTemplate={t.audit.pageInfo}
-          />
-        </>
+          {(hasPrevPage || hasNextPage) && (
+            <TablePagination
+              currentPage={currentPage}
+              hasPrev={hasPrevPage}
+              hasNext={hasNextPage}
+              onPrev={handlePrevPage}
+              onNext={handleNextPage}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="shrink-0"
+            />
+          )}
+        </div>
       ) : null}
     </main>
   );

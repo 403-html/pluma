@@ -14,15 +14,19 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
+import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
   | { type: 'edit'; flag: FlagEntry };
+
+const PAGE_SIZE = 20;
 
 export default function FlagsPage() {
   const { t, locale } = useLocale();
@@ -38,6 +42,7 @@ export default function FlagsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
+  const { currentPage, paginatedItems: paginatedFlags, hasPrev, hasNext, goToPrev, goToNext } = usePagination(flags, PAGE_SIZE);
 
   const loadFlags = useCallback(async () => {
     setIsLoading(true);
@@ -87,7 +92,7 @@ export default function FlagsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
@@ -102,7 +107,7 @@ export default function FlagsPage() {
 
   if (error && flags.length === 0) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
@@ -116,7 +121,7 @@ export default function FlagsPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         breadcrumbs={[
           { label: t.projects.title, href: `/${locale}/projects` },
@@ -137,78 +142,93 @@ export default function FlagsPage() {
       {flags.length === 0 ? (
         <EmptyState message={t.flags.emptyState} icon={Flag} />
       ) : (
-        <table className="w-full border-collapse" aria-label={t.flags.title}>
-          <thead>
-            <tr>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colName}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colKey}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colDescription}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colStatus}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colActions}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {flags.map((flag) => (
-              <tr key={flag.flagId} className="transition-colors hover:bg-muted/40">
-                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.name}</td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  <CopyPill value={flag.key} />
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.description || '—'}</td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={flag.enabled}
-                      onChange={() => handleToggle(flag.flagId, flag.enabled)}
-                      className="cursor-pointer"
-                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
-                    />
-                    {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
-                  </label>
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
-                  {deletingId === flag.flagId ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(flag.flagId)}
-                      >
-                        {t.flags.confirmDeleteBtn}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingId(null)}
-                      >
-                        {t.flags.cancelBtn}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
-                      >
-                        {t.flags.editBtn}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeletingId(flag.flagId)}
-                      >
-                        {t.flags.deleteBtn}
-                      </Button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Table aria-label={t.flags.title}>
+            <TableHeader>
+              <TableHeadRow>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colName}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colKey}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colDescription}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colStatus}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colActions}</TableHead>
+              </TableHeadRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedFlags.map((flag) => (
+                <TableRow key={flag.flagId}>
+                  <TableCell className="px-3 py-3">{flag.name}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <CopyPill value={flag.key} />
+                  </TableCell>
+                  <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={flag.enabled}
+                        onChange={() => handleToggle(flag.flagId, flag.enabled)}
+                        className="cursor-pointer"
+                        aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
+                      />
+                      {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
+                    </label>
+                  </TableCell>
+                  <TableCell className="px-3 py-3">
+                    {deletingId === flag.flagId ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(flag.flagId)}
+                        >
+                          {t.flags.confirmDeleteBtn}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingId(null)}
+                        >
+                          {t.flags.cancelBtn}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
+                        >
+                          {t.flags.editBtn}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingId(flag.flagId)}
+                        >
+                          {t.flags.deleteBtn}
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {(hasPrev || hasNext) && (
+            <TablePagination
+              currentPage={currentPage}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              onPrev={goToPrev}
+              onNext={goToNext}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="shrink-0"
+            />
+          )}
+        </div>
       )}
 
       {modalState.type === 'add' && (
