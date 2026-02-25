@@ -40,7 +40,14 @@ export default function OrganizationPage() {
   const [tokenPage, setTokenPage] = useState(1);
 
   useEffect(() => {
-    setTokenPage(1);
+    const totalPages = Math.ceil(tokens.length / PAGE_SIZE);
+    setTokenPage((prevPage) => {
+      const maxPage = Math.max(1, totalPages);
+      if (prevPage > maxPage) {
+        return maxPage;
+      }
+      return prevPage;
+    });
   }, [tokens.length]);
 
   function handleCreated(token: CreatedToken, projectName: string) {

@@ -76,13 +76,16 @@ interface TablePaginationProps {
 }
 
 function TablePagination({ currentPage, hasPrev, hasNext, onPrev, onNext, prevLabel, nextLabel, pageInfoTemplate, className }: TablePaginationProps) {
+  const pageLabel = pageInfoTemplate.includes('{page}')
+    ? pageInfoTemplate.replace('{page}', String(currentPage))
+    : String(currentPage);
   return (
     <div className={cn("flex items-center gap-3 mt-4", className)}>
       <Button variant="outline" size="sm" onClick={onPrev} disabled={!hasPrev}>
         {prevLabel}
       </Button>
       <span className="text-sm text-muted-foreground">
-        {pageInfoTemplate.replace('{page}', String(currentPage))}
+        {pageLabel}
       </span>
       <Button variant="outline" size="sm" onClick={onNext} disabled={!hasNext}>
         {nextLabel}

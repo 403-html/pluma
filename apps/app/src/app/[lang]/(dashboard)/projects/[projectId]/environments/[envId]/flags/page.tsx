@@ -71,7 +71,14 @@ export default function FlagsPage() {
   }, [loadFlags]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    const totalPages = Math.ceil(flags.length / PAGE_SIZE);
+    setCurrentPage((prevPage) => {
+      const maxPage = Math.max(1, totalPages);
+      if (prevPage > maxPage) {
+        return maxPage;
+      }
+      return prevPage;
+    });
   }, [flags.length]);
 
   async function handleDelete(id: string) {

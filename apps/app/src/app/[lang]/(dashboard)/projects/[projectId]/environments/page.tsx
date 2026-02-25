@@ -63,7 +63,14 @@ export default function EnvironmentsPage() {
   }, [loadEnvironments]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    const totalPages = Math.ceil(environments.length / PAGE_SIZE);
+    setCurrentPage((prevPage) => {
+      const maxPage = Math.max(1, totalPages);
+      if (prevPage > maxPage) {
+        return maxPage;
+      }
+      return prevPage;
+    });
   }, [environments.length]);
 
   async function handleDelete(id: string) {
