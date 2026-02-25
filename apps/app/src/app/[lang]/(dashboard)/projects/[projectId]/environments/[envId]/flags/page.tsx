@@ -14,6 +14,7 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 import { PageHeader } from '@/components/PageHeader';
@@ -137,25 +138,25 @@ export default function FlagsPage() {
       {flags.length === 0 ? (
         <EmptyState message={t.flags.emptyState} icon={Flag} />
       ) : (
-        <table className="w-full border-collapse" aria-label={t.flags.title}>
-          <thead>
-            <tr>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colName}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colKey}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colDescription}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colStatus}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.flags.colActions}</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table aria-label={t.flags.title}>
+          <TableHeader>
+            <TableHeadRow>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colName}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colKey}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colDescription}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colStatus}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colActions}</TableHead>
+            </TableHeadRow>
+          </TableHeader>
+          <TableBody>
             {flags.map((flag) => (
-              <tr key={flag.flagId} className="transition-colors hover:bg-muted/40">
-                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.name}</td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
+              <TableRow key={flag.flagId}>
+                <TableCell className="px-3 py-3">{flag.name}</TableCell>
+                <TableCell className="px-3 py-3">
                   <CopyPill value={flag.key} />
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">{flag.description || '—'}</td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                </TableCell>
+                <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
+                <TableCell className="px-3 py-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -166,8 +167,8 @@ export default function FlagsPage() {
                     />
                     {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                   </label>
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                </TableCell>
+                <TableCell className="px-3 py-3">
                   {deletingId === flag.flagId ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
@@ -204,11 +205,11 @@ export default function FlagsPage() {
                       </Button>
                     </div>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
 
       {modalState.type === 'add' && (

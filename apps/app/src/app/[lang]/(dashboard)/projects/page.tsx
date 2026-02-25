@@ -13,6 +13,7 @@ import { Layers } from 'lucide-react';
 import { AddProjectModal } from './AddProjectModal';
 import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
 
@@ -95,29 +96,29 @@ export default function ProjectsPage() {
       {projects.length === 0 ? (
         <EmptyState message={t.projects.emptyState} icon={Layers} />
       ) : (
-        <table className="w-full border-collapse" aria-label={t.projects.title}>
-          <thead>
-            <tr>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colName}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colKey}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.projects.colActions}</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table aria-label={t.projects.title}>
+          <TableHeader>
+            <TableHeadRow>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colName}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colKey}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colActions}</TableHead>
+            </TableHeadRow>
+          </TableHeader>
+          <TableBody>
             {projects.map((project) => (
-              <tr
+              <TableRow
                 key={project.id}
-                className="cursor-pointer transition-colors hover:bg-muted/40"
+                className="cursor-pointer"
                 onClick={() => {
                   if (window.getSelection()?.toString()) return;
                   router.push(`/${locale}/projects/${project.id}/environments`);
                 }}
               >
-                <td className="px-3 py-3 border-b border-border/20 align-middle"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
+                <TableCell className="px-3 py-3"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></TableCell>
+                <TableCell className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                   <CopyPill value={project.key} />
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle" onClick={(e) => e.stopPropagation()}>
+                </TableCell>
+                <TableCell className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                   {deletingId === project.id ? (
                     <div className="flex gap-2 items-center">
                       <span className="text-xs text-destructive">{t.projects.confirmDelete}</span>
@@ -158,11 +159,11 @@ export default function ProjectsPage() {
                       </Button>
                     </div>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
 
       {modalState.type === 'add' && (

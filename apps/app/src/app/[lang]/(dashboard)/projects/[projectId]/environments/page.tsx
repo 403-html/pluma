@@ -14,6 +14,7 @@ import { getProject } from '@/lib/api/projects';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
 
@@ -112,26 +113,26 @@ export default function EnvironmentsPage() {
       {environments.length === 0 ? (
         <EmptyState message={t.environments.emptyState} icon={Boxes} />
       ) : (
-        <table className="w-full border-collapse" aria-label={t.environments.title}>
-          <thead>
-            <tr>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colName}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colKey}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colFlags}</th>
-              <th className="text-left text-xs font-semibold uppercase text-muted-foreground px-3 py-2 border-b-2 border-border/40">{t.environments.colActions}</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table aria-label={t.environments.title}>
+          <TableHeader>
+            <TableHeadRow>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colName}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colKey}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colFlags}</TableHead>
+              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colActions}</TableHead>
+            </TableHeadRow>
+          </TableHeader>
+          <TableBody>
             {environments.map((env) => (
-              <tr key={env.id} className="transition-colors hover:bg-muted/40">
-                <td className="px-3 py-3 border-b border-border/20 align-middle">{env.name}</td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
+              <TableRow key={env.id}>
+                <TableCell className="px-3 py-3">{env.name}</TableCell>
+                <TableCell className="px-3 py-3">
                   <CopyPill value={env.key} />
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                </TableCell>
+                <TableCell className="px-3 py-3">
                   {env.flagStats.enabled}/{env.flagStats.total} on
-                </td>
-                <td className="px-3 py-3 border-b border-border/20 align-middle">
+                </TableCell>
+                <TableCell className="px-3 py-3">
                   {deletingId === env.id ? (
                     <div className="flex gap-2 items-center">
                       <span className="text-xs text-destructive">{t.environments.confirmDelete}</span>
@@ -180,11 +181,11 @@ export default function EnvironmentsPage() {
                       </Button>
                     </div>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
 
       {modalState.type === 'add' && (
