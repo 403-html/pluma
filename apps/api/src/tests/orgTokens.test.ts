@@ -71,6 +71,7 @@ const mockSdkTokenWithProject = {
   ...mockSdkToken,
   tokenPrefix: MOCK_TOKEN_PREFIX,
   project: { id: PROJECT_ID, name: 'Test Project' },
+  environment: { id: ENV_ID, name: 'Production' },
 };
 
 /** mockSdkToken enriched with tokenPrefix only (for create responses) */
@@ -118,10 +119,11 @@ describe('Org-level Token routes', () => {
         projectId: PROJECT_ID,
         projectName: 'Test Project',
         envId: ENV_ID,
+        envName: 'Production',
       });
       // Verify only active tokens are queried with a take limit
       expect(prismaMock.sdkToken.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ revokedAt: null }), take: 100 }),
+        expect.objectContaining({ where: expect.objectContaining({ revokedAt: null }), take: 100, include: expect.objectContaining({ environment: true }) }),
       );
     });
 

@@ -14,6 +14,7 @@ function maskToken(tokenPrefix: string): string {
 interface TokenTableLabels {
   colName: string;
   colProject: string;
+  colEnvironment: string;
   colKey: string;
   colCreated: string;
   colActions: string;
@@ -51,6 +52,7 @@ export default function TokenTable({
           <tr className="border-b border-border bg-muted/40">
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">{labels.colName}</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">{labels.colProject}</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">{labels.colEnvironment}</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">{labels.colKey}</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">{labels.colCreated}</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">{labels.colActions}</th>
@@ -64,6 +66,7 @@ export default function TokenTable({
             >
               <td className="px-4 py-3 align-middle font-medium">{token.name}</td>
               <td className="px-4 py-3 align-middle text-muted-foreground">{token.projectName}</td>
+              <td className="px-4 py-3 align-middle text-muted-foreground">{token.envName ?? '—'}</td>
               <td className="px-4 py-3 align-middle">
                 <span className="font-mono text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
                   {maskToken(token.tokenPrefix)}

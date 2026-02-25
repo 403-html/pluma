@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import Modal from '@/components/Modal';
 import { createOrgToken, type CreatedToken } from '@/lib/api/tokens';
 import { listProjects, type ProjectSummary } from '@/lib/api/projects';
+import { listEnvironments, type EnvironmentSummary } from '@/lib/api/environments';
 
 const SELECT_CLASS =
   'text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring w-full';
@@ -18,7 +19,10 @@ interface CreateTokenModalProps {
     namePlaceholder: string;
     projectLabel: string;
     projectPlaceholder: string;
+    envLabel: string;
+    envPlaceholder: string;
     loadingProjects: string;
+    loadingEnvironments: string;
     noProjects: string;
     createBtn: string;
     createLoading: string;
@@ -33,8 +37,11 @@ interface CreateTokenModalProps {
 export default function CreateTokenModal({ labels, onClose, onCreated }: CreateTokenModalProps) {
   const [newKeyName, setNewKeyName] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [selectedEnvId, setSelectedEnvId] = useState('');
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [environments, setEnvironments] = useState<EnvironmentSummary[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  const [isLoadingEnvs, setIsLoadingEnvs] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -54,6 +61,25 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setEnvironments([]);
+      setSelectedEnvId('');
+      return;
+    }
+    setIsLoadingEnvs(true);
+    setSelectedEnvId('');
+    void (async () => {
+      const result = await listEnvironments(selectedProjectId);
+      if (result.ok) {
+        setEnvironments(result.environments);
+      } else {
+        setEnvironments([]);
+      }
+      setIsLoadingEnvs(false);
+    })();
+  }, [selectedProjectId]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setCreateError(null);
@@ -68,7 +94,7 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
     }
 
     setIsCreating(true);
-    const result = await createOrgToken(newKeyName, selectedProjectId);
+    const result = await createOrgToken(newKeyName, selectedProjectId, selectedEnvId || undefined);
     if (!result.ok) {
       setCreateError(result.message);
       setIsCreating(false);
@@ -121,6 +147,30 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="api-key-env" className="text-sm font-medium">
+            {labels.envLabel}
+          </label>
+          {isLoadingEnvs ? (
+            <p className="text-sm text-muted-foreground">{labels.loadingEnvironments}</p>
+          ) : (
+            <select
+              id="api-key-env"
+              className={SELECT_CLASS}
+              value={selectedEnvId}
+              onChange={(e) => setSelectedEnvId(e.target.value)}
+              disabled={isCreating || !selectedProjectId}
+            >
+              <option value="">{labels.envPlaceholder}</option>
+              {environments.map((env) => (
+                <option key={env.id} value={env.id}>
+                  {env.name}
                 </option>
               ))}
             </select>

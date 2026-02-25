@@ -32,7 +32,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
         where: { revokedAt: null },
         orderBy: { createdAt: 'desc' },
         take: PAGE_SIZE,
-        include: { project: true },
+        include: { project: true, environment: true },
       });
 
       const result = tokens.map((t) => ({
@@ -42,6 +42,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
         projectId: t.projectId,
         projectName: t.project.name,
         envId: t.envId,
+        envName: t.environment?.name ?? null,
         createdAt: t.createdAt,
       }));
 

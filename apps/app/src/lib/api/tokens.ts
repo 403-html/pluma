@@ -7,6 +7,7 @@ export interface SdkToken {
   projectId: string;
   projectName: string;
   envId: string | null;
+  envName: string | null;
   createdAt: string;
 }
 
