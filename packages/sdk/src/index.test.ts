@@ -312,24 +312,24 @@ describe("PlumaSnapshotCache", () => {
       expect(evaluator.isEnabled("a")).toBe(true);
     });
 
-    it("non-empty allowList blocks access when no subjectKey is provided", async () => {
+    it("non-empty allowList does not block access when no subjectKey is provided", async () => {
       stubFetch(makeSnapshot([
         { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator(); // no subjectKey
-      // Strict whitelist: no subject cannot be in the list, so access is denied.
-      expect(evaluator.isEnabled("feat")).toBe(false);
+      // No subject → skip allowList check → fall through to base enabled state.
+      expect(evaluator.isEnabled("feat")).toBe(true);
     });
 
-    it("non-empty allowList blocks an unlisted subject even when the flag is enabled", async () => {
+    it("non-empty allowList does not block an unlisted subject — they use the base enabled state", async () => {
       stubFetch(makeSnapshot([
         { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "other" });
-      // Strict whitelist: "other" is not in allowList, so access is denied even though enabled=true.
-      expect(evaluator.isEnabled("feat")).toBe(false);
+      // "other" not in allowList → fall through → base enabled=true.
+      expect(evaluator.isEnabled("feat")).toBe(true);
     });
 
     it("no subjectKey with empty allowList uses base enabled state", async () => {
@@ -341,16 +341,16 @@ describe("PlumaSnapshotCache", () => {
       expect(evaluator.isEnabled("feat")).toBe(true);
     });
 
-    it("child allowList takes precedence over parent inheritance", async () => {
+    it("child allowList grants access to listed subjects; unlisted fall through to parent", async () => {
       stubFetch(makeSnapshot([
         { key: "parent", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
         { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: ["vip"], denyList: [] },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
-      // vip subject: child's allowList grants explicit access (overrides parent's enabled=false)
+      // vip subject: child's allowList grants explicit access (additive override)
       const vipEval = await cache.evaluator({ subjectKey: "vip" });
       expect(vipEval.isEnabled("child")).toBe(true);
-      // non-vip subject: not in allowList, strict whitelist blocks access
+      // non-vip subject: not in allowList → walk parent (enabled=false) → false
       const otherEval = await cache.evaluator({ subjectKey: "other" });
       expect(otherEval.isEnabled("child")).toBe(false);
     });
