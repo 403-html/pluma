@@ -180,7 +180,7 @@ These rules are mandatory for all new code.
 - Use ES modules (`type: "module"` in package.json)
 - Use modern JavaScript/TypeScript features
 - Follow existing code style (ESLint will catch issues)
-- Write clear, self-documenting code with minimal comments
+- Write clear, self-documenting code with minimal comments — only when they explain WHY, not WHAT. This applies equally to all Copilot assets (skills, agent files, `copilot-instructions.md`).
 
 ### Database (Prisma)
 
@@ -304,3 +304,45 @@ pnpm add @pluma/types --filter @pluma/api
 - Check package README files for specific documentation
 - Review `package.json` scripts for available commands
 - Consult Prisma, Next.js, and Fastify documentation
+
+## CI/CD
+
+CI runs on GitHub Actions. The pipeline executes on every push and PR.
+
+**Key pipeline steps (in order):**
+1. `pnpm install` — install all workspace dependencies
+2. `pnpm lint` — ESLint across the full monorepo
+3. `pnpm -r build` — build all packages (type-check included)
+4. `pnpm -r test` — run all Vitest suites (API + SDK); a PostgreSQL service container is provisioned automatically
+
+**Deployment:**
+- Migrations are applied in CI/CD via `pnpm --filter @pluma/db db:migrate:deploy` (never `db:migrate` in production — it prompts interactively).
+- Environment variables in CI mirror `.env.example` defaults; override via GitHub Actions secrets/environment variables.
+
+**Local parity:**
+- All pipeline commands are identical to local commands — no CI-only scripts exist.
+- If a step fails in CI but passes locally, check that `.env` values match the CI environment and that `pnpm -r build` succeeds before testing.
+- To validate workflow changes locally before pushing, see the `testing-workflows-locally` skill (`act push -j <job>`).
+
+## Debugging
+
+For full debugging workflows see the `debugging-locally` skill. Quick reference:
+
+**Structured logs (first resort):**
+```bash
+pnpm --filter @pluma/api dev | pino-pretty   # pretty-print JSON logs
+pnpm --filter @pluma/api dev 2>&1 | jq .     # parse with jq
+DEBUG="prisma:query" pnpm --filter @pluma/api dev   # log every SQL statement
+```
+
+**Breakpoint debugging (Node.js inspector):**
+```bash
+NODE_OPTIONS="--inspect" pnpm --filter @pluma/api dev  # binds inspector to 127.0.0.1:9229
+```
+Attach VS Code via `.vscode/launch.json` with `"request": "attach"` on port `9229`. Source maps are active; breakpoints hit `.ts` lines directly.
+
+**SDK / test debugging:**
+```bash
+cd packages/sdk && pnpm vitest --reporter=verbose
+node --inspect-brk --loader tsx/esm node_modules/.bin/vitest run  # pause on first line
+```

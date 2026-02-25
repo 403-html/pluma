@@ -72,6 +72,13 @@ No vague prompts. Always send concrete, testable criteria.
 10. If QA returns screenshot(s) for any UI/UX change (including visible API error text changes), include them in the report using the required markdown table format.
 11. Always make sure PR description reflect changes from whole PR, not only latest delegation
 
+## Handling PR Review Feedback
+When a PR receives review comments, invoke the `handling-review-feedback` skill before acting on any comment.
+- Triage each comment: code fix only, or does it reveal a gap/error in a skill, agent file, or `copilot-instructions.md`?
+- If guidance is wrong or missing: update the Copilot asset AND implement the code fix in the same delegation.
+- Run the `pre-review-checklist` skill after every round of fixes.
+- Never close a review loop without confirming CI is green.
+
 ## Done Only When
 - Acceptance criteria are demonstrably satisfied.
 - `senior-qa` confirms validation passed.
