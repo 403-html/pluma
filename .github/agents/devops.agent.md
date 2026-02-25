@@ -63,8 +63,6 @@ You must **NOT**:
 ```yaml
 - name: Setup pnpm
   uses: pnpm/action-setup@v4
-  with:
-    version: 10.29.3
 
 - name: Setup Node.js
   uses: actions/setup-node@v4
@@ -147,7 +145,6 @@ env:
 Use three stages: `deps` → `builder` → `runner`
 
 ```dockerfile
-# Stage 1: Install dependencies
 FROM node:22-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 WORKDIR /app
@@ -156,7 +153,6 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/*/package.json ./packages/*/
 RUN pnpm install --frozen-lockfile --prod=false
 
-# Stage 2: Build application
 FROM node:22-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 WORKDIR /app
@@ -164,7 +160,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm --filter=@pluma/api build
 
-# Stage 3: Production runtime
 FROM node:22-alpine AS runner
 RUN corepack enable
 WORKDIR /app
@@ -225,7 +220,6 @@ docker-compose.yml
 - Tags: `<version>`, `latest`, `<git-sha>`
 
 ```yaml
-# Example in CI
 tags: |
   ghcr.io/403-html/pluma-api:${{ github.sha }}
   ghcr.io/403-html/pluma-api:latest
@@ -273,8 +267,6 @@ jobs:
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.29.3
 
       - uses: actions/setup-node@v4
         with:
@@ -309,7 +301,6 @@ File: `.github/dependabot.yml`
 ```yaml
 version: 2
 updates:
-  # pnpm dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -331,7 +322,6 @@ updates:
           - "eslint*"
     open-pull-requests-limit: 10
 
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -361,6 +351,7 @@ updates:
 
 ### Validation
 
+- **Local workflow testing**: When adding or modifying any workflow, MUST invoke the `testing-workflows-locally` skill to validate with `act` before pushing.
 - **Local testing**: Use `act` to test workflows locally when possible
 - **Dry-run first**: Use `--dry-run` flags for destructive operations
 - **Check workflow syntax**: `actionlint` or GitHub UI validation
@@ -377,6 +368,7 @@ updates:
 - **Workflow README**: Update `.github/workflows/README.md` if it exists
 - **Required secrets**: Document all required secrets in workflow header comments
 - **Breaking changes**: Note migration steps in PR description
+- **Environment setup**: When documenting local dev environment setup or CI environment parity, invoke the `local-dev-setup` skill as the canonical reference for services, env files, and bootstrap steps.
 
 ```yaml
 # Required secrets:

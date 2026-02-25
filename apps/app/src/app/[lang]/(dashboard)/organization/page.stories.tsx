@@ -68,23 +68,25 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function WithTokensStory() {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  return (
+    <TokenTable
+      tokens={MOCK_TOKENS}
+      locale="en"
+      labels={TABLE_LABELS}
+      pendingRevokeId={pendingId}
+      isRevoking={false}
+      onRevoke={(id) => setPendingId(id)}
+      onConfirmRevoke={() => setPendingId(null)}
+      onCancelRevoke={() => setPendingId(null)}
+    />
+  );
+}
+
 /** Token list with three rows */
 export const WithTokens: Story = {
-  render: () => {
-    const [pendingId, setPendingId] = useState<string | null>(null);
-    return (
-      <TokenTable
-        tokens={MOCK_TOKENS}
-        locale="en"
-        labels={TABLE_LABELS}
-        pendingRevokeId={pendingId}
-        isRevoking={false}
-        onRevoke={(id) => setPendingId(id)}
-        onConfirmRevoke={() => setPendingId(null)}
-        onCancelRevoke={() => setPendingId(null)}
-      />
-    );
-  },
+  render: () => <WithTokensStory />,
 };
 
 /** Inline revoke confirmation visible for one row */
@@ -103,24 +105,26 @@ export const RevokeConfirmation: Story = {
   ),
 };
 
+function TokenRevealStory() {
+  const [visible, setVisible] = useState(true);
+  return visible ? (
+    <TokenRevealBanner
+      token={REVEAL_TOKEN}
+      projectName="My App"
+      onDismiss={() => setVisible(false)}
+      dismissLabel="Dismiss"
+      title="API key created — copy it now"
+      desc="This is the only time the full key will be shown. Store it somewhere safe."
+      keyLabel="Key {name} for {project}"
+    />
+  ) : (
+    <p className="text-sm text-muted-foreground">Banner dismissed.</p>
+  );
+}
+
 /** One-time token reveal banner after creation */
 export const TokenReveal: Story = {
-  render: () => {
-    const [visible, setVisible] = useState(true);
-    return visible ? (
-      <TokenRevealBanner
-        token={REVEAL_TOKEN}
-        projectName="My App"
-        onDismiss={() => setVisible(false)}
-        dismissLabel="Dismiss"
-        title="API key created — copy it now"
-        desc="This is the only time the full key will be shown. Store it somewhere safe."
-        keyLabel="Key {name} for {project}"
-      />
-    ) : (
-      <p className="text-sm text-muted-foreground">Banner dismissed.</p>
-    );
-  },
+  render: () => <TokenRevealStory />,
 };
 
 /** Empty state — no keys yet */
