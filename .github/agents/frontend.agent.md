@@ -64,6 +64,7 @@ Before handing off any work, you **MUST** complete the following validation loop
 
 - **Running tests**: Invoke the `running-tests` skill for canonical commands and DB prerequisites before running any test suite.
 - **Debugging**: If an issue cannot be diagnosed from build/lint output alone, invoke the `debugging-locally` skill for structured log and breakpoint workflows.
+- **Pre-review**: Before opening or updating a PR, invoke the `pre-review-checklist` skill to validate lint, build, tests, and hygiene across all changed packages.
 
 ## Quality Bar
 

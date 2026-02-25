@@ -48,6 +48,7 @@ You're the Senior QA Engineer for Pluma.
 
 - **Running tests**: MUST invoke the `running-tests` skill to get canonical test commands, understand which suites require a live database, and confirm CI parity before executing any test run.
 - **Debugging failures**: When a test fails and the cause is not immediately obvious, invoke the `debugging-locally` skill for structured log and breakpoint investigation workflows.
+- **Pre-review baseline**: Before validating a PR, invoke the `pre-review-checklist` skill to confirm lint, build, and test hygiene pass — any failure is a blocker before QA proceeds.
 - Always use the `creating-qa-reports` skill to produce the final QA report artifact. The skill output will be the canonical QA summary attached to the PR.
 - If any UI/UX change occurred – including changes that are only visible as text (for example, new/changed API error messages surfaced in the UI) – you must include screenshot(s) in the following markdown table format (do not dump raw images).
 - If there are multiple screenshots, add one row per change. If there are no screenshots, include the header and a single row: `No screenshots` / `-`.

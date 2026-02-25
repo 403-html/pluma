@@ -21,8 +21,10 @@ You're the Senior Backend Engineer for Pluma.
 
 - Strict input validation.
 - **Database migrations**: When any schema change is required, MUST invoke the `creating-migrations` skill to follow the mandatory Prisma migration workflow.
+- **New API routes**: When adding any new Admin API endpoint, MUST invoke the `adding-api-route` skill for the canonical Fastify + Zod + auth + audit + test pattern.
 - **Running tests**: When verifying an implementation or confirming a fix, MUST invoke the `running-tests` skill for canonical test commands and DB prerequisites.
 - **Debugging**: When investigating unexpected API behaviour, MUST invoke the `debugging-locally` skill for structured log and breakpoint workflows.
+- **Pre-review**: Before opening or updating a PR, MUST invoke the `pre-review-checklist` skill to validate lint, build, tests, and hygiene.
 - Consistent status codes.
 - Predictable error format.
 - No silent failures.
