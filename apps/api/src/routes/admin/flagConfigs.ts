@@ -155,16 +155,23 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         where: { envId: parsedParams.data.envId, flagId: { in: flagIds } },
       });
 
-      const configMap = new Map(configs.map((c) => [c.flagId, c.enabled]));
+      const configMap = new Map(
+        configs.map((c) => [c.flagId, { enabled: c.enabled, allowList: c.allowList, denyList: c.denyList }]),
+      );
 
       return {
-        data: page.map((flag) => ({
-          flagId: flag.id,
-          key: flag.key,
-          name: flag.name,
-          description: flag.description,
-          enabled: configMap.get(flag.id) ?? false,
-        })),
+        data: page.map((flag) => {
+          const cfg = configMap.get(flag.id);
+          return {
+            flagId: flag.id,
+            key: flag.key,
+            name: flag.name,
+            description: flag.description,
+            enabled: cfg?.enabled ?? false,
+            allowList: cfg?.allowList ?? [],
+            denyList: cfg?.denyList ?? [],
+          };
+        }),
         nextCursor,
       };
     },

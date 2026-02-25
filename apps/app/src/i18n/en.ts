@@ -242,6 +242,18 @@ export const en = {
     enabledLabel: 'Enabled',
     disabledLabel: 'Disabled',
     toggleError: 'Failed to toggle flag',
+    targetingTitle: 'Targeting',
+    allowListLabel: 'Allow List',
+    denyListLabel: 'Deny List',
+    targetingPlaceholder: 'Enter user ID…',
+    targetingSearchPlaceholder: 'Search or add user ID…',
+    targetingAddOption: 'Add',
+    targetingDisabledValueHint: 'In other list',
+    targetingConflictError: 'A user ID cannot appear in both the allow list and deny list.',
+    targetingNoticeTitle: 'How targeting works',
+    targetingNoticeBody: 'IDs are matched against the subjectKey passed to the SDK evaluator. Add known IDs - they are never auto-collected.',
+    targetingNoticeCode: "evaluator({ subjectKey: 'user-id' })",
+    targetingNoticeDismiss: 'Dismiss targeting notice',
   },
 } as const;
 

@@ -7,9 +7,10 @@ type ModalProps = {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  size?: 'sm' | 'lg';
 };
 
-export default function Modal({ titleId, title, onClose, children }: ModalProps) {
+export default function Modal({ titleId, title, onClose, children, size = 'sm' }: ModalProps) {
   return (
     <div
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]"
@@ -17,7 +18,7 @@ export default function Modal({ titleId, title, onClose, children }: ModalProps)
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
     >
       <div
-        className="bg-card border border-border rounded-lg p-6 w-full max-w-sm shadow-2xl"
+        className={`bg-card border border-border rounded-lg p-6 w-full shadow-2xl ${size === 'lg' ? 'max-w-2xl' : 'max-w-sm'}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

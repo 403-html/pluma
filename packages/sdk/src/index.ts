@@ -71,7 +71,7 @@ export class PlumaSnapshotCache {
     // guard via MAX_PARENT_DEPTH from @pluma/types so both sides use the same limit.
 
     // Evaluates a flag key following the precedence chain:
-    //   denyList → allowList → parent inheritance → base enabled state.
+    //   denyList → allowList (additive grant) → parent inheritance → base enabled state.
     //
     // NOTE: Deep parent chains are supported by design. Traversal is iterative
     // (no recursion) so stack depth stays O(1). A single Set tracks visited keys
@@ -101,9 +101,7 @@ export class PlumaSnapshotCache {
           return false;
         }
 
-        // 2. Allow list: subject explicitly granted regardless of enabled state.
-        //    If the subject is not in the list (or no subjectKey), fall through to
-        //    parent inheritance and base enabled state.
+        // 2. Allow list: subject explicitly granted access regardless of enabled state.
         if (subjectKey !== undefined && flag.allowList.includes(subjectKey)) {
           return true;
         }

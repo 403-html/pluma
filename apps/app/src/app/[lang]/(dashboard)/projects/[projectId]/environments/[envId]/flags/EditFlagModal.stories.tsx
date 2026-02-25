@@ -25,6 +25,8 @@ const sampleFlag: FlagEntry = {
   name: 'My Feature Flag',
   description: 'A sample feature flag',
   enabled: true,
+  allowList: [],
+  denyList: [],
 };
 
 function DefaultStory() {
@@ -42,6 +44,7 @@ function DefaultStory() {
       {isOpen && (
         <EditFlagModal
           flag={sampleFlag}
+          envId="env-preview-123"
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
             alert('Flag updated successfully!');
@@ -78,6 +81,7 @@ function WithoutDescriptionStory() {
             ...sampleFlag,
             description: null,
           }}
+          envId="env-preview-123"
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
             alert('Flag updated!');
@@ -112,6 +116,7 @@ function DisabledStory() {
             ...sampleFlag,
             enabled: false,
           }}
+          envId="env-preview-123"
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
             alert('Flag updated!');

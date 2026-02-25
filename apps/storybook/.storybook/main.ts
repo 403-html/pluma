@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import type { StorybookConfig } from "@storybook/react-vite";
 import type { Plugin } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,12 +32,10 @@ const config: StorybookConfig = {
     };
     return {
       ...config,
-      // tailwindcss() processes CSS files; removeUseClientPlugin processes JS/TS files.
+      // tailwindcss() (Vite plugin) handles CSS with proper HMR integration.
+      // removeUseClientPlugin strips Next.js "use client" directives from app source.
       // They target different file types and do not interfere with each other.
-      plugins: [...(config.plugins ?? []), removeUseClientPlugin],
-      css: {
-        postcss: resolve(__dirname, '../../app/postcss.config.cjs'),
-      },
+      plugins: [...(config.plugins ?? []), tailwindcss(), removeUseClientPlugin],
       resolve: {
         ...config.resolve,
         alias: {
