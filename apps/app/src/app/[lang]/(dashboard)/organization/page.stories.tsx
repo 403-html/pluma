@@ -35,6 +35,7 @@ const MOCK_TOKENS = [
 const TABLE_LABELS = {
   colName: 'Name',
   colProject: 'Project',
+  colEnvironment: 'Environment',
   colKey: 'Key Preview',
   colCreated: 'Created',
   colActions: 'Actions',
