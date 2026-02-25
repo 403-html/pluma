@@ -330,8 +330,8 @@ For full debugging workflows see the `debugging-locally` skill. Quick reference:
 
 **Structured logs (first resort):**
 ```bash
-NODE_ENV=development pnpm --filter @pluma/api dev   # pretty-print JSON logs
-LOG_LEVEL=trace NODE_ENV=development pnpm --filter @pluma/api dev  # all lifecycle events
+pnpm --filter @pluma/api dev | pino-pretty   # pretty-print JSON logs
+pnpm --filter @pluma/api dev 2>&1 | jq .     # parse with jq
 DEBUG="prisma:query" pnpm --filter @pluma/api dev   # log every SQL statement
 ```
 

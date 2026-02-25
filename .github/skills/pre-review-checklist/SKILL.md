@@ -50,12 +50,12 @@ pnpm --filter @pluma/sdk build    # SDK
 Invoke the `running-tests` skill for the full procedure. Minimum required:
 
 ```bash
-# API tests require a running PostgreSQL database (see local-dev-setup skill)
 pnpm --filter @pluma/api test
 
-# SDK unit tests (no DB needed)
 pnpm --filter @pluma/sdk test
 ```
+
+All API tests mock `@pluma/db` via `vi.hoisted`/`vi.mock` — no live database is needed to run them.
 
 All tests must exit with code `0`. No skipped tests should be introduced without explicit justification.
 

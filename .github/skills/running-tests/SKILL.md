@@ -3,20 +3,18 @@ name: running-tests
 description: Canonical guide for running all test types in Pluma — unit, integration, and SDK
 ---
 
-This skill documents how to run every test suite in the Pluma monorepo. Tests use **Vitest 4**. API integration tests require a live PostgreSQL database.
+This skill documents how to run every test suite in the Pluma monorepo. Tests use **Vitest 4**. All API tests mock `@pluma/db` via `vi.hoisted`/`vi.mock` and use `app.inject` — no live database is required to run them.
 
 ## Test Inventory
 
 | Suite | Location | Type | DB required |
 |---|---|---|---|
-| API tests | `apps/api/src/tests/*.test.ts` (11 files) | Integration | ✅ Yes |
+| API tests | `apps/api/src/tests/*.test.ts` (11 files) | Unit (Prisma mocked) | ❌ No |
 | SDK tests | `packages/sdk/src/index.test.ts` | Unit | ❌ No |
 
 ## Prerequisites
 
 - Dependencies installed (`pnpm install`)
-- For API tests: PostgreSQL running and migrations applied (see `local-dev-setup` skill)
-- `.env` files in place for `packages/db/` and `apps/api/`
 
 ## Running All Tests
 
@@ -64,23 +62,6 @@ cd packages/sdk && pnpm vitest run --coverage
 
 Coverage reports are written to `coverage/` in each package directory.
 
-## API Test Requirements
-
-API tests hit a real PostgreSQL database. Before running:
-
-```bash
-# 1. Ensure Docker DB is up
-cd packages/db && docker-compose up -d
-
-# 2. Apply migrations
-pnpm --filter @pluma/db db:migrate
-
-# 3. Run tests
-pnpm --filter @pluma/api test
-```
-
-If tests fail with database connection errors, verify `apps/api/.env` contains the correct `DATABASE_URL`.
-
 ## Interpreting Output
 
 - **PASS** — all assertions passed
@@ -91,7 +72,7 @@ Exit code `0` = all tests passed. Any non-zero exit code = failure.
 
 ## CI Behaviour
 
-In CI, `pnpm -r test` runs against a provisioned PostgreSQL service container. The same commands work locally and in CI — no separate CI-only test commands exist.
+In CI, `pnpm -r test` runs in the `test` job. The PostgreSQL service container is provisioned for the migration step (`db:migrate:deploy`), not for the tests themselves.
 
 ## When to Invoke This Skill
 

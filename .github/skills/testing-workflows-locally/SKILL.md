@@ -17,8 +17,10 @@ description: Run GitHub Actions workflows locally using act — validate CI chan
 # macOS
 brew install act
 
-# Linux / WSL
-curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+# Linux / WSL — use the GitHub release binary, not the pipe-to-bash installer
+LATEST=$(curl -s https://api.github.com/repos/nektos/act/releases/latest | grep tag_name | cut -d '"' -f4)
+curl -L "https://github.com/nektos/act/releases/download/${LATEST}/act_Linux_x86_64.tar.gz" -o /tmp/act.tar.gz
+tar -xzf /tmp/act.tar.gz -C /usr/local/bin act
 ```
 
 Verify: `act --version`

@@ -7,37 +7,26 @@ This skill covers the two primary debugging approaches in Pluma: structured log 
 
 ## Log-Based Debugging (Recommended First Step)
 
-### Enable Pretty-Print Logs
+### Reading API Logs
 
-The Fastify API emits structured JSON logs. In development, set `NODE_ENV=development` to activate pretty-printing via `pino-pretty`:
-
-```bash
-NODE_ENV=development pnpm --filter @pluma/api dev
-```
-
-Log output becomes human-readable with coloured levels, timestamps, and request IDs:
-
-```
-[12:34:56.789] INFO: Server listening
-    url: "http://0.0.0.0:2137"
-[12:34:57.001] INFO: incoming request
-    reqId: "req-1"  method: "GET"  url: "/api/v1/flags"
-```
-
-### Increase Log Verbosity
-
-To log at `trace` level (all internal Fastify lifecycle events), set `LOG_LEVEL=trace` in `apps/api/.env` or inline:
+The Fastify API emits structured JSON logs to stdout. To read them in a human-friendly format, pipe through `pino-pretty` (install globally if needed: `npm install -g pino-pretty`) or `jq`:
 
 ```bash
-LOG_LEVEL=trace NODE_ENV=development pnpm --filter @pluma/api dev
+pnpm --filter @pluma/api dev | pino-pretty
+```
+
+Or parse with `jq`:
+
+```bash
+pnpm --filter @pluma/api dev 2>&1 | jq .
 ```
 
 ### Inspecting a Specific Request
 
-Each request gets a `reqId`. Pipe logs through `jq` to filter:
+Each request gets a `reqId`. Filter with `jq`:
 
 ```bash
-NODE_ENV=production pnpm --filter @pluma/api dev 2>&1 | jq 'select(.reqId == "req-3")'
+pnpm --filter @pluma/api dev 2>&1 | jq 'select(.reqId == "req-3")'
 ```
 
 ## Breakpoint Debugging (Node.js Inspector)
@@ -112,8 +101,8 @@ Attach VS Code using the same launch config above (port `9229`).
 
 | Symptom | Debug approach |
 |---|---|
-| Request returns unexpected 4xx/5xx | Enable `LOG_LEVEL=trace`; inspect request/response lifecycle logs |
-| Route handler not reached | Check Fastify plugin registration logs at `debug` level |
+| Request returns unexpected 4xx/5xx | Pipe logs through `jq` or `pino-pretty`; inspect request/response lifecycle logs |
+| Route handler not reached | Check Fastify plugin registration log entries |
 | Prisma query behaves unexpectedly | Set `DEBUG="prisma:query"` env var to log all SQL |
 | SDK returns wrong snapshot | Add `--reporter=verbose` to Vitest; set breakpoint in `index.test.ts` |
 | Hot-reload not picking up changes | Confirm `tsx watch` is running (not plain `node`); check for TS compile errors |
