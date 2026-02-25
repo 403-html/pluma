@@ -177,17 +177,19 @@ export default function ProjectsPage() {
               ))}
             </TableBody>
           </Table>
-          <TablePagination
-            currentPage={currentPage}
-            hasPrev={hasPrev}
-            hasNext={hasNext}
-            onPrev={() => setCurrentPage(p => p - 1)}
-            onNext={() => setCurrentPage(p => p + 1)}
-            prevLabel={t.common.prevPage}
-            nextLabel={t.common.nextPage}
-            pageInfoTemplate={t.common.pageInfo}
-            className="mt-4 shrink-0"
-          />
+          {(hasPrev || hasNext) && (
+            <TablePagination
+              currentPage={currentPage}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              onPrev={() => setCurrentPage(p => p - 1)}
+              onNext={() => setCurrentPage(p => p + 1)}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="shrink-0"
+            />
+          )}
         </div>
       )}
 

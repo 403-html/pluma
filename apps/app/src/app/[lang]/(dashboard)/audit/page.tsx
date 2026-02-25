@@ -215,17 +215,19 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
             entity: t.audit.colEntity,
             details: t.audit.colDetails,
           }} />
-          <TablePagination
-            currentPage={currentPage}
-            hasPrev={hasPrevPage}
-            hasNext={hasNextPage}
-            onPrev={handlePrevPage}
-            onNext={handleNextPage}
-            prevLabel={t.audit.prevPage}
-            nextLabel={t.audit.nextPage}
-            pageInfoTemplate={t.audit.pageInfo}
-            className="mt-4 shrink-0"
-          />
+          {(hasPrevPage || hasNextPage) && (
+            <TablePagination
+              currentPage={currentPage}
+              hasPrev={hasPrevPage}
+              hasNext={hasNextPage}
+              onPrev={handlePrevPage}
+              onNext={handleNextPage}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="shrink-0"
+            />
+          )}
         </div>
       ) : null}
     </main>

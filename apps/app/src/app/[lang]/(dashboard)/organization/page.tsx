@@ -111,17 +111,19 @@ export default function OrganizationPage() {
               onConfirmRevoke={handleRevoke}
               onCancelRevoke={() => setPendingRevokeId(null)}
             />
-            <TablePagination
-              currentPage={tokenPage}
-              hasPrev={hasTokenPrev}
-              hasNext={hasTokenNext}
-              onPrev={() => setTokenPage(p => p - 1)}
-              onNext={() => setTokenPage(p => p + 1)}
-              prevLabel={t.common.prevPage}
-              nextLabel={t.common.nextPage}
-              pageInfoTemplate={t.common.pageInfo}
-              className="mt-4 shrink-0"
-            />
+            {(hasTokenPrev || hasTokenNext) && (
+              <TablePagination
+                currentPage={tokenPage}
+                hasPrev={hasTokenPrev}
+                hasNext={hasTokenNext}
+                onPrev={() => setTokenPage(p => p - 1)}
+                onNext={() => setTokenPage(p => p + 1)}
+                prevLabel={t.common.prevPage}
+                nextLabel={t.common.nextPage}
+                pageInfoTemplate={t.common.pageInfo}
+                className="shrink-0"
+              />
+            )}
           </div>
         )}
       </section>

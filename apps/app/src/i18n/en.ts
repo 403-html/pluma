@@ -168,9 +168,6 @@ export const en = {
     colEntity: 'Entity',
     colDetails: 'Details',
     emptyState: 'No audit entries found.',
-    prevPage: 'Previous',
-    nextPage: 'Next',
-    pageInfo: 'Page {page}',
   },
   organization: {
     title: 'Organization',
