@@ -304,3 +304,44 @@ pnpm add @pluma/types --filter @pluma/api
 - Check package README files for specific documentation
 - Review `package.json` scripts for available commands
 - Consult Prisma, Next.js, and Fastify documentation
+
+## CI/CD
+
+CI runs on GitHub Actions. The pipeline executes on every push and PR.
+
+**Key pipeline steps (in order):**
+1. `pnpm install` — install all workspace dependencies
+2. `pnpm -r build` — build all packages (type-check included)
+3. `pnpm lint` — ESLint across the full monorepo
+4. `pnpm -r test` — run all Vitest suites (API + SDK); a PostgreSQL service container is provisioned automatically
+
+**Deployment:**
+- Migrations are applied in CI/CD via `pnpm --filter @pluma/db db:migrate:deploy` (never `db:migrate` in production — it prompts interactively).
+- Environment variables in CI mirror `.env.example` defaults; override via GitHub Actions secrets/environment variables.
+
+**Local parity:**
+- All pipeline commands are identical to local commands — no CI-only scripts exist.
+- If a step fails in CI but passes locally, check that `.env` values match the CI environment and that `pnpm -r build` succeeds before testing.
+
+## Debugging
+
+For full debugging workflows see the `debugging-locally` skill. Quick reference:
+
+**Structured logs (first resort):**
+```bash
+NODE_ENV=development pnpm --filter @pluma/api dev   # pretty-print JSON logs
+LOG_LEVEL=trace NODE_ENV=development pnpm --filter @pluma/api dev  # all lifecycle events
+DEBUG="prisma:query" pnpm --filter @pluma/api dev   # log every SQL statement
+```
+
+**Breakpoint debugging (Node.js inspector):**
+```bash
+NODE_OPTIONS="--inspect" pnpm --filter @pluma/api dev  # binds inspector to 127.0.0.1:9229
+```
+Attach VS Code via `.vscode/launch.json` with `"request": "attach"` on port `9229`. Source maps are active; breakpoints hit `.ts` lines directly.
+
+**SDK / test debugging:**
+```bash
+cd packages/sdk && pnpm vitest --reporter=verbose
+node --inspect-brk --loader tsx/esm node_modules/.bin/vitest run  # pause on first line
+```
