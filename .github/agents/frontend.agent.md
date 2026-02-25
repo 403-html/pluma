@@ -62,6 +62,9 @@ Before handing off any work, you **MUST** complete the following validation loop
 
 **Do not hand off work until all three checks pass.** This is non-negotiable.
 
+- **Running tests**: Invoke the `running-tests` skill for canonical commands and DB prerequisites before running any test suite.
+- **Debugging**: If an issue cannot be diagnosed from build/lint output alone, invoke the `debugging-locally` skill for structured log and breakpoint workflows.
+
 ## Quality Bar
 
 - No hacks.

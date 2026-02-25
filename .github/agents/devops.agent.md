@@ -377,6 +377,7 @@ updates:
 - **Workflow README**: Update `.github/workflows/README.md` if it exists
 - **Required secrets**: Document all required secrets in workflow header comments
 - **Breaking changes**: Note migration steps in PR description
+- **Environment setup**: When documenting local dev environment setup or CI environment parity, invoke the `local-dev-setup` skill as the canonical reference for services, env files, and bootstrap steps.
 
 ```yaml
 # Required secrets:
