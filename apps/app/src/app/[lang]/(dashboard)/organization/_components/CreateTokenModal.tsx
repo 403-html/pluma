@@ -58,7 +58,6 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
       }
       setIsLoadingProjects(false);
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
