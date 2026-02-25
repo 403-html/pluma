@@ -57,7 +57,9 @@ export function CopyPill({ value, variant = 'pill', className = '' }: CopyPillPr
       ? 'text-green-600 dark:text-green-400'
       : state === 'error'
         ? 'text-destructive'
-        : 'text-muted-foreground';
+        : variant === 'inline'
+          ? 'text-foreground'
+          : 'text-muted-foreground';
   const ariaLabel =
     state === 'success'
       ? 'Copied!'

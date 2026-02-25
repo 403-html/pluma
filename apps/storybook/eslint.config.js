@@ -24,7 +24,7 @@ export default [
     rules: {
       "storybook/no-uninstalled-addons": [
         "error",
-        { packageJsonLocation: "./package.json" },
+        { packageJsonLocation: "./apps/storybook/package.json" },
       ],
     },
   },

@@ -5,9 +5,7 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
-
-const TOKEN_BYTES = 32;
-const TOKEN_PREFIX = 'pluma_sdk_';
+import { TOKEN_BYTES, TOKEN_PREFIX, TOKEN_PREFIX_LENGTH } from '../../lib/tokenConstants';
 
 const tokenBodySchema = z.object({
   name: z.string().min(1).max(100),
@@ -88,6 +86,7 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
 
       const rawToken = TOKEN_PREFIX + randomBytes(TOKEN_BYTES).toString('hex');
       const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+      const tokenPrefix = rawToken.slice(0, TOKEN_PREFIX_LENGTH);
 
       const sdkToken = await prisma.sdkToken.create({
         data: {
@@ -95,6 +94,7 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
           envId: parsedParams.data.envId,
           name: parsedBody.data.name,
           tokenHash,
+          tokenPrefix,
         },
         select: { id: true, envId: true, projectId: true, name: true, createdAt: true },
       });

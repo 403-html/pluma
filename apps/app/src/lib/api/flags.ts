@@ -1,5 +1,6 @@
 import type { FeatureFlag } from '@pluma/types';
 import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH } from '@pluma/types';
+import { parseErrorMessage } from './utils';
 
 export type { FeatureFlag };
 
@@ -12,15 +13,6 @@ export type FlagEntry = {
   allowList: string[];
   denyList: string[];
 };
-
-async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data.message === 'string' ? data.message : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 export async function listFlagsForEnvironment(envId: string): Promise<
   { ok: true; flags: FlagEntry[]; nextCursor: string | null } | { ok: false; message: string }

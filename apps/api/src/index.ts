@@ -9,7 +9,7 @@ const start = async () => {
     const host = process.env.HOST || '0.0.0.0';
     
     await fastify.listen({ port, host });
-    console.log(`Server listening on ${host}:${port}`);
+    fastify.log.info(`Server listening on ${host}:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

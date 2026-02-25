@@ -4,7 +4,7 @@ import { hash } from 'bcryptjs';
 const BCRYPT_ROUNDS = 12;
 
 async function main() {
-  console.log('Start seeding...');
+  console.warn('Start seeding...');
   
   // Example: Create or update a project (idempotent)
   const project = await prisma.project.upsert({
@@ -20,7 +20,7 @@ async function main() {
     },
   });
   
-  console.log('Upserted project:', project);
+  console.warn('Upserted project:', project);
 
   // Create or update admin user (idempotent)
   // WARNING: This default admin is intended for development only.
@@ -50,10 +50,10 @@ async function main() {
       },
     });
   
-    console.log('Upserted admin user:', adminUser.id, adminUser.email);
+    console.warn('Upserted admin user:', adminUser.id, adminUser.email);
   }
   
-  console.log('Seeding finished.');
+  console.warn('Seeding finished.');
 }
 
 main()
