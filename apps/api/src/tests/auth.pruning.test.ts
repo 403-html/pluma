@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  USER_ID, SESSION_TOKEN, AUTH_COOKIE,
+  USER_ID, AUTH_COOKIE,
   mockUser, mockSession,
 } from './fixtures';
 
