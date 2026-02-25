@@ -73,6 +73,9 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      NEXT_PUBLIC_API_URL: "http://localhost:2137"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
