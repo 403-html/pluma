@@ -14,7 +14,7 @@ import { getProject } from '@/lib/api/projects';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
 
@@ -22,6 +22,8 @@ type ModalState =
   | { type: 'none' }
   | { type: 'add' }
   | { type: 'edit'; env: EnvironmentSummary };
+
+const PAGE_SIZE = 20;
 
 export default function EnvironmentsPage() {
   const { t, locale } = useLocale();
@@ -34,6 +36,7 @@ export default function EnvironmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const existingKeys = useMemo(() => environments.map(env => env.key), [environments]);
 
@@ -59,6 +62,10 @@ export default function EnvironmentsPage() {
     loadEnvironments();
   }, [loadEnvironments]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [environments.length]);
+
   async function handleDelete(id: string) {
     const result = await deleteEnvironment(id);
     setDeletingId(null);
@@ -71,7 +78,7 @@ export default function EnvironmentsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
           title={projectName ?? '…'}
@@ -83,7 +90,7 @@ export default function EnvironmentsPage() {
 
   if (error && environments.length === 0) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
           title={projectName ?? '…'}
@@ -93,8 +100,13 @@ export default function EnvironmentsPage() {
     );
   }
 
+  const totalPages = Math.ceil(environments.length / PAGE_SIZE);
+  const paginatedEnvironments = environments.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const hasPrev = currentPage > 1;
+  const hasNext = currentPage < totalPages;
+
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
         title={projectName ?? '…'}
@@ -113,79 +125,92 @@ export default function EnvironmentsPage() {
       {environments.length === 0 ? (
         <EmptyState message={t.environments.emptyState} icon={Boxes} />
       ) : (
-        <Table aria-label={t.environments.title}>
-          <TableHeader>
-            <TableHeadRow>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colName}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colKey}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colFlags}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colActions}</TableHead>
-            </TableHeadRow>
-          </TableHeader>
-          <TableBody>
-            {environments.map((env) => (
-              <TableRow key={env.id}>
-                <TableCell className="px-3 py-3">{env.name}</TableCell>
-                <TableCell className="px-3 py-3">
-                  <CopyPill value={env.key} />
-                </TableCell>
-                <TableCell className="px-3 py-3">
-                  {env.flagStats.enabled}/{env.flagStats.total} on
-                </TableCell>
-                <TableCell className="px-3 py-3">
-                  {deletingId === env.id ? (
-                    <div className="flex gap-2 items-center">
-                      <span className="text-xs text-destructive">{t.environments.confirmDelete}</span>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(env.id)}
-                      >
-                        {t.environments.confirmDeleteBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingId(null)}
-                      >
-                        {t.environments.cancelBtn}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
-                      >
-                        {t.environments.flagsBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
-                      >
-                        {t.environments.editBtn}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeletingId(env.id)}
-                      >
-                        {t.environments.deleteBtn}
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Table aria-label={t.environments.title}>
+            <TableHeader>
+              <TableHeadRow>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colName}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colKey}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colFlags}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colActions}</TableHead>
+              </TableHeadRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedEnvironments.map((env) => (
+                <TableRow key={env.id}>
+                  <TableCell className="px-3 py-3">{env.name}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <CopyPill value={env.key} />
+                  </TableCell>
+                  <TableCell className="px-3 py-3">
+                    {env.flagStats.enabled}/{env.flagStats.total} on
+                  </TableCell>
+                  <TableCell className="px-3 py-3">
+                    {deletingId === env.id ? (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs text-destructive">{t.environments.confirmDelete}</span>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(env.id)}
+                        >
+                          {t.environments.confirmDeleteBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingId(null)}
+                        >
+                          {t.environments.cancelBtn}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
+                        >
+                          {t.environments.flagsBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setError(null); setModalState({ type: 'edit', env }); }}
+                        >
+                          {t.environments.editBtn}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingId(env.id)}
+                        >
+                          {t.environments.deleteBtn}
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            currentPage={currentPage}
+            hasPrev={hasPrev}
+            hasNext={hasNext}
+            onPrev={() => setCurrentPage(p => p - 1)}
+            onNext={() => setCurrentPage(p => p + 1)}
+            prevLabel={t.common.prevPage}
+            nextLabel={t.common.nextPage}
+            pageInfoTemplate={t.common.pageInfo}
+            className="mt-4 shrink-0"
+          />
+        </div>
       )}
 
       {modalState.type === 'add' && (

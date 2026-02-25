@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 // Table - outer wrapper + table element
 const Table = React.forwardRef<HTMLTableElement, React.TableHTMLAttributes<HTMLTableElement>>(
   ({ className, children, ...props }, ref) => (
-    <div className="overflow-x-auto rounded-md border border-border mt-4">
+    <div className="overflow-auto rounded-md border border-border mt-4 flex-1 min-h-0">
       <table ref={ref} className={cn("w-full text-sm", className)} {...props}>
         {children}
       </table>
@@ -17,7 +17,7 @@ Table.displayName = "Table"
 // TableHeader - thead element
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn(className)} {...props} />
+    <thead ref={ref} className={cn("sticky top-0 z-10 bg-background", className)} {...props} />
   )
 )
 TableHeader.displayName = "TableHeader"

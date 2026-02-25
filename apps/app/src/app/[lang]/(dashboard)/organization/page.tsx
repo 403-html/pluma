@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import TokenRevealBanner from '@/components/TokenRevealBanner';
 import { useOrgTokens } from './_components/useOrgTokens';
 import CreateTokenModal from './_components/CreateTokenModal';
 import TokenTable from './_components/TokenTable';
+import { TablePagination } from '@/components/ui/table';
 import type { CreatedToken } from '@/lib/api/tokens';
 
 function LoadingSkeleton() {
@@ -20,6 +21,8 @@ function LoadingSkeleton() {
     </div>
   );
 }
+
+const PAGE_SIZE = 20;
 
 export default function OrganizationPage() {
   const { t, locale } = useLocale();
@@ -34,6 +37,11 @@ export default function OrganizationPage() {
   } = useOrgTokens(org.revokeError);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tokenPage, setTokenPage] = useState(1);
+
+  useEffect(() => {
+    setTokenPage(1);
+  }, [tokens.length]);
 
   function handleCreated(token: CreatedToken, projectName: string) {
     setCreatedToken(token);
@@ -42,11 +50,16 @@ export default function OrganizationPage() {
     void fetchTokens();
   }
 
+  const totalTokenPages = Math.ceil(tokens.length / PAGE_SIZE);
+  const paginatedTokens = tokens.slice((tokenPage - 1) * PAGE_SIZE, tokenPage * PAGE_SIZE);
+  const hasTokenPrev = tokenPage > 1;
+  const hasTokenNext = tokenPage < totalTokenPages;
+
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <h1 className="text-2xl font-semibold mb-8">{org.title}</h1>
 
-      <section className="mb-8 last:mb-0">
+      <section className="flex-1 min-h-0 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-lg font-semibold">{org.apiKeysSection}</h2>
@@ -87,16 +100,29 @@ export default function OrganizationPage() {
         ) : tokens.length === 0 ? (
           <EmptyState message={org.emptyState} />
         ) : (
-          <TokenTable
-            tokens={tokens}
-            locale={locale}
-            labels={org}
-            pendingRevokeId={pendingRevokeId}
-            isRevoking={isRevoking}
-            onRevoke={(id) => { setPendingRevokeId(id); }}
-            onConfirmRevoke={handleRevoke}
-            onCancelRevoke={() => setPendingRevokeId(null)}
-          />
+          <div className="flex-1 min-h-0 flex flex-col">
+            <TokenTable
+              tokens={paginatedTokens}
+              locale={locale}
+              labels={org}
+              pendingRevokeId={pendingRevokeId}
+              isRevoking={isRevoking}
+              onRevoke={(id) => { setPendingRevokeId(id); }}
+              onConfirmRevoke={handleRevoke}
+              onCancelRevoke={() => setPendingRevokeId(null)}
+            />
+            <TablePagination
+              currentPage={tokenPage}
+              hasPrev={hasTokenPrev}
+              hasNext={hasTokenNext}
+              onPrev={() => setTokenPage(p => p - 1)}
+              onNext={() => setTokenPage(p => p + 1)}
+              prevLabel={t.common.prevPage}
+              nextLabel={t.common.nextPage}
+              pageInfoTemplate={t.common.pageInfo}
+              className="mt-4 shrink-0"
+            />
+          </div>
         )}
       </section>
 

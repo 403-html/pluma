@@ -14,7 +14,7 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 import { PageHeader } from '@/components/PageHeader';
@@ -24,6 +24,8 @@ type ModalState =
   | { type: 'none' }
   | { type: 'add' }
   | { type: 'edit'; flag: FlagEntry };
+
+const PAGE_SIZE = 20;
 
 export default function FlagsPage() {
   const { t, locale } = useLocale();
@@ -37,6 +39,7 @@ export default function FlagsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
 
@@ -67,6 +70,10 @@ export default function FlagsPage() {
     loadFlags();
   }, [loadFlags]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [flags.length]);
+
   async function handleDelete(id: string) {
     const result = await deleteFlag(id);
     setDeletingId(null);
@@ -88,7 +95,7 @@ export default function FlagsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
@@ -103,7 +110,7 @@ export default function FlagsPage() {
 
   if (error && flags.length === 0) {
     return (
-      <main className="p-8">
+      <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
@@ -116,8 +123,13 @@ export default function FlagsPage() {
     );
   }
 
+  const totalPages = Math.ceil(flags.length / PAGE_SIZE);
+  const paginatedFlags = flags.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const hasPrev = currentPage > 1;
+  const hasNext = currentPage < totalPages;
+
   return (
-    <main className="p-8">
+    <main className="p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         breadcrumbs={[
           { label: t.projects.title, href: `/${locale}/projects` },
@@ -138,78 +150,91 @@ export default function FlagsPage() {
       {flags.length === 0 ? (
         <EmptyState message={t.flags.emptyState} icon={Flag} />
       ) : (
-        <Table aria-label={t.flags.title}>
-          <TableHeader>
-            <TableHeadRow>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colName}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colKey}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colDescription}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colStatus}</TableHead>
-              <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colActions}</TableHead>
-            </TableHeadRow>
-          </TableHeader>
-          <TableBody>
-            {flags.map((flag) => (
-              <TableRow key={flag.flagId}>
-                <TableCell className="px-3 py-3">{flag.name}</TableCell>
-                <TableCell className="px-3 py-3">
-                  <CopyPill value={flag.key} />
-                </TableCell>
-                <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
-                <TableCell className="px-3 py-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={flag.enabled}
-                      onChange={() => handleToggle(flag.flagId, flag.enabled)}
-                      className="cursor-pointer"
-                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
-                    />
-                    {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
-                  </label>
-                </TableCell>
-                <TableCell className="px-3 py-3">
-                  {deletingId === flag.flagId ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(flag.flagId)}
-                      >
-                        {t.flags.confirmDeleteBtn}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingId(null)}
-                      >
-                        {t.flags.cancelBtn}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
-                      >
-                        {t.flags.editBtn}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeletingId(flag.flagId)}
-                      >
-                        {t.flags.deleteBtn}
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Table aria-label={t.flags.title}>
+            <TableHeader>
+              <TableHeadRow>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colName}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colKey}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colDescription}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colStatus}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colActions}</TableHead>
+              </TableHeadRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedFlags.map((flag) => (
+                <TableRow key={flag.flagId}>
+                  <TableCell className="px-3 py-3">{flag.name}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <CopyPill value={flag.key} />
+                  </TableCell>
+                  <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={flag.enabled}
+                        onChange={() => handleToggle(flag.flagId, flag.enabled)}
+                        className="cursor-pointer"
+                        aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
+                      />
+                      {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
+                    </label>
+                  </TableCell>
+                  <TableCell className="px-3 py-3">
+                    {deletingId === flag.flagId ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(flag.flagId)}
+                        >
+                          {t.flags.confirmDeleteBtn}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingId(null)}
+                        >
+                          {t.flags.cancelBtn}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setError(null); setModalState({ type: 'edit', flag }); }}
+                        >
+                          {t.flags.editBtn}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingId(flag.flagId)}
+                        >
+                          {t.flags.deleteBtn}
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            currentPage={currentPage}
+            hasPrev={hasPrev}
+            hasNext={hasNext}
+            onPrev={() => setCurrentPage(p => p - 1)}
+            onNext={() => setCurrentPage(p => p + 1)}
+            prevLabel={t.common.prevPage}
+            nextLabel={t.common.nextPage}
+            pageInfoTemplate={t.common.pageInfo}
+            className="mt-4 shrink-0"
+          />
+        </div>
       )}
 
       {modalState.type === 'add' && (

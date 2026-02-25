@@ -56,6 +56,9 @@ export const en = {
   },
   common: {
     loading: 'Loading…',
+    prevPage: 'Previous',
+    nextPage: 'Next',
+    pageInfo: 'Page {page}',
   },
   sidebar: {
     projects: 'Projects',
