@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
+import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
   | { type: 'none' }
@@ -36,9 +37,9 @@ export default function EnvironmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const existingKeys = useMemo(() => environments.map(env => env.key), [environments]);
+  const { currentPage, paginatedItems: paginatedEnvironments, hasPrev, hasNext, goToPrev, goToNext } = usePagination(environments, PAGE_SIZE);
 
   const loadEnvironments = useCallback(async () => {
     setIsLoading(true);
@@ -61,17 +62,6 @@ export default function EnvironmentsPage() {
   useEffect(() => {
     loadEnvironments();
   }, [loadEnvironments]);
-
-  useEffect(() => {
-    const totalPages = Math.ceil(environments.length / PAGE_SIZE);
-    setCurrentPage((prevPage) => {
-      const maxPage = Math.max(1, totalPages);
-      if (prevPage > maxPage) {
-        return maxPage;
-      }
-      return prevPage;
-    });
-  }, [environments.length]);
 
   async function handleDelete(id: string) {
     const result = await deleteEnvironment(id);
@@ -106,11 +96,6 @@ export default function EnvironmentsPage() {
       </main>
     );
   }
-
-  const totalPages = Math.ceil(environments.length / PAGE_SIZE);
-  const paginatedEnvironments = environments.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const hasPrev = currentPage > 1;
-  const hasNext = currentPage < totalPages;
 
   return (
     <main className="p-8 h-screen flex flex-col overflow-hidden">
@@ -211,8 +196,8 @@ export default function EnvironmentsPage() {
               currentPage={currentPage}
               hasPrev={hasPrev}
               hasNext={hasNext}
-              onPrev={() => setCurrentPage(p => p - 1)}
-              onNext={() => setCurrentPage(p => p + 1)}
+              onPrev={goToPrev}
+              onNext={goToNext}
               prevLabel={t.common.prevPage}
               nextLabel={t.common.nextPage}
               pageInfoTemplate={t.common.pageInfo}

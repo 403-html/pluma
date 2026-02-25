@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
+import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
   | { type: 'none' }
@@ -32,9 +33,9 @@ export default function ProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const existingKeys = useMemo(() => projects.map(p => p.key), [projects]);
+  const { currentPage, paginatedItems: paginatedProjects, hasPrev, hasNext, goToPrev, goToNext } = usePagination(projects, PAGE_SIZE);
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -51,17 +52,6 @@ export default function ProjectsPage() {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
-
-  useEffect(() => {
-    const totalPages = Math.ceil(projects.length / PAGE_SIZE);
-    setCurrentPage((prevPage) => {
-      const maxPage = Math.max(1, totalPages);
-      if (prevPage > maxPage) {
-        return maxPage;
-      }
-      return prevPage;
-    });
-  }, [projects.length]);
 
   async function handleDelete(id: string) {
     const result = await deleteProject(id);
@@ -90,11 +80,6 @@ export default function ProjectsPage() {
       </main>
     );
   }
-
-  const totalPages = Math.ceil(projects.length / PAGE_SIZE);
-  const paginatedProjects = projects.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const hasPrev = currentPage > 1;
-  const hasNext = currentPage < totalPages;
 
   return (
     <main className="p-8 h-screen flex flex-col overflow-hidden">
@@ -189,8 +174,8 @@ export default function ProjectsPage() {
               currentPage={currentPage}
               hasPrev={hasPrev}
               hasNext={hasNext}
-              onPrev={() => setCurrentPage(p => p - 1)}
-              onNext={() => setCurrentPage(p => p + 1)}
+              onPrev={goToPrev}
+              onNext={goToNext}
               prevLabel={t.common.prevPage}
               nextLabel={t.common.nextPage}
               pageInfoTemplate={t.common.pageInfo}

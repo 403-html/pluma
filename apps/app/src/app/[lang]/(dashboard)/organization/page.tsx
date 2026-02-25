@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import CreateTokenModal from './_components/CreateTokenModal';
 import TokenTable from './_components/TokenTable';
 import { TablePagination } from '@/components/ui/table';
 import type { CreatedToken } from '@/lib/api/tokens';
+import { usePagination } from '@/hooks/usePagination';
 
 function LoadingSkeleton() {
   return (
@@ -37,18 +38,7 @@ export default function OrganizationPage() {
   } = useOrgTokens(org.revokeError);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tokenPage, setTokenPage] = useState(1);
-
-  useEffect(() => {
-    const totalPages = Math.ceil(tokens.length / PAGE_SIZE);
-    setTokenPage((prevPage) => {
-      const maxPage = Math.max(1, totalPages);
-      if (prevPage > maxPage) {
-        return maxPage;
-      }
-      return prevPage;
-    });
-  }, [tokens.length]);
+  const { currentPage: tokenPage, paginatedItems: paginatedTokens, hasPrev: hasTokenPrev, hasNext: hasTokenNext, goToPrev: goTokenPrev, goToNext: goTokenNext } = usePagination(tokens, PAGE_SIZE);
 
   function handleCreated(token: CreatedToken, projectName: string) {
     setCreatedToken(token);
@@ -56,11 +46,6 @@ export default function OrganizationPage() {
     setIsModalOpen(false);
     void fetchTokens();
   }
-
-  const totalTokenPages = Math.ceil(tokens.length / PAGE_SIZE);
-  const paginatedTokens = tokens.slice((tokenPage - 1) * PAGE_SIZE, tokenPage * PAGE_SIZE);
-  const hasTokenPrev = tokenPage > 1;
-  const hasTokenNext = tokenPage < totalTokenPages;
 
   return (
     <main className="p-8 h-screen flex flex-col overflow-hidden">
@@ -123,8 +108,8 @@ export default function OrganizationPage() {
                 currentPage={tokenPage}
                 hasPrev={hasTokenPrev}
                 hasNext={hasTokenNext}
-                onPrev={() => setTokenPage(p => p - 1)}
-                onNext={() => setTokenPage(p => p + 1)}
+                onPrev={goTokenPrev}
+                onNext={goTokenNext}
                 prevLabel={t.common.prevPage}
                 nextLabel={t.common.nextPage}
                 pageInfoTemplate={t.common.pageInfo}
