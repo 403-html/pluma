@@ -33,6 +33,7 @@ export function TargetingInput({
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [pendingRemoveTag, setPendingRemoveTag] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
@@ -44,16 +45,17 @@ export function TargetingInput({
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
         setHighlightedIndex(-1);
+        setPendingRemoveTag(null);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset highlight when the query changes (not when isOpen changes, to avoid
-  // cancelling the highlight set by ArrowDown in the same render cycle)
+  // Reset highlight and pending-remove when the query changes
   useEffect(() => {
     setHighlightedIndex(-1);
+    setPendingRemoveTag(null);
   }, [query]);
 
   // Scroll highlighted option into view within the listbox only (avoids scrolling the page)
@@ -137,7 +139,13 @@ export function TargetingInput({
       setIsOpen(false);
       setHighlightedIndex(-1);
     } else if (e.key === 'Backspace' && query === '' && tags.length > 0) {
-      onRemove(tags[tags.length - 1]);
+      const lastTag = tags[tags.length - 1];
+      if (pendingRemoveTag === lastTag) {
+        onRemove(lastTag);
+        setPendingRemoveTag(null);
+      } else {
+        setPendingRemoveTag(lastTag);
+      }
     }
   }
 
@@ -162,9 +170,13 @@ export function TargetingInput({
             key={tag}
             value={tag}
             onRemove={() => {
-              if (!disabled) onRemove(tag);
+              if (!disabled) {
+                onRemove(tag);
+                setPendingRemoveTag(null);
+              }
             }}
             disabled={disabled}
+            pending={pendingRemoveTag === tag}
           />
         ))}
         <input

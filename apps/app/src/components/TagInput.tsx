@@ -4,13 +4,15 @@ export function TagInput({
   value,
   onRemove,
   disabled,
+  pending,
 }: {
   value: string;
   onRemove: () => void;
   disabled?: boolean;
+  pending?: boolean;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+    <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${pending ? 'bg-destructive/15 text-destructive ring-1 ring-destructive/40' : 'bg-muted text-foreground'}`}>
       {value}
       <button
         type="button"
