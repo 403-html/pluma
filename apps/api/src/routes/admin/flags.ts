@@ -37,7 +37,15 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/v1/projects/:projectId/flags
    */
-  fastify.get('/projects/:projectId/flags', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.get('/projects/:projectId/flags', {
+    schema: {
+      tags: ['Flags'],
+      summary: 'List feature flags',
+      description: 'Returns all feature flags for a project, ordered by creation date.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
@@ -63,7 +71,15 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/v1/projects/:projectId/flags
    */
-  fastify.post('/projects/:projectId/flags', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.post('/projects/:projectId/flags', {
+    schema: {
+      tags: ['Flags'],
+      summary: 'Create feature flag',
+      description: 'Creates a new feature flag under the specified project. Optionally supports parent flag nesting up to the configured depth limit.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
     const parsedBody = flagBodySchema.safeParse(request.body);
 
@@ -185,7 +201,15 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
    */
   fastify.patch(
     '/flags/:flagId',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Flags'],
+        summary: 'Update feature flag',
+        description: 'Partially updates a feature flag. At least one of key, name, or description must be provided.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = flagParamsSchema.safeParse(request.params);
       const parsedBody = flagUpdateBodySchema.safeParse(request.body);
@@ -254,7 +278,15 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
    */
   fastify.delete(
     '/flags/:flagId',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Flags'],
+        summary: 'Delete feature flag',
+        description: 'Permanently deletes a feature flag and its associated configurations.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = flagParamsSchema.safeParse(request.params);
 

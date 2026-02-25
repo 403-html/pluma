@@ -3,6 +3,8 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import sensible from '@fastify/sensible';
 import cookie from '@fastify/cookie';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { registerAuthRoutes } from './routes/admin/auth';
 import { registerProjectRoutes } from './routes/admin/projects';
@@ -26,7 +28,52 @@ export async function buildApp(options: BuildAppOptions = {}) {
     logger,
   });
 
-  // Register plugins
+  // Register OpenAPI/Swagger plugins before routes so all route schemas are captured
+  await fastify.register(swagger, {
+    openapi: {
+      openapi: '3.0.3',
+      info: {
+        title: 'Pluma API',
+        description: 'Feature flag management API for Pluma',
+        version: '1.0.0',
+      },
+      servers: [
+        {
+          url: 'http://localhost:3000',
+          description: 'Local development server',
+        },
+      ],
+      tags: [
+        { name: 'Health', description: 'Server health and liveness' },
+        { name: 'Auth', description: 'Admin authentication and session management' },
+        { name: 'Projects', description: 'Project management' },
+        { name: 'Flags', description: 'Feature flag management' },
+        { name: 'Environments', description: 'Environment management' },
+        { name: 'Tokens', description: 'SDK token management' },
+        { name: 'Audit', description: 'Audit log queries' },
+        { name: 'SDK', description: 'SDK endpoints for flag evaluation' },
+      ],
+      components: {
+        securitySchemes: {
+          cookieAuth: {
+            type: 'apiKey',
+            in: 'cookie',
+            name: 'pluma_session',
+          },
+        },
+      },
+    },
+  });
+
+  await fastify.register(swaggerUi, {
+    routePrefix: '/documentation',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: true,
+    },
+  });
+
+  // Register remaining plugins
   await fastify.register(cors);
   await fastify.register(helmet);
   await fastify.register(sensible);
@@ -42,7 +89,23 @@ export async function buildApp(options: BuildAppOptions = {}) {
   });
 
   // Health check endpoint
-  fastify.get('/health', async () => {
+  fastify.get('/health', {
+    schema: {
+      tags: ['Health'],
+      summary: 'Health check',
+      description: 'Returns server liveness status and current timestamp.',
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', example: 'ok' },
+            timestamp: { type: 'string', format: 'date-time' },
+          },
+          required: ['status', 'timestamp'],
+        },
+      },
+    },
+  }, async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 

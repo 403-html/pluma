@@ -13,5 +13,7 @@ export default [{
     "**/node_modules",
     "**/dist",
     "**/.next",
+    // Docusaurus site — has its own toolchain, not covered by this ESLint config
+    "apps/docs/**",
   ],
 }, ...base, ...storybook.configs["flat/recommended"]];

@@ -37,7 +37,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * Returns whether the system has been configured (i.e., at least one user exists).
    * No authentication required.
    */
-  fastify.get('/setup', async (request, reply) => {
+  fastify.get('/setup', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Check setup status',
+      description: 'Returns whether the system has been configured (i.e., at least one admin user exists). No authentication required.',
+    },
+  }, async (request, reply) => {
     const userCount = await prisma.user.count();
 
     if (userCount === 0) {
@@ -51,7 +57,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * POST /api/v1/auth/register
    * Creates the first admin user. Returns 409 if any user already exists.
    */
-  fastify.post('/register', async (request, reply) => {
+  fastify.post('/register', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Register initial admin user',
+      description: 'Creates the first admin user. Returns 409 Conflict if any user already exists.',
+    },
+  }, async (request, reply) => {
     const parsedBody = registerBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
@@ -81,7 +93,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * Always runs bcrypt compare to prevent user enumeration via timing attacks.
    * Invalidates all existing sessions for the user before creating a new one.
    */
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Login',
+      description: 'Validates credentials and creates a session cookie. Uses constant-time bcrypt comparison to prevent user enumeration via timing attacks.',
+    },
+  }, async (request, reply) => {
     const parsedBody = loginBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
@@ -129,7 +147,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * POST /api/v1/auth/logout
    * Deletes the current session and clears the session cookie.
    */
-  fastify.post('/logout', async (request, reply) => {
+  fastify.post('/logout', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Logout',
+      description: 'Deletes the current session and clears the session cookie.',
+    },
+  }, async (request, reply) => {
     const sessionToken = request.cookies[COOKIE_NAME];
 
     if (sessionToken) {
@@ -147,7 +171,15 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * Requires authentication via adminAuthHook.
    * Prevents reuse of the last 5 passwords (current + 4 historical).
    */
-  fastify.post('/change-password', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.post('/change-password', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Change password',
+      description: 'Changes the password for the currently authenticated user. Prevents reuse of the last 5 passwords.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedBody = changePasswordBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
@@ -272,7 +304,15 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * GET /api/v1/auth/me
    * Returns the currently authenticated user.
    */
-  fastify.get('/me', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.get('/me', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Get current user',
+      description: 'Returns the currently authenticated admin user.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     return reply.code(StatusCodes.OK).send(request.sessionUser!);
   });
 }

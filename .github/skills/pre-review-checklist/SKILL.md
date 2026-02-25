@@ -59,7 +59,25 @@ All API tests mock `@pluma/db` via `vi.hoisted`/`vi.mock` — no live database i
 
 All tests must exit with code `0`. No skipped tests should be introduced without explicit justification.
 
-### 4. No Secrets or Generated Files Committed
+### 4. New Workspace Package? Update the Lockfile First
+
+If you **created a new workspace package** (added a directory under `apps/` or `packages/` with a `package.json`), you MUST run:
+
+```bash
+pnpm install --no-frozen-lockfile
+```
+
+at the repo root **before** building or committing. This updates `pnpm-lock.yaml` so CI's `pnpm install` (which runs with `--frozen-lockfile` by default) does not fail.
+
+> Note: the sandbox / CI environment sets `frozen-lockfile = true` by default. Omitting this step will cause `ERR_PNPM_OUTDATED_LOCKFILE` in CI even though the package installs locally.
+
+Verify the lockfile was updated:
+
+```bash
+grep "apps/<new-package>" pnpm-lock.yaml   # must return a match
+```
+
+### 5. No Secrets or Generated Files Committed
 
 ```bash
 git status
@@ -101,7 +119,8 @@ Confirm the PR targets `main`. Feature branches should never target other featur
 | Lint: `Parsing error` | TypeScript syntax error | Fix the syntax; check imports |
 | Lint: `no-unused-vars` | Declared but unused variable | Remove or use the variable |
 | Build: `Type error` | Type mismatch or missing import | Fix types; run `pnpm --filter @pluma/db db:generate` if schema changed |
-| Build: `Cannot find module` | Missing dependency or workspace link | Run `pnpm install` at root |
+| Build: `Cannot find module` | Missing dependency or workspace link | Run `pnpm install --no-frozen-lockfile` at root |
+| CI: `ERR_PNPM_OUTDATED_LOCKFILE` | New workspace package added without updating lockfile | Run `pnpm install --no-frozen-lockfile` at root, then commit the updated `pnpm-lock.yaml` |
 | Test: `Cannot connect to database` | PostgreSQL not running | Start DB: `cd packages/db && docker-compose up -d` |
 | Test: auth returns 401 | Session mock not set | Add `prismaMock.session.findUnique.mockResolvedValue(mockSession)` to `beforeEach` |
 | Test: `vi.hoisted` error | Prisma mock not using `vi.hoisted` | Wrap mock declaration in `vi.hoisted(() => { ... })` |

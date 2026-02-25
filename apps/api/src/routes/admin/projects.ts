@@ -27,7 +27,15 @@ const projectParamsSchema = z.object({
 });
 
 export async function registerProjectRoutes(fastify: FastifyInstance) {
-  fastify.get('/projects', { preHandler: [adminAuthHook] }, async () => {
+  fastify.get('/projects', {
+    schema: {
+      tags: ['Projects'],
+      summary: 'List projects',
+      description: 'Returns all projects ordered by creation date, each including their environments.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async () => {
     const projects = await prisma.project.findMany({
       orderBy: { createdAt: 'desc' },
       take: PAGE_SIZE,
@@ -39,7 +47,15 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     return projects;
   });
 
-  fastify.get('/projects/:id', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.get('/projects/:id', {
+    schema: {
+      tags: ['Projects'],
+      summary: 'Get project by ID',
+      description: 'Returns a single project by its UUID.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {
@@ -59,7 +75,15 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     return project;
   });
 
-  fastify.post('/projects', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.post('/projects', {
+    schema: {
+      tags: ['Projects'],
+      summary: 'Create project',
+      description: 'Creates a new project. The project key must be unique across all projects.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedBody = projectBodySchema.safeParse(request.body);
 
     if (!parsedBody.success) {
@@ -98,7 +122,15 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.patch('/projects/:id', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.patch('/projects/:id', {
+    schema: {
+      tags: ['Projects'],
+      summary: 'Update project',
+      description: 'Partially updates a project. At least one of key or name must be provided.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
     const parsedBody = projectUpdateBodySchema.safeParse(request.body);
 
@@ -150,7 +182,15 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.delete('/projects/:id', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.delete('/projects/:id', {
+    schema: {
+      tags: ['Projects'],
+      summary: 'Delete project',
+      description: 'Permanently deletes a project and all associated data.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsedParams = projectParamsSchema.safeParse(request.params);
 
     if (!parsedParams.success) {

@@ -258,7 +258,7 @@ pnpm db:seed      # Seed database with initial data
 1. Create directory in `apps/` or `packages/`
 2. Add `package.json` with `@pluma/*` name
 3. Add to `pnpm-workspace.yaml` if needed (usually automatic)
-4. Run `pnpm install` at root
+4. Run `pnpm install --no-frozen-lockfile` at root — this updates `pnpm-lock.yaml`; commit it alongside the new package. Omitting this step causes `ERR_PNPM_OUTDATED_LOCKFILE` in CI.
 
 ### Adding Dependencies
 

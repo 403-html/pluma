@@ -12,6 +12,7 @@
     "build:esbuild": "node tooling/esbuild/build.mjs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "pnpm -r test",
+    "docs:dev": "pnpm --filter @pluma/docs start",
     "storybook": "pnpm --filter @pluma/storybook dev",
     "build-storybook": "pnpm --filter @pluma/storybook build"
   },

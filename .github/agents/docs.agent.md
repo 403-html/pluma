@@ -56,6 +56,7 @@ You're the Senior Documentation Engineer for Pluma.
    - Troubleshooting / known limitations
 3. Validate technical accuracy against code/scripts.
    - **Local setup docs**: When writing or updating any setup, onboarding, or environment guide, invoke the `local-dev-setup` skill as the canonical source of truth for commands, env files, and prerequisites. Do not duplicate — link or align with it.
+   - **New workspace package**: If a task requires creating a new package under `apps/` or `packages/`, run `pnpm install --no-frozen-lockfile` at the repo root immediately after creating the `package.json`. This updates `pnpm-lock.yaml`; commit the lockfile alongside the new package. Skipping this causes `ERR_PNPM_OUTDATED_LOCKFILE` in CI.
 4. Provide handoff notes:
    - Changed docs
    - What was validated
