@@ -63,8 +63,6 @@ You must **NOT**:
 ```yaml
 - name: Setup pnpm
   uses: pnpm/action-setup@v4
-  with:
-    version: 10.29.3
 
 - name: Setup Node.js
   uses: actions/setup-node@v4
@@ -269,8 +267,6 @@ jobs:
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.29.3
 
       - uses: actions/setup-node@v4
         with:
@@ -355,6 +351,7 @@ updates:
 
 ### Validation
 
+- **Local workflow testing**: When adding or modifying any workflow, MUST invoke the `testing-workflows-locally` skill to validate with `act` before pushing.
 - **Local testing**: Use `act` to test workflows locally when possible
 - **Dry-run first**: Use `--dry-run` flags for destructive operations
 - **Check workflow syntax**: `actionlint` or GitHub UI validation

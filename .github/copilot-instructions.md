@@ -322,6 +322,7 @@ CI runs on GitHub Actions. The pipeline executes on every push and PR.
 **Local parity:**
 - All pipeline commands are identical to local commands — no CI-only scripts exist.
 - If a step fails in CI but passes locally, check that `.env` values match the CI environment and that `pnpm -r build` succeeds before testing.
+- To validate workflow changes locally before pushing, see the `testing-workflows-locally` skill (`act push -j <job>`).
 
 ## Debugging
 
