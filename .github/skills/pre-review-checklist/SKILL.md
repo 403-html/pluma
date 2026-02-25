@@ -121,6 +121,7 @@ Confirm the PR targets `main`. Feature branches should never target other featur
 | Lint: `no-unused-vars` | Declared but unused variable | Remove or use the variable |
 | Build: `Type error` | Type mismatch or missing import | Fix types; run `pnpm --filter @pluma/db db:generate` if schema changed |
 | Build: `Cannot find module` | Missing dependency or workspace link | Run `pnpm install --no-frozen-lockfile` at root |
+| Dev: `ERR_MODULE_NOT_FOUND` for `@pluma/*/dist/` | Workspace package not built yet | Run `pnpm --filter @pluma/types build && pnpm --filter @pluma/db build` before starting the dev server, or just use `pnpm api:dev` / `pnpm dev` which now do this automatically |
 | CI: `ERR_PNPM_OUTDATED_LOCKFILE` | New workspace package added without updating lockfile | Run `pnpm install --no-frozen-lockfile` at root, then commit the updated `pnpm-lock.yaml` |
 | Test: `Cannot connect to database` | PostgreSQL not running | Start DB: `cd packages/db && docker-compose up -d` |
 | Test: auth returns 401 | Session mock not set | Add `prismaMock.session.findUnique.mockResolvedValue(mockSession)` to `beforeEach` |
