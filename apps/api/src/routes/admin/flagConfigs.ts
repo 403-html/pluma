@@ -112,7 +112,15 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/environments/:envId/flags',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Environments'],
+        summary: 'List flag configs for environment',
+        description: 'Returns a paginated list of flags for the project with their enabled state in this environment. Supports cursor-based pagination.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = envParamsSchema.safeParse(request.params);
       const parsedQuery = flagsQuerySchema.safeParse(request.query);
@@ -183,7 +191,15 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
    */
   fastify.patch(
     '/environments/:envId/flags/:flagId',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Environments'],
+        summary: 'Update flag config',
+        description: 'Toggles a flag in an environment and optionally sets allow/deny lists. Lazy-creates the config row.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = flagConfigParamsSchema.safeParse(request.params);
       const parsedBody = flagConfigUpdateBodySchema.safeParse(request.body);

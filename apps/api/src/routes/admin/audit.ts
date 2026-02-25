@@ -29,7 +29,15 @@ const auditQuerySchema = z.object({
  *     Response: { total, page, pageSize, entries: AuditLog[] }
  */
 export async function registerAuditRoutes(fastify: FastifyInstance) {
-  fastify.get('/audit', { preHandler: [adminAuthHook] }, async (request, reply) => {
+  fastify.get('/audit', {
+    schema: {
+      tags: ['Audit'],
+      summary: 'List audit log entries',
+      description: 'Returns a paginated, newest-first list of audit log entries. All query params are optional.',
+      security: [{ cookieAuth: [] }],
+    },
+    preHandler: [adminAuthHook],
+  }, async (request, reply) => {
     const parsed = auditQuerySchema.safeParse(request.query);
     if (!parsed.success) {
       return reply.badRequest('Invalid query parameters');

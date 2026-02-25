@@ -9,7 +9,15 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
    * Returns the current feature flag snapshot for the authenticated environment.
    * Supports ETag / If-None-Match for cheap 304 Not Modified responses.
    */
-  fastify.get('/snapshot', { preHandler: [sdkAuthHook] }, async (request, reply) => {
+  fastify.get('/snapshot', {
+    schema: {
+      tags: ['SDK'],
+      summary: 'Get flag snapshot',
+      description: 'Returns the current feature flag snapshot for the authenticated environment. Supports ETag / If-None-Match for cheap 304 Not Modified responses.',
+      security: [{ bearerAuth: [] }],
+    },
+    preHandler: [sdkAuthHook],
+  }, async (request, reply) => {
     const envId = request.sdkEnvId;
     const projectId = request.sdkProjectId as string;
 

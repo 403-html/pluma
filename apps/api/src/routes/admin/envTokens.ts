@@ -26,7 +26,15 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/environments/:envId/sdk-tokens',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'List env SDK tokens',
+        description: 'Lists all active (non-revoked) SDK tokens for an environment.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = envParamsSchema.safeParse(request.params);
 
@@ -60,7 +68,15 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/environments/:envId/sdk-tokens',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'Create env SDK token',
+        description: 'Creates a new env-scoped SDK token. Returns the raw token once.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = envParamsSchema.safeParse(request.params);
       const parsedBody = tokenBodySchema.safeParse(request.body);
@@ -124,7 +140,15 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.delete(
     '/sdk-tokens/:id',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'Revoke env SDK token',
+        description: 'Revokes an env-scoped SDK token by id (immediate revocation).',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = tokenParamsSchema.safeParse(request.params);
 

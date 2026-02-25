@@ -33,7 +33,15 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/projects/:projectId/environments',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Environments'],
+        summary: 'List environments',
+        description: 'Returns all environments for a project, each including flag stats.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = projectParamsSchema.safeParse(request.params);
 
@@ -82,7 +90,15 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/projects/:projectId/environments',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Environments'],
+        summary: 'Create environment',
+        description: 'Creates a new environment under the specified project. The environment key must be unique within the project.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = projectParamsSchema.safeParse(request.params);
       const parsedBody = envBodySchema.safeParse(request.body);
@@ -148,7 +164,15 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
    */
   fastify.patch(
     '/environments/:envId',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Environments'],
+        summary: 'Update environment',
+        description: 'Partially updates an environment. At least one of key or name must be provided.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = envParamsSchema.safeParse(request.params);
       const parsedBody = envUpdateBodySchema.safeParse(request.body);
@@ -208,7 +232,15 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
    */
   fastify.delete(
     '/environments/:envId',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Environments'],
+        summary: 'Delete environment',
+        description: 'Permanently deletes an environment and all associated data.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = envParamsSchema.safeParse(request.params);
 

@@ -27,7 +27,15 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/projects/:id/tokens',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'List project SDK tokens',
+        description: 'Lists all active (non-revoked) SDK tokens for a project.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = projectParamsSchema.safeParse(request.params);
 
@@ -61,7 +69,15 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/projects/:id/tokens',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'Create project SDK token',
+        description: 'Creates a new SDK token for a project. Returns the raw token once.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = projectParamsSchema.safeParse(request.params);
       const parsedBody = tokenBodySchema.safeParse(request.body);
@@ -123,7 +139,15 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.delete(
     '/projects/:id/tokens/:tokenId',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'Revoke project SDK token',
+        description: 'Revokes a project-scoped SDK token by setting revokedAt.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = tokenParamsSchema.safeParse(request.params);
 

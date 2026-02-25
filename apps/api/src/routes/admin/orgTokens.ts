@@ -26,7 +26,15 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.get(
     '/tokens',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'List all SDK tokens',
+        description: 'Lists all active (non-revoked) SDK tokens across the entire org.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (_request, reply) => {
       const tokens = await prisma.sdkToken.findMany({
         where: { revokedAt: null },
@@ -56,7 +64,15 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.post(
     '/tokens',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'Create SDK token',
+        description: 'Creates a new org-level SDK token. Returns the raw token once.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedBody = orgTokenBodySchema.safeParse(request.body);
 
@@ -127,7 +143,15 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
    */
   fastify.delete(
     '/tokens/:id',
-    { preHandler: [adminAuthHook] },
+    {
+      schema: {
+        tags: ['Tokens'],
+        summary: 'Revoke SDK token',
+        description: 'Revokes an SDK token by id.',
+        security: [{ cookieAuth: [] }],
+      },
+      preHandler: [adminAuthHook],
+    },
     async (request, reply) => {
       const parsedParams = tokenParamsSchema.safeParse(request.params);
 
