@@ -107,6 +107,7 @@ Confirm the PR targets `main`. Feature branches should never target other featur
 | API only (`apps/api/`) | `pnpm --filter @pluma/api lint && pnpm --filter @pluma/api build && pnpm --filter @pluma/api test` |
 | UI only (`apps/app/`) | `pnpm --filter @pluma/app lint && pnpm --filter @pluma/app build` |
 | SDK only (`packages/sdk/`) | `pnpm --filter @pluma/sdk lint && pnpm --filter @pluma/sdk build && pnpm --filter @pluma/sdk test` |
+| Docs (`apps/docs/`) | `pnpm --filter @pluma/docs build` — must exit 0 with no broken-link errors |
 | DB schema (`packages/db/`) | `pnpm --filter @pluma/db db:generate` then full build + test |
 | Shared types (`packages/types/`) | `pnpm -r build` (all dependents must still compile) |
 | Workflows (`.github/workflows/`) | Invoke `testing-workflows-locally` skill; run `act push -j <job>` locally |

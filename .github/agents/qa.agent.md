@@ -20,6 +20,7 @@ You're the Senior QA Engineer for Pluma.
 - Acceptance criteria
 - User stories
 - Confirm new components have accompanying `*.stories.tsx` files in `apps/app/src`
+- Docs site builds cleanly when `apps/docs/` is changed: `pnpm --filter @pluma/docs build` must exit 0 with no broken-link errors; confirm `pnpm docs:dev` starts without warnings
 - Business intent
 
 ## Test Strategy

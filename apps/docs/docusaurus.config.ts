@@ -12,7 +12,12 @@ const config: Config = {
   baseUrl: "/",
 
   onBrokenLinks: "warn",
-  onBrokenMarkdownLinks: "warn",
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: "warn",
+    },
+  },
 
   i18n: {
     defaultLocale: "en",
@@ -42,7 +47,7 @@ const config: Config = {
     [
       // API reference generation plugin.
       // Run `pnpm --filter @pluma/docs gen-api-docs` (with the API server
-      // running at http://localhost:3000) to fetch the OpenAPI spec and emit
+      // running at http://localhost:2137) to fetch the OpenAPI spec and emit
       // markdown pages into docs/api/.
       "docusaurus-plugin-openapi-docs",
       {
@@ -50,7 +55,7 @@ const config: Config = {
         docsPluginId: "classic",
         config: {
           pluma: {
-            specPath: "http://localhost:3000/documentation/json",
+            specPath: "http://localhost:2137/documentation/json",
             outputDir: "docs/api",
             sidebarOptions: {
               groupPathsBy: "tag",
@@ -58,7 +63,7 @@ const config: Config = {
             },
             // Keep the generated files so the static build does not need the
             // API server at build time.
-            downloadUrl: "http://localhost:3000/documentation/json",
+            downloadUrl: "http://localhost:2137/documentation/json",
           },
         },
       },
