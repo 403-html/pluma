@@ -129,30 +129,6 @@ jobs:
       contents: read
       actions: read
 
-    # PostgreSQL service — mirrors packages/db/docker-compose.yml exactly
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: pluma
-          POSTGRES_PASSWORD: pluma
-          POSTGRES_DB: pluma
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U pluma"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      # Database — matches .env.example in packages/db and apps/api
-      DATABASE_URL: "postgresql://pluma:pluma@localhost:5432/pluma?schema=public"
-      # API server settings — matches apps/api/.env.example
-      PORT: "2137"
-      HOST: "0.0.0.0"
-      NODE_ENV: "test"
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -185,9 +161,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-
-      - name: Apply database migrations
-        run: pnpm --filter @pluma/db db:migrate:deploy
 
       - name: Run tests
         run: pnpm test

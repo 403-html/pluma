@@ -72,7 +72,7 @@ Exit code `0` = all tests passed. Any non-zero exit code = failure.
 
 ## CI Behaviour
 
-In CI, `pnpm -r test` runs in the `test` job. The PostgreSQL service container is provisioned for the migration step (`db:migrate:deploy`), not for the tests themselves.
+In CI, `pnpm -r test` runs in the `test` job with no database service — all API tests are mocked and require no external dependencies.
 
 ## When to Invoke This Skill
 
