@@ -9,7 +9,7 @@ This skill documents how to run every test suite in the Pluma monorepo. Tests us
 
 | Suite | Location | Type | DB required |
 |---|---|---|---|
-| API tests | `apps/api/src/tests/*.test.ts` (12 files) | Integration | ✅ Yes |
+| API tests | `apps/api/src/tests/*.test.ts` (11 files) | Integration | ✅ Yes |
 | SDK tests | `packages/sdk/src/index.test.ts` | Unit | ❌ No |
 
 ## Prerequisites

@@ -311,8 +311,8 @@ CI runs on GitHub Actions. The pipeline executes on every push and PR.
 
 **Key pipeline steps (in order):**
 1. `pnpm install` — install all workspace dependencies
-2. `pnpm -r build` — build all packages (type-check included)
-3. `pnpm lint` — ESLint across the full monorepo
+2. `pnpm lint` — ESLint across the full monorepo
+3. `pnpm -r build` — build all packages (type-check included)
 4. `pnpm -r test` — run all Vitest suites (API + SDK); a PostgreSQL service container is provisioned automatically
 
 **Deployment:**
