@@ -32,6 +32,7 @@ export async function registerAuditRoutes(fastify: FastifyInstance) {
   fastify.get('/audit', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const parsed = auditQuerySchema.safeParse(request.query);
     if (!parsed.success) {
+      request.log.warn({ query: request.query }, 'GET /audit rejected: invalid query parameters');
       return reply.badRequest('Invalid query parameters');
     }
     const { projectId, flagId, envId, page } = parsed.data;

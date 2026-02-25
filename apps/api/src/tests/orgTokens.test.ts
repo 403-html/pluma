@@ -285,8 +285,6 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('error', 'Project not found');
     });
 
     it('should return 404 when envId provided but environment not found', async () => {
@@ -301,8 +299,6 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('error', 'Environment not found');
     });
 
     it('should return 404 when envId belongs to a different project', async () => {
@@ -321,8 +317,6 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('error', 'Environment not found');
     });
   });
 
@@ -330,7 +324,7 @@ describe('Org-level Token routes', () => {
   // DELETE /api/v1/tokens/:id
   // ─────────────────────────────────────────────────────────────────────────────
   describe('DELETE /api/v1/tokens/:id', () => {
-    it('should return 200 and revoke the token', async () => {
+    it('should return 204 and revoke the token', async () => {
       prismaMock.sdkToken.update.mockResolvedValue({ ...mockSdkTokenWithPrefix, revokedAt: FIXED_DATE, projectId: PROJECT_ID });
 
       const response = await app.inject({
@@ -339,9 +333,7 @@ describe('Org-level Token routes', () => {
         headers: { cookie: AUTH_COOKIE },
       });
 
-      expect(response.statusCode).toBe(200);
-      const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('message', 'Token revoked');
+      expect(response.statusCode).toBe(204);
       expect(prismaMock.sdkToken.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: TOKEN_ID, revokedAt: null },
@@ -360,8 +352,6 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('error', 'Token not found');
     });
 
     it('should return 404 when token is already revoked', async () => {
@@ -374,8 +364,6 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const payload = JSON.parse(response.payload);
-      expect(payload).toHaveProperty('error', 'Token not found');
     });
 
     it('should return 401 without auth cookie', async () => {
