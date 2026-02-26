@@ -24,9 +24,10 @@ const flagConfigUpdateBodySchema = z.object({
   enabled: z.boolean().optional(),
   allowList: z.array(z.string().min(1)).optional(),
   denyList: z.array(z.string().min(1)).optional(),
+  rolloutPercentage: z.number().int().min(0).max(100).optional(),
 }).refine(
-  (body) => body.enabled !== undefined || body.allowList !== undefined || body.denyList !== undefined,
-  { message: 'At least one of enabled, allowList, or denyList must be provided' },
+  (body) => body.enabled !== undefined || body.allowList !== undefined || body.denyList !== undefined || body.rolloutPercentage !== undefined,
+  { message: 'At least one of enabled, allowList, denyList, or rolloutPercentage must be provided' },
 ).refine(
   (body) => {
     if (body.allowList === undefined) return true;
@@ -156,7 +157,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
       });
 
       const configMap = new Map(
-        configs.map((c) => [c.flagId, { enabled: c.enabled, allowList: c.allowList, denyList: c.denyList }]),
+        configs.map((c) => [c.flagId, { enabled: c.enabled, allowList: c.allowList, denyList: c.denyList, rolloutPercentage: c.rolloutPercentage }]),
       );
 
       return {
@@ -170,6 +171,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             enabled: cfg?.enabled ?? false,
             allowList: cfg?.allowList ?? [],
             denyList: cfg?.denyList ?? [],
+            rolloutPercentage: cfg?.rolloutPercentage ?? 0,
           };
         }),
         nextCursor,
@@ -209,12 +211,13 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
       }
 
       const config = await prisma.$transaction(async (tx) => {
-        const { enabled, allowList, denyList } = parsedBody.data;
-        const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[] } = {};
+        const { enabled, allowList, denyList, rolloutPercentage } = parsedBody.data;
+        const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[]; rolloutPercentage?: number } = {};
 
         if (enabled !== undefined) updates.enabled = enabled;
         if (allowList !== undefined) updates.allowList = allowList;
         if (denyList !== undefined) updates.denyList = denyList;
+        if (rolloutPercentage !== undefined) updates.rolloutPercentage = rolloutPercentage;
 
         const upserted = await tx.flagConfig.upsert({
           where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
@@ -225,6 +228,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             enabled: enabled ?? false,
             allowList: allowList ?? [],
             denyList: denyList ?? [],
+            rolloutPercentage: rolloutPercentage ?? 0,
           },
         });
 

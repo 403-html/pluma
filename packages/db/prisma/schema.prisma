@@ -99,9 +99,10 @@ model FlagConfig {
   environment Environment @relation(fields: [envId], references: [id], onDelete: Cascade)
   flagId      String
   flag        FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
-  enabled     Boolean     @default(false)
-  allowList   String[]
-  denyList    String[]
+  enabled           Boolean     @default(false)
+  allowList         String[]
+  denyList          String[]
+  rolloutPercentage Int         @default(0)
 
   @@id([envId, flagId])
 }

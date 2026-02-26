@@ -3,6 +3,19 @@ import { MAX_PARENT_DEPTH } from '@pluma/types';
 
 export type { Snapshot, SnapshotFlag };
 
+/**
+ * FNV-1a 32-bit hash — pure JS, no Node.js built-ins required.
+ * Produces a deterministic unsigned 32-bit integer for any input string.
+ */
+function fnv1a32(s: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < s.length; i += 1) {
+    hash ^= s.charCodeAt(i);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+  return hash;
+}
+
 export type PlumaSnapshotCacheOptions = {
   baseUrl: string;
   token: string;
@@ -71,7 +84,7 @@ export class PlumaSnapshotCache {
     // guard via MAX_PARENT_DEPTH from @pluma/types so both sides use the same limit.
 
     // Evaluates a flag key following the precedence chain:
-    //   denyList → allowList (additive grant) → parent inheritance → base enabled state.
+    //   denyList → allowList (additive grant) → rolloutPercentage → parent inheritance → base enabled state.
     //
     // NOTE: Deep parent chains are supported by design. Traversal is iterative
     // (no recursion) so stack depth stays O(1). A single Set tracks visited keys
@@ -106,13 +119,23 @@ export class PlumaSnapshotCache {
           return true;
         }
 
-        // 3. Parent inheritance: walk up to the parent flag on the next iteration.
+        // 3. Rollout percentage: deterministic per-subject assignment.
+        //    Only fires when a subjectKey is provided AND rolloutPercentage > 0.
+        //    Uses FNV-1a hash of "subjectKey:currentKey" so each flag in a chain
+        //    is evaluated independently. rolloutPercentage === 0 means no rollout
+        //    is configured — fall through to parent/enabled state.
+        if (subjectKey !== undefined && flag.rolloutPercentage > 0) {
+          const bucket = fnv1a32(`${subjectKey}:${currentKey}`) % 100;
+          return bucket < flag.rolloutPercentage;
+        }
+
+        // 4. Parent inheritance: walk up to the parent flag on the next iteration.
         if (flag.inheritParent && flag.parentKey !== null) {
           currentKey = flag.parentKey;
           continue;
         }
 
-        // 4. Base enabled state.
+        // 5. Base enabled state.
         return flag.enabled;
       }
 

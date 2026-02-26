@@ -10,8 +10,8 @@ const mockSnapshot: Snapshot = {
   projectKey: "my-project",
   envKey: "staging",
   flags: [
-    { key: "dark-mode", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
-    { key: "new-ui", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
+    { key: "dark-mode", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
+    { key: "new-ui", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
   ],
 };
 
@@ -129,8 +129,8 @@ describe("PlumaSnapshotCache", () => {
         projectKey: "my-project",
         envKey: "staging",
         flags: [
-          { key: "dark-mode", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
-          { key: "new-ui", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+          { key: "dark-mode", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
+          { key: "new-ui", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
         ],
       };
 
@@ -245,7 +245,7 @@ describe("PlumaSnapshotCache", () => {
 
     it("denyList blocks a subject even when the flag is enabled", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: ["blocked-user"] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: ["blocked-user"], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "blocked-user" });
@@ -254,7 +254,7 @@ describe("PlumaSnapshotCache", () => {
 
     it("denyList does not affect other subjects", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: ["blocked-user"] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: ["blocked-user"], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "other-user" });
@@ -263,7 +263,7 @@ describe("PlumaSnapshotCache", () => {
 
     it("allowList can enable access for listed subjects even when the flag is disabled", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: ["vip-user"], denyList: [] },
+        { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: ["vip-user"], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const allowedEval = await cache.evaluator({ subjectKey: "vip-user" });
@@ -274,7 +274,7 @@ describe("PlumaSnapshotCache", () => {
 
     it("empty allowList falls through to base enabled state", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "any-user" });
@@ -283,7 +283,7 @@ describe("PlumaSnapshotCache", () => {
 
     it("denyList takes precedence over allowList", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["user-x"], denyList: ["user-x"] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["user-x"], denyList: ["user-x"], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "user-x" });
@@ -292,8 +292,8 @@ describe("PlumaSnapshotCache", () => {
 
     it("inheritParent delegates to parent flag when no subject targeting applies", async () => {
       stubFetch(makeSnapshot([
-        { key: "parent", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
-        { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: [], denyList: [] },
+        { key: "parent", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
+        { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: [], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator();
@@ -303,8 +303,8 @@ describe("PlumaSnapshotCache", () => {
 
     it("cycle detection returns base enabled state and does not throw", async () => {
       stubFetch(makeSnapshot([
-        { key: "a", parentKey: "b", enabled: true, inheritParent: true, allowList: [], denyList: [] },
-        { key: "b", parentKey: "a", enabled: false, inheritParent: true, allowList: [], denyList: [] },
+        { key: "a", parentKey: "b", enabled: true, inheritParent: true, allowList: [], denyList: [], rolloutPercentage: 0 },
+        { key: "b", parentKey: "a", enabled: false, inheritParent: true, allowList: [], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator();
@@ -314,7 +314,7 @@ describe("PlumaSnapshotCache", () => {
 
     it("non-empty allowList does not block access when no subjectKey is provided", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator(); // no subjectKey
@@ -324,17 +324,17 @@ describe("PlumaSnapshotCache", () => {
 
     it("non-empty allowList does not block an unlisted subject — they use the base enabled state", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: ["vip"], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "other" });
-      // "other" not in allowList → fall through → base enabled=true.
+      // "other" not in allowList → rolloutPercentage 0 = no rollout → fall through → base enabled=true.
       expect(evaluator.isEnabled("feat")).toBe(true);
     });
 
     it("no subjectKey with empty allowList uses base enabled state", async () => {
       stubFetch(makeSnapshot([
-        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
+        { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator(); // no subjectKey
@@ -343,27 +343,103 @@ describe("PlumaSnapshotCache", () => {
 
     it("child allowList grants access to listed subjects; unlisted fall through to parent", async () => {
       stubFetch(makeSnapshot([
-        { key: "parent", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [] },
-        { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: ["vip"], denyList: [] },
+        { key: "parent", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
+        { key: "child", parentKey: "parent", enabled: false, inheritParent: true, allowList: ["vip"], denyList: [], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       // vip subject: child's allowList grants explicit access (additive override)
       const vipEval = await cache.evaluator({ subjectKey: "vip" });
       expect(vipEval.isEnabled("child")).toBe(true);
-      // non-vip subject: not in allowList → walk parent (enabled=false) → false
+      // non-vip subject: not in allowList → rolloutPercentage 0 = no rollout → walk parent (enabled=false) → false
       const otherEval = await cache.evaluator({ subjectKey: "other" });
       expect(otherEval.isEnabled("child")).toBe(false);
     });
 
     it("child denyList takes precedence over parent inheritance", async () => {
       stubFetch(makeSnapshot([
-        { key: "parent", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [] },
-        { key: "child", parentKey: "parent", enabled: true, inheritParent: true, allowList: [], denyList: ["blocked"] },
+        { key: "parent", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
+        { key: "child", parentKey: "parent", enabled: true, inheritParent: true, allowList: [], denyList: ["blocked"], rolloutPercentage: 0 },
       ]));
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
       const evaluator = await cache.evaluator({ subjectKey: "blocked" });
       // blocked is in child's denyList, so access is denied even though parent is enabled
       expect(evaluator.isEnabled("child")).toBe(false);
+    });
+
+    describe("rollout percentage evaluation", () => {
+      it("0% rollout: always returns false for any subject", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 0 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        const evaluator = await cache.evaluator({ subjectKey: "any-user" });
+        expect(evaluator.isEnabled("feat")).toBe(false);
+      });
+
+      it("100% rollout: always returns true for any subject", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 100 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        const evaluator = await cache.evaluator({ subjectKey: "any-user" });
+        expect(evaluator.isEnabled("feat")).toBe(true);
+      });
+
+      it("same user always gets the same result (deterministic)", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 50 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        const result1 = (await cache.evaluator({ subjectKey: "user-abc" })).isEnabled("feat");
+        const result2 = (await cache.evaluator({ subjectKey: "user-abc" })).isEnabled("feat");
+        expect(result1).toBe(result2);
+      });
+
+      it("different users are distributed across the range", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 50 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        // With 50% rollout and many users, we expect roughly half to be enabled
+        const users = Array.from({ length: 100 }, (_, i) => `user-${i}`);
+        const results = await Promise.all(
+          users.map(async (u) => (await cache.evaluator({ subjectKey: u })).isEnabled("feat")),
+        );
+        const enabledCount = results.filter(Boolean).length;
+        // Expect between 30-70 enabled (50% with some variance allowed)
+        expect(enabledCount).toBeGreaterThan(30);
+        expect(enabledCount).toBeLessThan(70);
+      });
+
+      it("rollout is skipped when no subjectKey is provided (falls through to enabled state)", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: true, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: 50 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        const evaluator = await cache.evaluator(); // no subjectKey
+        // No subjectKey → rollout skipped → falls through to base enabled=true
+        expect(evaluator.isEnabled("feat")).toBe(true);
+      });
+
+      it("denyList takes precedence over rollout", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: [], denyList: ["blocked-user"], rolloutPercentage: 100 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        const evaluator = await cache.evaluator({ subjectKey: "blocked-user" });
+        // denyList blocks even 100% rollout
+        expect(evaluator.isEnabled("feat")).toBe(false);
+      });
+
+      it("allowList takes precedence over rollout", async () => {
+        stubFetch(makeSnapshot([
+          { key: "feat", parentKey: null, enabled: false, inheritParent: false, allowList: ["vip-user"], denyList: [], rolloutPercentage: 0 },
+        ]));
+        const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
+        const evaluator = await cache.evaluator({ subjectKey: "vip-user" });
+        // allowList grants access even with 0% rollout
+        expect(evaluator.isEnabled("feat")).toBe(true);
+      });
     });
   });
 });
