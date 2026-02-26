@@ -325,7 +325,7 @@ describe('Org-level Token routes', () => {
   // ─────────────────────────────────────────────────────────────────────────────
   describe('DELETE /api/v1/tokens/:id', () => {
     it('should return 204 and revoke the token', async () => {
-      prismaMock.sdkToken.update.mockResolvedValue({ ...mockSdkTokenWithPrefix, revokedAt: FIXED_DATE, projectId: PROJECT_ID });
+      prismaMock.sdkToken.update.mockResolvedValue({ projectId: PROJECT_ID });
 
       const response = await app.inject({
         method: 'DELETE',
