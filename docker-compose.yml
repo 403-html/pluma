@@ -40,6 +40,8 @@ services:
     restart: unless-stopped
     ports:
       - "2137:2137"
+    environment:
+      DATABASE_URL: "postgresql://pluma:pluma@postgres:5432/pluma?schema=public"
     env_file: .env
     networks:
       - pluma
