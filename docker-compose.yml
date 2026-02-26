@@ -1,15 +1,12 @@
 # Pluma — self-hosted launcher
 #
 # Starts three services: postgres, the Pluma API, and the Pluma web app.
+# Database migrations run automatically on every `docker compose up`.
 #
 # Quick start:
 #   1. cp .env.example .env  && edit .env
 #   2. docker compose pull
 #   3. docker compose up -d
-#
-# Run database migrations (first deploy or after upgrades):
-#   docker compose exec api pnpm exec prisma migrate deploy
-#   (alternative: docker compose exec api npx prisma migrate deploy)
 #
 # Stop everything:
 #   docker compose down
@@ -34,6 +31,19 @@ services:
       retries: 5
       start_period: 10s
 
+  # ── Migrations (runs once, then exits) ──────────────────────────────────────
+  migrate:
+    image: ghcr.io/403-html/pluma-api:latest
+    restart: "no"
+    command: ["pnpm", "exec", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-pluma}:${POSTGRES_PASSWORD:-pluma}@postgres:5432/${POSTGRES_DB:-pluma}?schema=public"
+    networks:
+      - pluma
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # ── API (Fastify) ────────────────────────────────────────────────────────────
   api:
     image: ghcr.io/403-html/pluma-api:latest
@@ -46,8 +56,8 @@ services:
     networks:
       - pluma
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   # ── App (Next.js) ────────────────────────────────────────────────────────────
   app:
