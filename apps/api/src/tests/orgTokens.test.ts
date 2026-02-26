@@ -285,6 +285,7 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
+      expect(JSON.parse(response.payload)).toMatchObject({ statusCode: 404, error: 'Not Found' });
     });
 
     it('should return 404 when envId provided but environment not found', async () => {
@@ -299,6 +300,7 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
+      expect(JSON.parse(response.payload)).toMatchObject({ statusCode: 404, error: 'Not Found' });
     });
 
     it('should return 404 when envId belongs to a different project', async () => {
@@ -317,6 +319,7 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
+      expect(JSON.parse(response.payload)).toMatchObject({ statusCode: 404, error: 'Not Found' });
     });
   });
 
@@ -353,6 +356,7 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
+      expect(JSON.parse(response.payload)).toMatchObject({ statusCode: 404, error: 'Not Found' });
     });
 
     it('should return 404 when token is already revoked', async () => {
@@ -365,6 +369,7 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
+      expect(JSON.parse(response.payload)).toMatchObject({ statusCode: 404, error: 'Not Found' });
     });
 
     it('should return 401 without auth cookie', async () => {
