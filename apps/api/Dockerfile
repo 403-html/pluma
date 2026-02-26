@@ -39,7 +39,7 @@ RUN pnpm --filter @pluma/db build
 RUN pnpm --filter @pluma/api build
 
 # Create a trimmed production deployment (production node_modules only)
-RUN pnpm deploy --filter @pluma/api --prod /app/api-deploy
+RUN pnpm deploy --legacy --filter @pluma/api --prod /app/api-deploy
 
 # Carry the generated Prisma client into the deployment directory.
 # `@prisma/client` runtime requires the query-engine binary that ends up in
