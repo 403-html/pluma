@@ -259,7 +259,6 @@ export const en = {
     rolloutInputLabel: 'Rollout percentage (0–100)',
     rolloutInputPlaceholder: '0–100',
     rolloutInputAriaLabel: 'Rollout percentage value',
-    rolloutPlaceholder: '0–100',
     rolloutHint: 'Percentage of users who receive this flag (deterministic by user ID).',
     rolloutInputError: 'Must be an integer between 0 and 100',
   },
