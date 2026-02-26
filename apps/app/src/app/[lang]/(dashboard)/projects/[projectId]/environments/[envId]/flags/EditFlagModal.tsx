@@ -286,9 +286,10 @@ export function EditFlagModal({
                         setRolloutValue(e.target.value);
                         setRolloutError(null);
                       }}
-                      placeholder={t.flags.rolloutPlaceholder}
+                      placeholder={t.flags.rolloutInputPlaceholder}
                       disabled={isSubmitting}
                       className="w-24"
+                      aria-label={t.flags.rolloutInputAriaLabel}
                       aria-describedby="rollout-hint rollout-error"
                     />
                     <span className="text-sm text-muted-foreground">%</span>

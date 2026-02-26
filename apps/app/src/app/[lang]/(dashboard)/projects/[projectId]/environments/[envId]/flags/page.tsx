@@ -172,6 +172,9 @@ export default function FlagsPage() {
                       />
                       {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                     </label>
+                    {flag.rolloutPercentage !== null && (
+                      <span className="ml-2 text-xs text-muted-foreground">({flag.rolloutPercentage}%)</span>
+                    )}
                   </TableCell>
                   <TableCell className="px-3 py-3">
                     {deletingId === flag.flagId ? (
