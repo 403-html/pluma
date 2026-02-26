@@ -1,0 +1,68 @@
+# Pluma — self-hosted launcher
+#
+# Starts three services: postgres, the Pluma API, and the Pluma web app.
+#
+# Quick start:
+#   1. cp .env.example .env  && edit .env
+#   2. docker compose pull
+#   3. docker compose up -d
+#
+# Run database migrations (first deploy or after upgrades):
+#   docker compose exec api node node_modules/.bin/prisma migrate deploy
+#
+# Stop everything:
+#   docker compose down
+
+services:
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pluma
+      POSTGRES_PASSWORD: pluma
+      POSTGRES_DB: pluma
+    volumes:
+      - pluma_postgres_data:/var/lib/postgresql/data
+    networks:
+      - pluma
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pluma -d pluma"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── API (Fastify) ────────────────────────────────────────────────────────────
+  api:
+    image: ghcr.io/403-html/pluma-api:latest
+    restart: unless-stopped
+    ports:
+      - "2137:2137"
+    env_file: .env
+    networks:
+      - pluma
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── App (Next.js) ────────────────────────────────────────────────────────────
+  app:
+    image: ghcr.io/403-html/pluma-app:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    networks:
+      - pluma
+    depends_on:
+      - api
+
+# ── Named volumes ────────────────────────────────────────────────────────────────
+volumes:
+  pluma_postgres_data:
+
+# ── Shared network ───────────────────────────────────────────────────────────────
+networks:
+  pluma:
+    driver: bridge

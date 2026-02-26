@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   transpilePackages: ['@pluma/types'],
   async rewrites() {
     if (typeof process.env.NEXT_PUBLIC_API_URL !== 'string' || process.env.NEXT_PUBLIC_API_URL.length === 0) {
