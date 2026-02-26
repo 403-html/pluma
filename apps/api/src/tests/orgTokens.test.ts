@@ -334,6 +334,7 @@ describe('Org-level Token routes', () => {
       });
 
       expect(response.statusCode).toBe(204);
+      expect(response.payload).toBe('');
       expect(prismaMock.sdkToken.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: TOKEN_ID, revokedAt: null },
