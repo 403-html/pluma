@@ -24,8 +24,10 @@ const flagConfigUpdateBodySchema = z.object({
   enabled: z.boolean().optional(),
   allowList: z.array(z.string().min(1)).optional(),
   denyList: z.array(z.string().min(1)).optional(),
-  rolloutPercentage: z.number().int().min(0).max(100).optional(),
+  rolloutPercentage: z.number().int().min(0).max(100).nullable().optional(),
 }).refine(
+  // `null` is a valid explicit value for rolloutPercentage (clears the rollout configuration),
+  // so `!== undefined` is the correct check — it accepts both numeric values and null.
   (body) => body.enabled !== undefined || body.allowList !== undefined || body.denyList !== undefined || body.rolloutPercentage !== undefined,
   { message: 'At least one of enabled, allowList, denyList, or rolloutPercentage must be provided' },
 ).refine(
@@ -171,7 +173,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             enabled: cfg?.enabled ?? false,
             allowList: cfg?.allowList ?? [],
             denyList: cfg?.denyList ?? [],
-            rolloutPercentage: cfg?.rolloutPercentage ?? 0,
+            rolloutPercentage: cfg?.rolloutPercentage ?? null,
           };
         }),
         nextCursor,
@@ -212,7 +214,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
 
       const config = await prisma.$transaction(async (tx) => {
         const { enabled, allowList, denyList, rolloutPercentage } = parsedBody.data;
-        const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[]; rolloutPercentage?: number } = {};
+        const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[]; rolloutPercentage?: number | null } = {};
 
         if (enabled !== undefined) updates.enabled = enabled;
         if (allowList !== undefined) updates.allowList = allowList;
@@ -228,7 +230,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             enabled: enabled ?? false,
             allowList: allowList ?? [],
             denyList: denyList ?? [],
-            rolloutPercentage: rolloutPercentage ?? 0,
+            rolloutPercentage: rolloutPercentage ?? null,
           },
         });
 

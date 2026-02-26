@@ -75,7 +75,7 @@ export const mockFlagConfig = {
   enabled: true,
   allowList: [] as string[],
   denyList: [] as string[],
-  rolloutPercentage: 0,
+  rolloutPercentage: null,
 };
 
 export const mockSdkToken = {

@@ -425,6 +425,24 @@ describe('Flag Config routes', () => {
       expect(payload).toHaveProperty('rolloutPercentage', 100);
     });
 
+    it('should accept rolloutPercentage: null to clear rollout configuration', async () => {
+      const updatedConfig = { ...mockFlagConfig, rolloutPercentage: null };
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag);
+      prismaMock.flagConfig.upsert.mockResolvedValue(updatedConfig);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { rolloutPercentage: null },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('rolloutPercentage', null);
+    });
+
     it('should return 400 when rolloutPercentage is above 100', async () => {
       const response = await app.inject({
         method: 'PATCH',

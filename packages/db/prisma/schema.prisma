@@ -102,7 +102,7 @@ model FlagConfig {
   enabled           Boolean     @default(false)
   allowList         String[]
   denyList          String[]
-  rolloutPercentage Int         @default(0)
+  rolloutPercentage Int?
 
   @@id([envId, flagId])
 }

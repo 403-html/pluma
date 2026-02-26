@@ -92,7 +92,7 @@ export type FlagConfig = {
   enabled: boolean;
   allowList: string[];
   denyList: string[];
-  rolloutPercentage: number;
+  rolloutPercentage: number | null;
 };
 
 // SDK Snapshot
@@ -103,7 +103,7 @@ export type SnapshotFlag = {
   inheritParent: boolean;
   allowList: string[];
   denyList: string[];
-  rolloutPercentage: number;
+  rolloutPercentage: number | null;
 };
 
 export type Snapshot = {

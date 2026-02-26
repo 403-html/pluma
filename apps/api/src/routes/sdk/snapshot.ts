@@ -61,7 +61,7 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
         inheritParent: resolvedParentKey !== null,
         allowList: config?.allowList ?? [],
         denyList: config?.denyList ?? [],
-        rolloutPercentage: config?.rolloutPercentage ?? 0,
+        rolloutPercentage: config?.rolloutPercentage ?? null,
       };
     });
 

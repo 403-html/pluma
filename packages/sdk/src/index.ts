@@ -91,7 +91,7 @@ export class PlumaSnapshotCache {
     // guard via MAX_PARENT_DEPTH from @pluma/types so both sides use the same limit.
 
     // Evaluates a flag key following the precedence chain:
-    //   denyList → allowList (additive grant) → rolloutPercentage → parent inheritance → base enabled state.
+    //   denyList → allowList (additive grant) → rolloutPercentage (null = skipped) → parent inheritance → base enabled state.
     //
     // NOTE: Deep parent chains are supported by design. Traversal is iterative
     // (no recursion) so stack depth stays O(1). A single Set tracks visited keys
@@ -127,11 +127,9 @@ export class PlumaSnapshotCache {
         }
 
         // 3. Rollout percentage: deterministic per-subject assignment.
-        //    Only fires when a subjectKey is provided AND rolloutPercentage > 0.
-        //    Uses FNV-1a hash of "subjectKey:currentKey" so each flag in a chain
-        //    is evaluated independently. rolloutPercentage === 0 means no rollout
-        //    is configured — fall through to parent/enabled state.
-        if (subjectKey !== undefined && flag.rolloutPercentage > 0) {
+        //    Fires only when a subjectKey is provided AND rolloutPercentage is explicitly configured (not null).
+        //    null means "no rollout configured" — fall through to parent/enabled state.
+        if (subjectKey !== undefined && flag.rolloutPercentage !== null) {
           // Assert the value is within the valid range before computing the bucket.
           // Invalid data from a malformed snapshot is caught early rather than silently producing wrong results.
           if (flag.rolloutPercentage < 0 || flag.rolloutPercentage > 100) {
