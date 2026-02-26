@@ -56,6 +56,9 @@ FROM node:20-alpine AS runner
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 apiuser
 
+# Enable pnpm so the migrate service can invoke prisma via `pnpm exec`
+RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+
 WORKDIR /app
 
 ENV NODE_ENV=production
