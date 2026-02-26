@@ -66,12 +66,19 @@ COPY --from=build --chown=apiuser:nodejs /app/api-deploy/node_modules ./node_mod
 # Copy compiled application bundle produced by esbuild
 COPY --from=build --chown=apiuser:nodejs /app/apps/api/dist ./dist
 
+# Copy Prisma migrations and config required for prisma migrate deploy
+COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma ./packages/db/prisma
+COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
+COPY --from=build --chown=apiuser:nodejs /app/packages/db/package.json ./packages/db/package.json
+
+RUN apk add --no-cache curl
+
 USER apiuser
 
 EXPOSE 2137
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:2137/health || exit 1
+  CMD curl -f http://localhost:2137/health || exit 1
 # /health is registered in apps/api/src/app.ts and returns {"status":"ok"}
 
 LABEL org.opencontainers.image.title="Pluma API"

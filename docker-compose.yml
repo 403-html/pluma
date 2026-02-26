@@ -35,7 +35,8 @@ services:
   migrate:
     image: ghcr.io/403-html/pluma-api:latest
     restart: "no"
-    command: ["pnpm", "exec", "prisma", "migrate", "deploy"]
+    command: ["npx", "prisma", "migrate", "deploy"]
+    working_dir: /app/packages/db
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-pluma}:${POSTGRES_PASSWORD:-pluma}@postgres:5432/${POSTGRES_DB:-pluma}?schema=public"
     networks:
@@ -50,8 +51,6 @@ services:
     restart: unless-stopped
     ports:
       - "2137:2137"
-    environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-pluma}:${POSTGRES_PASSWORD:-pluma}@postgres:5432/${POSTGRES_DB:-pluma}?schema=public"
     env_file: .env
     networks:
       - pluma
