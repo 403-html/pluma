@@ -73,7 +73,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
 
       if (!project) {
         request.log.warn({ projectId }, 'POST /tokens rejected: project not found');
-        return reply.code(StatusCodes.NOT_FOUND).send({ error: 'Project not found' });
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       if (envId) {
@@ -83,7 +83,7 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
 
         if (!environment || environment.projectId !== projectId) {
           request.log.warn({ envId, projectId }, 'POST /tokens rejected: environment not found');
-          return reply.code(StatusCodes.NOT_FOUND).send({ error: 'Environment not found' });
+          return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
       }
 
@@ -156,11 +156,11 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
           request.log.error({ err: auditError, tokenId: parsedParams.data.id }, 'DELETE /tokens/:id: failed to write audit log');
         }
 
-        return reply.code(StatusCodes.OK).send({ message: 'Token revoked' });
+        return reply.code(StatusCodes.NO_CONTENT).send();
       } catch (error) {
         if (typeof error === 'object' && error && 'code' in error && error.code === 'P2025') {
           request.log.warn({ tokenId: parsedParams.data.id }, 'DELETE /tokens/:id rejected: token not found or already revoked');
-          return reply.code(StatusCodes.NOT_FOUND).send({ error: 'Token not found' });
+          return reply.notFound(ReasonPhrases.NOT_FOUND);
         }
 
         throw error;
