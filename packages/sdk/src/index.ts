@@ -15,10 +15,10 @@ function fnv1a32(s: string): number {
   if (s.length > FNV_MAX_INPUT_LENGTH) {
     throw new Error(`fnv1a32: input exceeds maximum length of ${FNV_MAX_INPUT_LENGTH}`);
   }
-  let hash = 2166136261;
+  let hash = 2166136261; // FNV-1a 32-bit offset basis
   for (let i = 0; i < s.length; i += 1) {
     hash ^= s.charCodeAt(i);
-    hash = Math.imul(hash, 16777619) >>> 0;
+    hash = Math.imul(hash, 16777619) >>> 0; // FNV-1a 32-bit prime
   }
   return hash;
 }
