@@ -8,7 +8,8 @@
 #   3. docker compose up -d
 #
 # Run database migrations (first deploy or after upgrades):
-#   docker compose exec api node node_modules/.bin/prisma migrate deploy
+#   docker compose exec api pnpm exec prisma migrate deploy
+#   (alternative: docker compose exec api npx prisma migrate deploy)
 #
 # Stop everything:
 #   docker compose down

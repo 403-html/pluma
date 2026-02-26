@@ -72,6 +72,7 @@ EXPOSE 2137
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:2137/health || exit 1
+# /health is registered in apps/api/src/app.ts and returns {"status":"ok"}
 
 LABEL org.opencontainers.image.title="Pluma API"
 LABEL org.opencontainers.image.description="Pluma feature-flag API server"
