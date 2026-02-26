@@ -254,6 +254,12 @@ export const en = {
     targetingNoticeBody: 'IDs are matched against the subjectKey passed to the SDK evaluator. Add known IDs - they are never auto-collected.',
     targetingNoticeCode: "evaluator({ subjectKey: 'user-id' })",
     targetingNoticeDismiss: 'Dismiss targeting notice',
+    rolloutLabel: 'Rollout',
+    rolloutCheckboxLabel: 'Custom rollout %',
+    rolloutInputLabel: 'Rollout percentage',
+    rolloutPlaceholder: '0–100',
+    rolloutHint: 'Percentage of users who receive this flag (deterministic by user ID).',
+    rolloutInputError: 'Must be an integer between 0 and 100',
   },
 } as const;
 

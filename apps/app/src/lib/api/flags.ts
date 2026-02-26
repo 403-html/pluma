@@ -12,6 +12,7 @@ export type FlagEntry = {
   enabled: boolean;
   allowList: string[];
   denyList: string[];
+  rolloutPercentage: number | null;  // null = not configured
 };
 
 export async function listFlagsForEnvironment(envId: string): Promise<
@@ -176,10 +177,10 @@ export async function toggleFlagEnabled(
 export async function updateFlagConfig(
   envId: string,
   flagId: string,
-  data: { enabled?: boolean; allowList?: string[]; denyList?: string[] }
+  data: { enabled?: boolean; allowList?: string[]; denyList?: string[]; rolloutPercentage?: number | null }
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (Object.keys(data).length === 0) {
-    return { ok: false, message: 'At least one of enabled, allowList, or denyList must be provided.' };
+    return { ok: false, message: 'At least one of enabled, allowList, denyList, or rolloutPercentage must be provided.' };
   }
   try {
     const response = await fetch(`/api/v1/environments/${envId}/flags/${flagId}`, {

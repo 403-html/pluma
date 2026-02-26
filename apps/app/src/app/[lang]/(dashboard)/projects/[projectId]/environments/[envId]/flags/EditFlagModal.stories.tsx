@@ -27,6 +27,7 @@ const sampleFlag: FlagEntry = {
   enabled: true,
   allowList: [],
   denyList: [],
+  rolloutPercentage: null,
 };
 
 function DefaultStory() {
@@ -131,4 +132,39 @@ function DisabledStory() {
 
 export const Disabled: Story = {
   render: () => <DisabledStory />,
+};
+
+function WithRolloutStory() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <EditFlagModal
+          flag={{
+            ...sampleFlag,
+            rolloutPercentage: 50,
+          }}
+          envId="env-preview-123"
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag updated!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const WithRollout: Story = {
+  render: () => <WithRolloutStory />,
 };
