@@ -150,6 +150,7 @@ export default function FlagsPage() {
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colKey}</TableHead>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colDescription}</TableHead>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colStatus}</TableHead>
+                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colRollout}</TableHead>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.flags.colActions}</TableHead>
               </TableHeadRow>
             </TableHeader>
@@ -172,9 +173,11 @@ export default function FlagsPage() {
                       />
                       {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
                     </label>
-                    {flag.rolloutPercentage !== null && (
-                      <span className="ml-2 text-xs text-muted-foreground">({flag.rolloutPercentage}%)</span>
-                    )}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 text-sm text-muted-foreground">
+                    {flag.rolloutPercentage !== null
+                      ? `${flag.rolloutPercentage}%`
+                      : t.flags.rolloutNotSet}
                   </TableCell>
                   <TableCell className="px-3 py-3">
                     {deletingId === flag.flagId ? (

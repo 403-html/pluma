@@ -168,3 +168,40 @@ function WithRolloutStory() {
 export const WithRollout: Story = {
   render: () => <WithRolloutStory />,
 };
+
+function WithZeroRolloutStory() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Modal
+      </button>
+      {isOpen && (
+        <EditFlagModal
+          flag={{
+            ...sampleFlag,
+            // rolloutPercentage: 0 is a valid explicit value — NOT the same as null.
+            // The checkbox should be checked and the input should show "0", not be empty.
+            rolloutPercentage: 0,
+          }}
+          envId="env-preview-123"
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Flag updated!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const WithZeroRollout: Story = {
+  render: () => <WithZeroRolloutStory />,
+};
