@@ -4,7 +4,6 @@ import type { FastifyInstance } from 'fastify';
 import {
   PROJECT_ID, ENV_ID, TOKEN_ID, AUTH_COOKIE,
   mockSession, mockProject, mockEnvironment, mockSdkToken,
-  FIXED_DATE,
 } from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
