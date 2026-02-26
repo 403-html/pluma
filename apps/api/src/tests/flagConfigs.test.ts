@@ -389,6 +389,42 @@ describe('Flag Config routes', () => {
       expect(payload).toHaveProperty('rolloutPercentage', 50);
     });
 
+    it('should accept rolloutPercentage boundary value of 0', async () => {
+      const updatedConfig = { ...mockFlagConfig, rolloutPercentage: 0 };
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag);
+      prismaMock.flagConfig.upsert.mockResolvedValue(updatedConfig);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { rolloutPercentage: 0 },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('rolloutPercentage', 0);
+    });
+
+    it('should accept rolloutPercentage boundary value of 100', async () => {
+      const updatedConfig = { ...mockFlagConfig, rolloutPercentage: 100 };
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag);
+      prismaMock.flagConfig.upsert.mockResolvedValue(updatedConfig);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/environments/${ENV_ID}/flags/${FLAG_ID}`,
+        payload: { rolloutPercentage: 100 },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('rolloutPercentage', 100);
+    });
+
     it('should return 400 when rolloutPercentage is above 100', async () => {
       const response = await app.inject({
         method: 'PATCH',

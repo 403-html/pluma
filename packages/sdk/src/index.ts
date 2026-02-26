@@ -3,11 +3,18 @@ import { MAX_PARENT_DEPTH } from '@pluma/types';
 
 export type { Snapshot, SnapshotFlag };
 
+/** Maximum byte length accepted by fnv1a32 to bound the loop at a known constant. */
+const FNV_MAX_INPUT_LENGTH = 1024;
+
 /**
  * FNV-1a 32-bit hash — pure JS, no Node.js built-ins required.
  * Produces a deterministic unsigned 32-bit integer for any input string.
+ * Throws if the input exceeds FNV_MAX_INPUT_LENGTH characters.
  */
 function fnv1a32(s: string): number {
+  if (s.length > FNV_MAX_INPUT_LENGTH) {
+    throw new Error(`fnv1a32: input exceeds maximum length of ${FNV_MAX_INPUT_LENGTH}`);
+  }
   let hash = 2166136261;
   for (let i = 0; i < s.length; i += 1) {
     hash ^= s.charCodeAt(i);
@@ -125,6 +132,11 @@ export class PlumaSnapshotCache {
         //    is evaluated independently. rolloutPercentage === 0 means no rollout
         //    is configured — fall through to parent/enabled state.
         if (subjectKey !== undefined && flag.rolloutPercentage > 0) {
+          // Assert the value is within the valid range before computing the bucket.
+          // Invalid data from a malformed snapshot is caught early rather than silently producing wrong results.
+          if (flag.rolloutPercentage < 0 || flag.rolloutPercentage > 100) {
+            throw new Error(`rolloutPercentage out of range [0, 100]: ${flag.rolloutPercentage}`);
+          }
           const bucket = fnv1a32(`${subjectKey}:${currentKey}`) % 100;
           return bucket < flag.rolloutPercentage;
         }
