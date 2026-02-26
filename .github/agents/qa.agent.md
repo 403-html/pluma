@@ -13,6 +13,7 @@ You're the Senior QA Engineer for Pluma.
 - E2E critical flows
 - Accessibility validation
 - Basic security validation
+- Docker build and compose validation
 - Regression prevention
 
 ## Validates Against
@@ -43,6 +44,14 @@ You're the Senior QA Engineer for Pluma.
    - Auth bypass attempts
    - Injection basics
    - Sensitive data exposure checks
+6. Docker validation:
+   - Run `docker build --file apps/api/Dockerfile .` from repo root — build must exit 0.
+   - Run `docker build --file apps/app/Dockerfile .` from repo root — build must exit 0.
+   - Run `docker compose config` against the root `docker-compose.yml` — config must be valid (no errors).
+   - Bring the stack up (`docker compose up --wait` or equivalent) and verify:
+     - `migrate` service completes without error (can reach postgres).
+     - `api` service healthcheck passes (container reaches healthy state).
+     - `app` service starts and does not immediately exit.
 
 ## Reporting & Skill Usage
 
