@@ -97,11 +97,15 @@ export default function FlagsPage() {
    * that each parent appears immediately before its children in the table.
    * Children are pushed onto the stack in reverse so the first child is popped
    * first, preserving the original order within each sibling group.
-   * MAX_ITER = flagList.length caps the loop to exactly one visit per flag,
-   * preventing infinite loops if backend data contains unexpected cycles.
+   * A visited Set prevents re-processing nodes, bounding the loop to at most
+   * MAX_FLAGS iterations regardless of input structure or cycles.
    */
   function buildOrderedFlags(flagList: FlagEntry[]): Array<{ flag: FlagEntry; depth: number; indentPx: number }> {
+    const MAX_FLAGS = 10_000;
     const INDENT_PX_PER_LEVEL = 16;
+    if (flagList.length > MAX_FLAGS) {
+      throw new Error(`buildOrderedFlags: flag list exceeds maximum size of ${MAX_FLAGS}`);
+    }
     const byParent = new Map<string | null, FlagEntry[]>();
     const flagMap = new Map<string, FlagEntry>();
     for (const f of flagList) {
@@ -113,11 +117,11 @@ export default function FlagsPage() {
     const result: Array<{ flag: FlagEntry; depth: number; indentPx: number }> = [];
     const roots = (byParent.get(null) ?? []).slice().reverse();
     const stack: Array<{ flagId: string; depth: number }> = roots.map(f => ({ flagId: f.flagId, depth: 0 }));
-    const MAX_ITER = flagList.length;
-    let iter = 0;
-    while (stack.length > 0 && iter < MAX_ITER) {
-      iter += 1;
+    const visited = new Set<string>();
+    while (stack.length > 0) {
       const item = stack.pop()!;
+      if (visited.has(item.flagId)) continue;
+      visited.add(item.flagId);
       const flag = flagMap.get(item.flagId);
       if (!flag) continue;
       result.push({ flag, depth: item.depth, indentPx: item.depth * INDENT_PX_PER_LEVEL });
@@ -125,9 +129,6 @@ export default function FlagsPage() {
       for (const child of children) {
         stack.push({ flagId: child.flagId, depth: item.depth + 1 });
       }
-    }
-    if (iter >= MAX_ITER && stack.length > 0) {
-      throw new Error('buildOrderedFlags: max iterations exceeded; possible cycle in flag hierarchy');
     }
     return result;
   }
