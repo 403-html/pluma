@@ -1,5 +1,7 @@
 # Pluma
 
+> ⚠️ **Alpha — not yet production-ready.** APIs and data model are still changing. Do not use in production.
+
 Self-hosted feature flag system built as a pnpm monorepo.
 
 Pluma has two API planes:
@@ -15,11 +17,18 @@ Pluma has two API planes:
 - `packages/sdk` - npm SDK package
 - `packages/types` - shared TypeScript types and schemas
 
-## Quick Start (Self-Hosting)
+## Quick Start (Local, Docker Compose)
 
-Run the full stack with Docker Compose — no Node.js or pnpm required on the host.
+> **Note:** Published Docker images are not yet available. You must build the images locally before running the stack.
 
-1. Copy and configure the environment file:
+1. Build Docker images from source:
+
+    ```bash
+    docker build -t ghcr.io/403-html/pluma-api:latest -f apps/api/Dockerfile .
+    docker build -t ghcr.io/403-html/pluma-app:latest -f apps/app/Dockerfile .
+    ```
+
+2. Copy and configure the environment file:
 
     ```bash
     cp .env.example .env
@@ -28,22 +37,15 @@ Run the full stack with Docker Compose — no Node.js or pnpm required on the ho
     # Optionally change POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB.
     ```
 
-2. Pull images and start all services (PostgreSQL, migrations, API, web app):
+3. Start all services (PostgreSQL, migrations, API, web app):
 
     ```bash
-    docker compose pull
     docker compose up -d
     ```
 
-3. Open the app in your browser: **http://localhost:3000**
+4. Open the app in your browser: **http://localhost:3000**
 
-The API is available at `http://localhost:2137`. To stop everything:
-
-```bash
-docker compose down
-```
-
-> **Note:** Migrations run automatically on every `docker compose up` before the API starts.
+The API is available at `http://localhost:2137`. Migrations run automatically before the API starts.
 
 ---
 
