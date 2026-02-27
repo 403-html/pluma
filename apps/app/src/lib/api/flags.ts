@@ -179,14 +179,17 @@ export async function updateFlagConfig(
   flagId: string,
   data: { enabled?: boolean; allowList?: string[]; denyList?: string[]; rolloutPercentage?: number | null }
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (Object.keys(data).length === 0) {
+  const cleaned = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
+  if (Object.keys(cleaned).length === 0) {
     return { ok: false, message: 'At least one of enabled, allowList, denyList, or rolloutPercentage must be provided.' };
   }
   try {
     const response = await fetch(`/api/v1/environments/${envId}/flags/${flagId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(cleaned),
       credentials: 'include',
     });
 

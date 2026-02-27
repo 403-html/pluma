@@ -9,15 +9,13 @@ const FNV_MAX_INPUT_LENGTH = 1024;
 /**
  * FNV-1a 32-bit hash — pure JS, no Node.js built-ins required.
  * Produces a deterministic unsigned 32-bit integer for any input string.
- * Throws if the input exceeds FNV_MAX_INPUT_LENGTH characters.
+ * Inputs longer than FNV_MAX_INPUT_LENGTH characters are truncated before hashing.
  */
 function fnv1a32(s: string): number {
-  if (s.length > FNV_MAX_INPUT_LENGTH) {
-    throw new Error(`fnv1a32: input exceeds maximum length of ${FNV_MAX_INPUT_LENGTH}`);
-  }
+  const input = s.length > FNV_MAX_INPUT_LENGTH ? s.slice(0, FNV_MAX_INPUT_LENGTH) : s;
   let hash = 2166136261; // FNV-1a 32-bit offset basis
-  for (let i = 0; i < s.length; i += 1) {
-    hash ^= s.charCodeAt(i);
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
     hash = Math.imul(hash, 16777619) >>> 0; // FNV-1a 32-bit prime
   }
   return hash;
