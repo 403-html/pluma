@@ -36,10 +36,22 @@ Pluma has two API planes:
     docker compose build
     ```
 
+    To force a full rebuild without Docker's layer cache:
+
+    ```bash
+    docker compose build --no-cache
+    ```
+
 3. Start all services (PostgreSQL, migrations, API, web app):
 
     ```bash
     docker compose up -d
+    ```
+
+    To rebuild images and restart all containers in one step (no cache):
+
+    ```bash
+    docker compose build --no-cache && docker compose up --force-recreate --remove-orphans -d
     ```
 
 4. Open the app in your browser: **http://localhost:3000**
