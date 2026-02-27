@@ -76,6 +76,15 @@ COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma ./packages/db/p
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/package.json ./packages/db/package.json
 
+# Copy prisma CLI from the full build node_modules for `prisma migrate deploy`.
+# pnpm deploy --prod may not link the .bin entry for packages that are deps of
+# workspace dependencies (rather than direct deps of @pluma/api).
+# Also copy the full @prisma namespace so the CLI can resolve its own runtime
+# deps (@prisma/engines, @prisma/config, etc.).
+COPY --from=build --chown=apiuser:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=build --chown=apiuser:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=build --chown=apiuser:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+
 RUN apk add --no-cache curl
 
 USER apiuser
