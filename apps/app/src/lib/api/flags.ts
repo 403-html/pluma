@@ -56,9 +56,6 @@ export async function createFlag(
   if (name.length > MAX_PROJECT_NAME_LENGTH) {
     return { ok: false, message: `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer` };
   }
-  if (parentFlagId !== undefined && parentFlagId.length === 0) {
-    return { ok: false, message: 'Invalid parent flag ID' };
-  }
   try {
     const body: { key: string; name: string; description?: string; parentFlagId?: string } = { key, name };
     if (description !== undefined && description.length > 0) {
