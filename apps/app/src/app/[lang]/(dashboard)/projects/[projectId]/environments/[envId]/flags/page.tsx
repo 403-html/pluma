@@ -90,7 +90,16 @@ export default function FlagsPage() {
     }
   }
 
-  function buildOrderedFlags(flagList: FlagEntry[]): Array<{ flag: FlagEntry; depth: number }> {
+  /**
+   * Converts a flat FlagEntry list into a depth-annotated DFS-ordered list so
+   * that each parent appears immediately before its children in the table.
+   * Children are pushed onto the stack in reverse so the first child is popped
+   * first, preserving the original order within each sibling group.
+   * MAX_ITER = flagList.length caps the loop to exactly one visit per flag,
+   * preventing infinite loops if backend data contains unexpected cycles.
+   */
+  function buildOrderedFlags(flagList: FlagEntry[]): Array<{ flag: FlagEntry; depth: number; indentPx: number }> {
+    const INDENT_PX_PER_LEVEL = 16;
     const byParent = new Map<string | null, FlagEntry[]>();
     const flagMap = new Map<string, FlagEntry>();
     for (const f of flagList) {
@@ -99,7 +108,7 @@ export default function FlagsPage() {
       if (!byParent.has(key)) byParent.set(key, []);
       byParent.get(key)!.push(f);
     }
-    const result: Array<{ flag: FlagEntry; depth: number }> = [];
+    const result: Array<{ flag: FlagEntry; depth: number; indentPx: number }> = [];
     const roots = (byParent.get(null) ?? []).slice().reverse();
     const stack: Array<{ flagId: string; depth: number }> = roots.map(f => ({ flagId: f.flagId, depth: 0 }));
     const MAX_ITER = flagList.length;
@@ -109,11 +118,14 @@ export default function FlagsPage() {
       const item = stack.pop()!;
       const flag = flagMap.get(item.flagId);
       if (!flag) continue;
-      result.push({ flag, depth: item.depth });
+      result.push({ flag, depth: item.depth, indentPx: item.depth * INDENT_PX_PER_LEVEL });
       const children = (byParent.get(item.flagId) ?? []).slice().reverse();
       for (const child of children) {
         stack.push({ flagId: child.flagId, depth: item.depth + 1 });
       }
+    }
+    if (iter >= MAX_ITER && stack.length > 0) {
+      throw new Error('buildOrderedFlags: max iterations exceeded; possible cycle in flag hierarchy');
     }
     return result;
   }
@@ -182,10 +194,10 @@ export default function FlagsPage() {
               </TableHeadRow>
             </TableHeader>
             <TableBody>
-              {buildOrderedFlags(paginatedFlags).map(({ flag, depth }) => (
+              {buildOrderedFlags(paginatedFlags).map(({ flag, depth, indentPx }) => (
                 <TableRow key={flag.flagId}>
                   <TableCell className="px-3 py-3">
-                    <span style={depth > 0 ? { paddingLeft: `${depth * 16}px` } : undefined}>
+                    <span style={depth > 0 ? { paddingLeft: `${indentPx}px` } : undefined}>
                       {depth > 0 && <span className="text-muted-foreground mr-1">{t.flags.subFlagIndicator}</span>}
                       {flag.name}
                     </span>
