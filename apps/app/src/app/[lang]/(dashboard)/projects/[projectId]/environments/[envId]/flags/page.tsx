@@ -14,6 +14,7 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
@@ -198,11 +199,16 @@ export default function FlagsPage() {
             </TableHeader>
             <TableBody>
               {paginatedOrdered.map(({ flag, depth, indentPx }) => (
-                <TableRow key={flag.flagId}>
+                <TableRow key={flag.flagId} className={depth > 0 ? 'bg-muted/20' : undefined}>
                   <TableCell className="px-3 py-3">
-                    <span style={depth > 0 ? { paddingLeft: `${indentPx}px` } : undefined}>
-                      {depth > 0 && <span className="text-muted-foreground mr-1">{t.flags.subFlagIndicator}</span>}
-                      {flag.name}
+                    <span
+                      className="flex items-center gap-1.5"
+                      style={depth > 0 ? { paddingLeft: `${indentPx}px` } : undefined}
+                    >
+                      {depth > 0 && (
+                        <span className="text-muted-foreground/60 text-xs leading-none">{t.flags.subFlagIndicator}</span>
+                      )}
+                      <span className={depth > 0 ? 'text-sm text-muted-foreground' : undefined}>{flag.name}</span>
                     </span>
                   </TableCell>
                   <TableCell className="px-3 py-3">
@@ -210,16 +216,12 @@ export default function FlagsPage() {
                   </TableCell>
                   <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
                   <TableCell className="px-3 py-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={flag.enabled}
-                        onChange={() => handleToggle(flag.flagId, flag.enabled)}
-                        className="cursor-pointer"
-                        aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
-                      />
-                      {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
-                    </label>
+                    <Switch
+                      id={`flag-toggle-${flag.flagId}`}
+                      checked={flag.enabled}
+                      onChange={() => handleToggle(flag.flagId, flag.enabled)}
+                      label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
+                    />
                   </TableCell>
                   <TableCell className="px-3 py-3 text-sm text-muted-foreground">
                     {flag.rolloutPercentage !== null
