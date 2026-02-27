@@ -69,4 +69,4 @@ LABEL org.opencontainers.image.source="https://github.com/403-html/pluma"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 # server.js is placed at the root of the standalone output directory
-CMD ["node", "server.js"]
+CMD ["node", "apps/app/server.js"]
