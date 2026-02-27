@@ -266,7 +266,6 @@ export const en = {
     parentFlagLabel: 'Parent Flag',
     parentFlagNone: 'No parent (top-level flag)',
     subFlagIndicator: '↳',
-    colParent: 'Parent',
   },
 } as const;
 

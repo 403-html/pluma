@@ -42,7 +42,8 @@ export default function FlagsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
-  const { currentPage, paginatedItems: paginatedFlags, hasPrev, hasNext, goToPrev, goToNext } = usePagination(flags, PAGE_SIZE);
+  const orderedFlags = useMemo(() => buildOrderedFlags(flags), [flags]);
+  const { currentPage, paginatedItems: paginatedOrdered, hasPrev, hasNext, goToPrev, goToNext } = usePagination(orderedFlags, PAGE_SIZE);
 
   const loadFlags = useCallback(async () => {
     setIsLoading(true);
@@ -194,7 +195,7 @@ export default function FlagsPage() {
               </TableHeadRow>
             </TableHeader>
             <TableBody>
-              {buildOrderedFlags(paginatedFlags).map(({ flag, depth, indentPx }) => (
+              {paginatedOrdered.map(({ flag, depth, indentPx }) => (
                 <TableRow key={flag.flagId}>
                   <TableCell className="px-3 py-3">
                     <span style={depth > 0 ? { paddingLeft: `${indentPx}px` } : undefined}>

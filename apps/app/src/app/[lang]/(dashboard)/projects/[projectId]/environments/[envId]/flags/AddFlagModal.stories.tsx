@@ -34,6 +34,7 @@ function DefaultStory() {
         <AddFlagModal
           projectId="demo-project-id"
           existingKeys={['existing-flag']}
+          flags={[]}
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
             alert('Flag created successfully!');
@@ -68,6 +69,10 @@ function WithExistingKeysStory() {
         <AddFlagModal
           projectId="demo-project-id"
           existingKeys={['flag-one', 'flag-two', 'my-flag']}
+          flags={[
+            { flagId: 'f1', key: 'payment-processing', name: 'Payment Processing', parentFlagId: null },
+            { flagId: 'f2', key: 'dark-mode', name: 'Dark Mode', parentFlagId: null },
+          ]}
           onClose={() => setIsOpen(false)}
           onSuccess={() => {
             alert('Flag created!');
