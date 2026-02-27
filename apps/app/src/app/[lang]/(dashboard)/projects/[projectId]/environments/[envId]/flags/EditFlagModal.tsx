@@ -39,6 +39,13 @@ export function EditFlagModal({
   const [allowList, setAllowList] = useState<string[]>(flag.allowList);
   const [denyList, setDenyList] = useState<string[]>(flag.denyList);
 
+  // Rollout state
+  const [rolloutEnabled, setRolloutEnabled] = useState(flag.rolloutPercentage !== null);
+  const [rolloutValue, setRolloutValue] = useState<string>(
+    flag.rolloutPercentage !== null ? String(flag.rolloutPercentage) : ''
+  );
+  const [rolloutError, setRolloutError] = useState<string | null>(null);
+
   // Conflict validation: check if any id exists in both lists
   const hasConflict = allowList.some((id) => denyList.includes(id));
 
@@ -85,9 +92,21 @@ export function EditFlagModal({
     return a.every((v) => setB.has(v));
   }
 
+  function validateRollout(value: string): boolean {
+    if (value === '') return false;
+    const num = Number(value);
+    return Number.isInteger(num) && num >= 0 && num <= 100;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (hasConflict) return;
+
+    // Validate rollout before submitting
+    if (rolloutEnabled && !validateRollout(rolloutValue)) {
+      setRolloutError(t.flags.rolloutInputError);
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -105,11 +124,14 @@ export function EditFlagModal({
 
     const allowChanged = !arrayContentsEqual(allowList, flag.allowList);
     const denyChanged = !arrayContentsEqual(denyList, flag.denyList);
+    const newRollout = rolloutEnabled ? Number(rolloutValue) : null;
+    const rolloutChanged = newRollout !== flag.rolloutPercentage;
 
-    if (allowChanged || denyChanged) {
-      const configPayload: { allowList?: string[]; denyList?: string[] } = {};
+    if (allowChanged || denyChanged || rolloutChanged) {
+      const configPayload: { allowList?: string[]; denyList?: string[]; rolloutPercentage?: number | null } = {};
       if (allowChanged) configPayload.allowList = allowList;
       if (denyChanged) configPayload.denyList = denyList;
+      if (rolloutChanged) configPayload.rolloutPercentage = newRollout;
 
       const configResult = await updateFlagConfig(envId, flag.flagId, configPayload);
       if (!configResult.ok) {
@@ -122,7 +144,7 @@ export function EditFlagModal({
     onSuccess();
   }
 
-  const submitDisabled = isSubmitting || hasConflict;
+  const submitDisabled = isSubmitting || hasConflict || (rolloutEnabled && !validateRollout(rolloutValue));
 
   return (
     <Modal titleId="edit-flag-modal-title" title={t.flags.modalEditTitle} onClose={onClose} size="lg">
@@ -227,6 +249,57 @@ export function EditFlagModal({
                 disabledValueHint={t.flags.targetingDisabledValueHint}
                 errorId={hasConflict ? 'flag-targeting-conflict-error' : undefined}
               />
+            </div>
+
+            {/* ── Rollout percentage ──────────────────────────────── */}
+            <div className="flex flex-col gap-2 mt-4">
+              <h3 className="text-sm font-semibold">{t.flags.rolloutLabel}</h3>
+              <label className="flex items-center gap-2 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  id="flag-rollout-enabled"
+                  checked={rolloutEnabled}
+                  onChange={(e) => {
+                    setRolloutEnabled(e.target.checked);
+                    setRolloutError(null);
+                    if (!e.target.checked) setRolloutValue('');
+                  }}
+                  disabled={isSubmitting}
+                  className="cursor-pointer"
+                />
+                {t.flags.rolloutCheckboxLabel}
+              </label>
+              {rolloutEnabled && (
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="flag-rollout-value" className="text-xs text-muted-foreground">
+                    {t.flags.rolloutInputLabel}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="flag-rollout-value"
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={rolloutValue}
+                      onChange={(e) => {
+                        setRolloutValue(e.target.value);
+                        setRolloutError(null);
+                      }}
+                      placeholder={t.flags.rolloutInputPlaceholder}
+                      disabled={isSubmitting}
+                      className="w-24"
+                      aria-label={t.flags.rolloutInputAriaLabel}
+                      aria-describedby="rollout-hint rollout-error"
+                    />
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </div>
+                  <p id="rollout-hint" className="text-xs text-muted-foreground">{t.flags.rolloutHint}</p>
+                  {rolloutError && (
+                    <p id="rollout-error" role="alert" className="text-xs text-destructive">{rolloutError}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {hasConflict && (

@@ -142,7 +142,7 @@ describe('SDK snapshot', () => {
       { id: 'flag-2', key: 'new-ui', projectId: PROJECT_ID, parentFlagId: null },
     ]);
     prismaMock.flagConfig.findMany.mockResolvedValue([
-      { envId: ENV_ID, flagId: 'flag-1', enabled: true, allowList: [], denyList: [] },
+      { envId: ENV_ID, flagId: 'flag-1', enabled: true, allowList: [], denyList: [], rolloutPercentage: null },
     ]);
 
     const response = await app.inject({
@@ -158,12 +158,34 @@ describe('SDK snapshot', () => {
     expect(payload).toHaveProperty('envKey', mockEnvironmentWithProject.key);
     expect(payload.flags).toHaveLength(2);
     expect(payload.flags.find((f: { key: string }) => f.key === 'dark-mode')).toMatchObject({
-      key: 'dark-mode', enabled: true, parentKey: null, inheritParent: false, allowList: [], denyList: [],
+      key: 'dark-mode', enabled: true, parentKey: null, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: null,
     });
     expect(payload.flags.find((f: { key: string }) => f.key === 'new-ui')).toMatchObject({
-      key: 'new-ui', enabled: false, parentKey: null, inheritParent: false, allowList: [], denyList: [],
+      key: 'new-ui', enabled: false, parentKey: null, inheritParent: false, allowList: [], denyList: [], rolloutPercentage: null,
     });
     expect(response.headers['etag']).toBe('3');
+  });
+
+  it('should include rolloutPercentage in snapshot when configured', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue({ ...mockEnvironmentWithProject, configVersion: 7 });
+    prismaMock.featureFlag.findMany.mockResolvedValue([
+      { id: 'flag-1', key: 'dark-mode', projectId: PROJECT_ID, parentFlagId: null },
+      { id: 'flag-2', key: 'new-ui', projectId: PROJECT_ID, parentFlagId: null },
+    ]);
+    prismaMock.flagConfig.findMany.mockResolvedValue([
+      { envId: ENV_ID, flagId: 'flag-1', enabled: true, allowList: [], denyList: [], rolloutPercentage: 50 },
+    ]);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const payload = JSON.parse(response.payload);
+    expect(payload.flags.find((f: { key: string }) => f.key === 'dark-mode').rolloutPercentage).toBe(50);
   });
 
   it('should return 304 when If-None-Match matches current version', async () => {

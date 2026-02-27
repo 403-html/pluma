@@ -3,6 +3,24 @@ import { MAX_PARENT_DEPTH } from '@pluma/types';
 
 export type { Snapshot, SnapshotFlag };
 
+/** Maximum character length accepted by fnv1a32 to bound the loop at a known constant. */
+const FNV_MAX_INPUT_LENGTH = 1024;
+
+/**
+ * FNV-1a 32-bit hash — pure JS, no Node.js built-ins required.
+ * Produces a deterministic unsigned 32-bit integer for any input string.
+ * Inputs longer than FNV_MAX_INPUT_LENGTH characters are truncated before hashing.
+ */
+function fnv1a32(s: string): number {
+  const input = s.length > FNV_MAX_INPUT_LENGTH ? s.slice(0, FNV_MAX_INPUT_LENGTH) : s;
+  let hash = 2166136261; // FNV-1a 32-bit offset basis
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619) >>> 0; // FNV-1a 32-bit prime
+  }
+  return hash;
+}
+
 export type PlumaSnapshotCacheOptions = {
   baseUrl: string;
   token: string;
@@ -71,7 +89,7 @@ export class PlumaSnapshotCache {
     // guard via MAX_PARENT_DEPTH from @pluma/types so both sides use the same limit.
 
     // Evaluates a flag key following the precedence chain:
-    //   denyList → allowList (additive grant) → parent inheritance → base enabled state.
+    //   denyList → allowList (additive grant) → rolloutPercentage (null = skipped) → parent inheritance → base enabled state.
     //
     // NOTE: Deep parent chains are supported by design. Traversal is iterative
     // (no recursion) so stack depth stays O(1). A single Set tracks visited keys
@@ -106,13 +124,26 @@ export class PlumaSnapshotCache {
           return true;
         }
 
-        // 3. Parent inheritance: walk up to the parent flag on the next iteration.
+        // 3. Rollout percentage: deterministic per-subject assignment.
+        //    Fires only when a subjectKey is provided AND rolloutPercentage is explicitly configured (not null).
+        //    null means "no rollout configured" — fall through to parent/enabled state.
+        if (subjectKey !== undefined && flag.rolloutPercentage !== null) {
+          // Assert the value is within the valid range before computing the bucket.
+          // Invalid data from a malformed snapshot is caught early rather than silently producing wrong results.
+          if (flag.rolloutPercentage < 0 || flag.rolloutPercentage > 100) {
+            throw new Error(`rolloutPercentage out of range [0, 100]: ${flag.rolloutPercentage}`);
+          }
+          const bucket = fnv1a32(`${subjectKey}:${currentKey}`) % 100;
+          return bucket < flag.rolloutPercentage;
+        }
+
+        // 4. Parent inheritance: walk up to the parent flag on the next iteration.
         if (flag.inheritParent && flag.parentKey !== null) {
           currentKey = flag.parentKey;
           continue;
         }
 
-        // 4. Base enabled state.
+        // 5. Base enabled state.
         return flag.enabled;
       }
 
