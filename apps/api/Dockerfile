@@ -71,8 +71,9 @@ COPY --from=build --chown=apiuser:nodejs /app/api-deploy/node_modules ./node_mod
 # Copy compiled application bundle produced by esbuild
 COPY --from=build --chown=apiuser:nodejs /app/apps/api/dist ./dist
 
-# Copy Prisma migrations and schema required for prisma migrate deploy
+# Copy Prisma migrations, schema, and config required for prisma migrate deploy
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma ./packages/db/prisma
+COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/package.json ./packages/db/package.json
 
 RUN apk add --no-cache curl
