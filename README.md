@@ -15,6 +15,38 @@ Pluma has two API planes:
 - `packages/sdk` - npm SDK package
 - `packages/types` - shared TypeScript types and schemas
 
+## Quick Start (Self-Hosting)
+
+Run the full stack with Docker Compose — no Node.js or pnpm required on the host.
+
+1. Copy and configure the environment file:
+
+    ```bash
+    cp .env.example .env
+    # Open .env and set SESSION_SECRET to a long random string:
+    #   openssl rand -hex 32
+    # Optionally change POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB.
+    ```
+
+2. Pull images and start all services (PostgreSQL, migrations, API, web app):
+
+    ```bash
+    docker compose pull
+    docker compose up -d
+    ```
+
+3. Open the app in your browser: **http://localhost:3000**
+
+The API is available at `http://localhost:2137`. To stop everything:
+
+```bash
+docker compose down
+```
+
+> **Note:** Migrations run automatically on every `docker compose up` before the API starts.
+
+---
+
 ## Prerequisites
 
 - Node.js (current LTS recommended)
