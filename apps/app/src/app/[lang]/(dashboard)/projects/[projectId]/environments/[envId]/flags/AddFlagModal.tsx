@@ -119,14 +119,15 @@ export function AddFlagModal({
       <form onSubmit={handleSubmit}>
         {parentFlag && (
           <div className="flex flex-col gap-1.5 mb-4">
-            <label className="text-sm font-medium text-muted-foreground">
+            <label htmlFor="parent-flag-display" className="text-sm font-medium text-muted-foreground">
               {t.flags.parentFlagLabel}
             </label>
             <Input
+              id="parent-flag-display"
               value={`${parentFlag.name} (${parentFlag.key})`}
-              disabled
               readOnly
               aria-readonly="true"
+              tabIndex={-1}
               className="opacity-60"
             />
           </div>
