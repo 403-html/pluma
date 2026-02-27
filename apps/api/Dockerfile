@@ -30,7 +30,9 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # DATABASE_URL is required at build time so prisma generate can resolve the
-# schema datasource. It is intentionally NOT passed to the runtime stage.
+# schema datasource. It is intentionally NOT baked into the image; the runtime
+# API container must receive DATABASE_URL via environment variables (e.g. via
+# docker-compose env_file or similar).
 ARG DATABASE_URL
 
 # Build in dependency order
