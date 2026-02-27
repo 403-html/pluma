@@ -58,7 +58,7 @@ FROM node:20-alpine AS runner
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 apiuser
 
-# Enable pnpm so the migrate service can invoke prisma via `pnpm exec`
+# Enable pnpm (used by the base image tooling; not required for prisma migration)
 RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 
 WORKDIR /app
@@ -71,9 +71,8 @@ COPY --from=build --chown=apiuser:nodejs /app/api-deploy/node_modules ./node_mod
 # Copy compiled application bundle produced by esbuild
 COPY --from=build --chown=apiuser:nodejs /app/apps/api/dist ./dist
 
-# Copy Prisma migrations and config required for prisma migrate deploy
+# Copy Prisma migrations and schema required for prisma migrate deploy
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma ./packages/db/prisma
-COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/package.json ./packages/db/package.json
 
 RUN apk add --no-cache curl
