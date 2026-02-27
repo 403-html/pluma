@@ -3,7 +3,7 @@ import { MAX_PARENT_DEPTH } from '@pluma/types';
 
 export type { Snapshot, SnapshotFlag };
 
-/** Maximum byte length accepted by fnv1a32 to bound the loop at a known constant. */
+/** Maximum character length accepted by fnv1a32 to bound the loop at a known constant. */
 const FNV_MAX_INPUT_LENGTH = 1024;
 
 /**
