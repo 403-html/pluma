@@ -117,21 +117,19 @@ export function AddFlagModal({
   return (
     <Modal titleId="add-flag-modal-title" title={title} onClose={onClose}>
       <form onSubmit={handleSubmit}>
-        {parentFlag && (
-          <div className="flex flex-col gap-1.5 mb-4">
-            <label htmlFor="parent-flag-display" className="text-sm font-medium text-muted-foreground">
-              {t.flags.parentFlagLabel}
-            </label>
-            <Input
-              id="parent-flag-display"
-              value={`${parentFlag.name} (${parentFlag.key})`}
-              readOnly
-              aria-readonly="true"
-              tabIndex={-1}
-              className="opacity-60"
-            />
-          </div>
-        )}
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label htmlFor="parent-flag-display" className="text-sm font-medium text-muted-foreground">
+            {t.flags.parentFlagLabel}
+          </label>
+          <Input
+            id="parent-flag-display"
+            value={parentFlag ? `${parentFlag.name} (${parentFlag.key})` : t.flags.parentFlagTopLevel}
+            readOnly
+            aria-readonly="true"
+            tabIndex={-1}
+            className="opacity-60"
+          />
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="flag-name" className="text-sm font-medium">
