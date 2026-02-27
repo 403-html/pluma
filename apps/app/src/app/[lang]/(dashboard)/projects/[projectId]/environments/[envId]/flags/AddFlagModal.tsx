@@ -13,14 +13,15 @@ import { slugify, makeKeyUnique, isValidProjectKey } from '@/lib/projectKeyUtils
 export function AddFlagModal({
   projectId,
   existingKeys,
-  flags,
+  parentFlag,
   onClose,
   onSuccess,
   onError,
 }: {
   projectId: string;
   existingKeys: string[];
-  flags: Array<{ flagId: string; key: string; name: string; parentFlagId: string | null }>;
+  /** When provided the modal creates a sub-flag under this parent. */
+  parentFlag?: { flagId: string; name: string; key: string };
   onClose: () => void;
   onSuccess: () => void;
   onError: (message: string) => void;
@@ -29,7 +30,6 @@ export function AddFlagModal({
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
   const [description, setDescription] = useState('');
-  const [parentFlagId, setParentFlagId] = useState<string>('');
   const [isKeyCustomized, setIsKeyCustomized] = useState(false);
   const [isKeyEditing, setIsKeyEditing] = useState(false);
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -103,7 +103,7 @@ export function AddFlagModal({
     }
 
     setIsSubmitting(true);
-    const result = await createFlag(projectId, key, name, description || undefined, parentFlagId || undefined);
+    const result = await createFlag(projectId, key, name, description || undefined, parentFlag?.flagId);
     if (result.ok) {
       onSuccess();
     } else {
@@ -112,9 +112,26 @@ export function AddFlagModal({
     }
   }
 
+  const title = parentFlag ? t.flags.modalAddSubTitle : t.flags.modalAddTitle;
+
   return (
-    <Modal titleId="add-flag-modal-title" title={t.flags.modalAddTitle} onClose={onClose}>
+    <Modal titleId="add-flag-modal-title" title={title} onClose={onClose}>
       <form onSubmit={handleSubmit}>
+        {parentFlag && (
+          <div className="flex flex-col gap-1.5 mb-4">
+            <label className="text-sm font-medium text-muted-foreground">
+              {t.flags.parentFlagLabel}
+            </label>
+            <Input
+              value={`${parentFlag.name} (${parentFlag.key})`}
+              disabled
+              readOnly
+              aria-readonly="true"
+              className="opacity-60"
+            />
+          </div>
+        )}
+
         <div className="flex flex-col gap-1.5">
           <label htmlFor="flag-name" className="text-sm font-medium">
             {t.flags.nameLabel}
@@ -164,26 +181,6 @@ export function AddFlagModal({
             maxLength={500}
             rows={3}
           />
-        </div>
-
-        <div className="flex flex-col gap-1.5 mt-4">
-          <label htmlFor="flag-parent" className="text-sm font-medium">
-            {t.flags.parentFlagLabel}
-          </label>
-          <select
-            id="flag-parent"
-            value={parentFlagId}
-            onChange={(e) => setParentFlagId(e.target.value)}
-            disabled={isSubmitting}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">{t.flags.parentFlagNone}</option>
-            {flags.filter((f) => f.parentFlagId === null).map((f) => (
-              <option key={f.flagId} value={f.flagId}>
-                {f.name} ({f.key})
-              </option>
-            ))}
-          </select>
         </div>
 
         <div className="flex gap-3 justify-end mt-5">

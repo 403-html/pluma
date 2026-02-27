@@ -24,6 +24,7 @@ import { usePagination } from '@/hooks/usePagination';
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
+  | { type: 'addSub'; parentFlag: { flagId: string; name: string; key: string } }
   | { type: 'edit'; flag: FlagEntry };
 
 const PAGE_SIZE = 20;
@@ -245,6 +246,15 @@ export default function FlagsPage() {
                       </div>
                     ) : (
                       <div className="flex gap-2">
+                        {depth === 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => { setError(null); setModalState({ type: 'addSub', parentFlag: { flagId: flag.flagId, name: flag.name, key: flag.key } }); }}
+                          >
+                            {t.flags.addSubFlagBtn}
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -286,7 +296,20 @@ export default function FlagsPage() {
         <AddFlagModal
           projectId={projectId}
           existingKeys={existingKeys}
-          flags={flags}
+          onClose={() => setModalState({ type: 'none' })}
+          onSuccess={() => {
+            setModalState({ type: 'none' });
+            loadFlags();
+          }}
+          onError={setError}
+        />
+      )}
+
+      {modalState.type === 'addSub' && (
+        <AddFlagModal
+          projectId={projectId}
+          existingKeys={existingKeys}
+          parentFlag={modalState.parentFlag}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });

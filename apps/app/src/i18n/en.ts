@@ -264,8 +264,9 @@ export const en = {
     rolloutInputError: 'Must be an integer between 0 and 100',
     rolloutNotSet: '—',
     parentFlagLabel: 'Parent Flag',
-    parentFlagNone: 'No parent (top-level flag)',
     subFlagIndicator: '↳',
+    addSubFlagBtn: 'Add Sub-flag',
+    modalAddSubTitle: 'New Sub-flag',
   },
 } as const;
 
