@@ -50,20 +50,22 @@ RUN if [ -d /app/node_modules/.prisma ]; then \
       cp -r /app/node_modules/.prisma /app/api-deploy/node_modules/.prisma; \
     fi
 
-# pnpm deploy may not hoist the prisma CLI bin from workspace transitive deps
-# (@pluma/db owns prisma but @pluma/api is the deploy target).  Copy it
-# unconditionally from the full build node_modules (guaranteed present after
-# pnpm install), dereferencing pnpm store symlinks with -L, then write a
-# portable relative-path shim so the runner can exec it without the store.
-RUN cp -rL /app/node_modules/prisma /app/api-deploy/node_modules/prisma && \
-    mkdir -p /app/api-deploy/node_modules/.bin && \
-    node -e " \
-      const fs = require('fs'); \
-      const pkg = JSON.parse(fs.readFileSync('/app/api-deploy/node_modules/prisma/package.json', 'utf8')); \
-      const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin.prisma; \
-      const shim = '#!/usr/bin/env node\nrequire(\"../prisma/' + bin + '\")\n'; \
-      fs.writeFileSync('/app/api-deploy/node_modules/.bin/prisma', shim, { mode: 0o755 }); \
-    "
+# pnpm deploy does not hoist .bin entries for packages owned by workspace deps
+# (@pluma/db owns prisma, @pluma/api is the deploy target).  prisma IS present
+# in the deploy's .pnpm virtual store — write a .bin shim that points into it.
+RUN node -e " \
+  const fs = require('fs'); \
+  const path = require('path'); \
+  const nm = '/app/api-deploy/node_modules'; \
+  const entry = fs.readdirSync(nm + '/.pnpm').find(e => /^prisma@/.test(e)); \
+  if (!entry) { process.stderr.write('prisma not found in pnpm store\n'); process.exit(1); } \
+  const pkg = JSON.parse(fs.readFileSync(nm + '/.pnpm/' + entry + '/node_modules/prisma/package.json', 'utf8')); \
+  const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin.prisma; \
+  const rel = path.relative(nm + '/.bin', nm + '/.pnpm/' + entry + '/node_modules/prisma'); \
+  const shim = '#!/usr/bin/env node\nrequire(\"' + rel.replace(/\\\\/g, '/') + '/' + bin + '\")\n'; \
+  fs.mkdirSync(nm + '/.bin', { recursive: true }); \
+  fs.writeFileSync(nm + '/.bin/prisma', shim, { mode: 0o755 }); \
+"
 
 # ─── Stage 2: runner ───────────────────────────────────────────────────────────
 # Minimal production image — only compiled output and production node_modules.
