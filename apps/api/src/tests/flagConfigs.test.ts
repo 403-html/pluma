@@ -99,6 +99,25 @@ describe('Flag Config routes', () => {
       expect(payload.data[0]).toHaveProperty('flagId', FLAG_ID);
       expect(payload.data[0]).toHaveProperty('key', mockFlag.key);
       expect(payload.data[0]).toHaveProperty('enabled', true);
+      expect(payload.data[0]).toHaveProperty('parentFlagId', null);
+    });
+
+    it('should include a non-null parentFlagId when the flag has a parent', async () => {
+      const PARENT_FLAG_ID = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+      const childFlag = { ...mockFlag, id: FLAG_ID, parentFlagId: PARENT_FLAG_ID };
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
+      prismaMock.featureFlag.findMany.mockResolvedValue([childFlag]);
+      prismaMock.flagConfig.findMany.mockResolvedValue([mockFlagConfig]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/environments/${ENV_ID}/flags`,
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.data[0]).toHaveProperty('parentFlagId', PARENT_FLAG_ID);
     });
 
     it('should default enabled to false when no config exists', async () => {

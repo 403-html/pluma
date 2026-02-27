@@ -170,6 +170,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             key: flag.key,
             name: flag.name,
             description: flag.description,
+            parentFlagId: flag.parentFlagId,
             enabled: cfg?.enabled ?? false,
             allowList: cfg?.allowList ?? [],
             denyList: cfg?.denyList ?? [],

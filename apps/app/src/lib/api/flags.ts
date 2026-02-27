@@ -13,6 +13,7 @@ export type FlagEntry = {
   allowList: string[];
   denyList: string[];
   rolloutPercentage: number | null;  // null = not configured
+  parentFlagId: string | null;
 };
 
 export async function listFlagsForEnvironment(envId: string): Promise<
@@ -40,7 +41,8 @@ export async function createFlag(
   projectId: string,
   key: string,
   name: string,
-  description?: string
+  description?: string,
+  parentFlagId?: string
 ): Promise<{ ok: true; flag: FeatureFlag } | { ok: false; message: string }> {
   if (typeof key !== 'string' || key.length === 0) {
     return { ok: false, message: 'Key is required' };
@@ -55,9 +57,12 @@ export async function createFlag(
     return { ok: false, message: `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer` };
   }
   try {
-    const body: { key: string; name: string; description?: string } = { key, name };
+    const body: { key: string; name: string; description?: string; parentFlagId?: string } = { key, name };
     if (description !== undefined && description.length > 0) {
       body.description = description;
+    }
+    if (parentFlagId !== undefined) {
+      body.parentFlagId = parentFlagId;
     }
 
     const response = await fetch(`/api/v1/projects/${projectId}/flags`, {

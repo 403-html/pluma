@@ -90,8 +90,35 @@ export default function FlagsPage() {
     }
   }
 
-  if (isLoading) {
-    return (
+  function buildOrderedFlags(flagList: FlagEntry[]): Array<{ flag: FlagEntry; depth: number }> {
+    const byParent = new Map<string | null, FlagEntry[]>();
+    const flagMap = new Map<string, FlagEntry>();
+    for (const f of flagList) {
+      flagMap.set(f.flagId, f);
+      const key = f.parentFlagId ?? null;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(f);
+    }
+    const result: Array<{ flag: FlagEntry; depth: number }> = [];
+    const roots = (byParent.get(null) ?? []).slice().reverse();
+    const stack: Array<{ flagId: string; depth: number }> = roots.map(f => ({ flagId: f.flagId, depth: 0 }));
+    const MAX_ITER = flagList.length;
+    let iter = 0;
+    while (stack.length > 0 && iter < MAX_ITER) {
+      iter += 1;
+      const item = stack.pop()!;
+      const flag = flagMap.get(item.flagId);
+      if (!flag) continue;
+      result.push({ flag, depth: item.depth });
+      const children = (byParent.get(item.flagId) ?? []).slice().reverse();
+      for (const child of children) {
+        stack.push({ flagId: child.flagId, depth: item.depth + 1 });
+      }
+    }
+    return result;
+  }
+
+  if (isLoading) {    return (
       <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
@@ -155,9 +182,14 @@ export default function FlagsPage() {
               </TableHeadRow>
             </TableHeader>
             <TableBody>
-              {paginatedFlags.map((flag) => (
+              {buildOrderedFlags(paginatedFlags).map(({ flag, depth }) => (
                 <TableRow key={flag.flagId}>
-                  <TableCell className="px-3 py-3">{flag.name}</TableCell>
+                  <TableCell className="px-3 py-3">
+                    <span style={depth > 0 ? { paddingLeft: `${depth * 16}px` } : undefined}>
+                      {depth > 0 && <span className="text-muted-foreground mr-1">{t.flags.subFlagIndicator}</span>}
+                      {flag.name}
+                    </span>
+                  </TableCell>
                   <TableCell className="px-3 py-3">
                     <CopyPill value={flag.key} />
                   </TableCell>
@@ -241,6 +273,7 @@ export default function FlagsPage() {
         <AddFlagModal
           projectId={projectId}
           existingKeys={existingKeys}
+          flags={flags}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });
