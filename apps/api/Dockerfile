@@ -50,6 +50,34 @@ RUN if [ -d /app/node_modules/.prisma ]; then \
       cp -r /app/node_modules/.prisma /app/api-deploy/node_modules/.prisma; \
     fi
 
+# pnpm deploy --legacy generates `.bin/prisma` with absolute paths into the
+# pnpm virtual store (e.g. /app/node_modules/.pnpm/prisma@.../...).  Those
+# paths do not exist in the runner stage, so we rewrite the shim here, in the
+# build stage where the package is available, using a relative require that
+# works from any location once the flat node_modules is copied to the runner.
+RUN node -e " \
+  const fs = require('fs'); \
+  const pkgPath = '/app/api-deploy/node_modules/prisma/package.json'; \
+  if (!fs.existsSync(pkgPath)) { \
+    process.stderr.write('Warning: prisma package.json not found at ' + pkgPath + ' — skipping shim\n'); \
+    process.exit(0); \
+  } \
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')); \
+  const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin && pkg.bin.prisma; \
+  if (!bin) { \
+    process.stderr.write('Warning: prisma bin entry not found — skipping shim\n'); \
+    process.exit(0); \
+  } \
+  if (bin.startsWith('/') || bin.includes('..')) { \
+    process.stderr.write('Error: unexpected prisma bin path: ' + bin + '\n'); \
+    process.exit(1); \
+  } \
+  const binDir = '/app/api-deploy/node_modules/.bin'; \
+  if (!fs.existsSync(binDir)) { fs.mkdirSync(binDir, { recursive: true }); } \
+  const shim = '#!/usr/bin/env node\nrequire(\"../prisma/' + bin + '\")\n'; \
+  fs.writeFileSync(binDir + '/prisma', shim, { mode: 0o755 }); \
+"
+
 # ─── Stage 2: runner ───────────────────────────────────────────────────────────
 # Minimal production image — only compiled output and production node_modules.
 FROM node:20-alpine AS runner
@@ -75,15 +103,6 @@ COPY --from=build --chown=apiuser:nodejs /app/apps/api/dist ./dist
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma ./packages/db/prisma
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
 COPY --from=build --chown=apiuser:nodejs /app/packages/db/package.json ./packages/db/package.json
-
-# Copy prisma CLI from the full build node_modules for `prisma migrate deploy`.
-# pnpm deploy --prod may not link the .bin entry for packages that are deps of
-# workspace dependencies (rather than direct deps of @pluma/api).
-# Also copy the full @prisma namespace so the CLI can resolve its own runtime
-# deps (@prisma/engines, @prisma/config, etc.).
-COPY --from=build --chown=apiuser:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=build --chown=apiuser:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=build --chown=apiuser:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 RUN apk add --no-cache curl
 
