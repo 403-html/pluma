@@ -14,6 +14,7 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
+import { SwitchField } from '@/components/ui/switch';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
@@ -163,16 +164,12 @@ export default function FlagsPage() {
                   </TableCell>
                   <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
                   <TableCell className="px-3 py-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={flag.enabled}
-                        onChange={() => handleToggle(flag.flagId, flag.enabled)}
-                        className="cursor-pointer"
-                        aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
-                      />
-                      {flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
-                    </label>
+                    <SwitchField
+                      checked={flag.enabled}
+                      onCheckedChange={() => handleToggle(flag.flagId, flag.enabled)}
+                      label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
+                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
+                    />
                   </TableCell>
                   <TableCell className="px-3 py-3 text-sm text-muted-foreground">
                     {flag.rolloutPercentage !== null
