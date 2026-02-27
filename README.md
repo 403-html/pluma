@@ -21,20 +21,19 @@ Pluma has two API planes:
 
 > **Note:** Published Docker images are not yet available. You must build the images locally before running the stack.
 
-1. Build Docker images from source:
-
-    ```bash
-    docker build -t ghcr.io/403-html/pluma-api:latest -f apps/api/Dockerfile .
-    docker build -t ghcr.io/403-html/pluma-app:latest -f apps/app/Dockerfile .
-    ```
-
-2. Copy and configure the environment file:
+1. Copy and configure the environment file:
 
     ```bash
     cp .env.example .env
     # Open .env and set SESSION_SECRET to a long random string:
     #   openssl rand -hex 32
     # Optionally change POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB.
+    ```
+
+2. Build images from source:
+
+    ```bash
+    docker compose build
     ```
 
 3. Start all services (PostgreSQL, migrations, API, web app):

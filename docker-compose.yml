@@ -5,7 +5,7 @@
 #
 # Quick start:
 #   1. cp .env.example .env  && edit .env
-#   2. docker compose pull
+#   2. docker compose build
 #   3. docker compose up -d
 #
 # Stop everything:
@@ -33,7 +33,10 @@ services:
 
   # ── Migrations (runs once, then exits) ──────────────────────────────────────
   migrate:
-    image: ghcr.io/403-html/pluma-api:latest
+    image: pluma-api:local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     restart: "no"
     command: ["pnpm", "exec", "prisma", "migrate", "deploy"]
     working_dir: /app/packages/db
@@ -47,7 +50,10 @@ services:
 
   # ── API (Fastify) ────────────────────────────────────────────────────────────
   api:
-    image: ghcr.io/403-html/pluma-api:latest
+    image: pluma-api:local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     ports:
       - "2137:2137"
@@ -62,7 +68,10 @@ services:
 
   # ── App (Next.js) ────────────────────────────────────────────────────────────
   app:
-    image: ghcr.io/403-html/pluma-app:latest
+    image: pluma-app:local
+    build:
+      context: .
+      dockerfile: apps/app/Dockerfile
     restart: unless-stopped
     ports:
       - "3000:3000"
