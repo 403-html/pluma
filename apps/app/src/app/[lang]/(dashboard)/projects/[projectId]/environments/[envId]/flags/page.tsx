@@ -168,6 +168,7 @@ export default function FlagsPage() {
                       checked={flag.enabled}
                       onCheckedChange={() => handleToggle(flag.flagId, flag.enabled)}
                       label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
+                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
                     />
                   </TableCell>
                   <TableCell className="px-3 py-3 text-sm text-muted-foreground">
