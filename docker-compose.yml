@@ -38,7 +38,7 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     restart: "no"
-    command: ["pnpm", "exec", "prisma", "migrate", "deploy"]
+    command: ["/app/node_modules/.bin/prisma", "migrate", "deploy"]
     working_dir: /app/packages/db
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-pluma}:${POSTGRES_PASSWORD:-pluma}@postgres:5432/${POSTGRES_DB:-pluma}?schema=public"
