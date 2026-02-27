@@ -124,10 +124,7 @@ export function AddFlagModal({
           <Input
             id="parent-flag-display"
             value={parentFlag ? `${parentFlag.name} (${parentFlag.key})` : t.flags.parentFlagTopLevel}
-            readOnly
-            aria-readonly="true"
-            tabIndex={-1}
-            className="opacity-60"
+            disabled
           />
         </div>
 
