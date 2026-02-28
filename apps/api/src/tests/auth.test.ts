@@ -172,6 +172,7 @@ describe('Auth routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.headers['set-cookie']).toContain('pluma_session=');
+      expect(response.headers['set-cookie']).not.toMatch(/;\s*Secure/i);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('email', mockUser.email);
       // All existing sessions should be invalidated on login
