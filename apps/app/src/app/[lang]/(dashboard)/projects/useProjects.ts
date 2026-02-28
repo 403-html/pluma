@@ -6,6 +6,7 @@ import {
   type ProjectSummary,
 } from '@/lib/api/projects';
 import { useLocale } from '@/i18n/LocaleContext';
+import { toastErrorRender } from '@/lib/toastUtils';
 
 export type ProjectsModalState =
   | { type: 'none' }
@@ -60,7 +61,7 @@ export function useProjects(): ProjectsState {
       await toast.promise(toastPromise, {
         pending: t.projects.toastDeletePending,
         success: t.projects.toastDeleteSuccess,
-        error: { render({ data }) { return (data as Error).message; } },
+        error: { render: toastErrorRender },
       });
       setDeletingId(null);
       await loadProjects();

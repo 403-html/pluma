@@ -12,6 +12,7 @@ import {
 import EmptyState from '@/components/EmptyState';
 import { Boxes } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
+import { toastErrorRender } from '@/lib/toastUtils';
 import { AddEnvironmentModal } from './AddEnvironmentModal';
 import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
@@ -71,7 +72,7 @@ export default function EnvironmentsPage() {
     await toast.promise(toastPromise, {
       pending: t.environments.toastDeletePending,
       success: t.environments.toastDeleteSuccess,
-      error: { render({ data }) { return (data as Error).message; } },
+      error: { render: toastErrorRender },
     });
     setDeletingId(null);
     await loadEnvironments();

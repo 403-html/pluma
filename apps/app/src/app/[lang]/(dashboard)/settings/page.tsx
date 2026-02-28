@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { toastErrorRender } from '@/lib/toastUtils';
 import { useLocale } from '@/i18n/LocaleContext';
 import { changePassword } from '@/lib/api/auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -28,7 +29,7 @@ export default function SettingsPage() {
       await toast.promise(toastPromise, {
         pending: t.settings.toastPasswordPending,
         success: t.settings.changePasswordSuccess,
-        error: { render({ data }) { return (data as Error).message; } },
+        error: { render: toastErrorRender },
       });
       setOldPassword('');
       setNewPassword('');

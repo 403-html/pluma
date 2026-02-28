@@ -6,6 +6,7 @@ import {
   toggleFlagEnabled,
   type FlagEntry,
 } from '@/lib/api/flags';
+import { toastErrorRender } from '@/lib/toastUtils';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { useLocale } from '@/i18n/LocaleContext';
@@ -77,6 +78,9 @@ export function useFlags(envId: string, projectId: string): FlagsState {
     void loadFlags();
   }, [loadFlags]);
 
+  // Toggle uses simple toast.error/success (not toast.promise) because the
+  // optimistic state update must be applied and potentially reverted synchronously
+  // around the async call — wrapping in toast.promise would complicate that flow.
   const handleToggleFlag = useCallback(
     async (flagId: string, currentEnabled: boolean) => {
       setTogglingIds((prev) => new Set(prev).add(flagId));
@@ -110,7 +114,7 @@ export function useFlags(envId: string, projectId: string): FlagsState {
       await toast.promise(toastPromise, {
         pending: t.flags.toastDeletePending,
         success: t.flags.toastDeleteSuccess,
-        error: { render({ data }) { return (data as Error).message; } },
+        error: { render: toastErrorRender },
       });
       setDeletingId(null);
       await loadFlags();

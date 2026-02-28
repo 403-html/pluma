@@ -12,7 +12,6 @@ export interface OrgTokensState {
   createdToken: CreatedToken | null;
   createdProjectName: string;
   pendingRevokeId: string | null;
-  revokeError: string | null;
   isRevoking: boolean;
   fetchTokens: () => Promise<void>;
   setCreatedToken: (token: CreatedToken | null) => void;
@@ -29,7 +28,6 @@ export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
   const [createdToken, setCreatedToken] = useState<CreatedToken | null>(null);
   const [createdProjectName, setCreatedProjectName] = useState('');
   const [pendingRevokeId, setPendingRevokeId] = useState<string | null>(null);
-  const [revokeError, setRevokeError] = useState<string | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
 
   const fetchTokens = useCallback(async () => {
@@ -50,12 +48,9 @@ export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
 
   async function handleRevoke(id: string) {
     setIsRevoking(true);
-    setRevokeError(null);
     const result = await revokeOrgToken(id);
     if (!result.ok) {
-      const msg = result.message ?? revokeErrorMsg;
-      setRevokeError(msg);
-      toast.error(msg);
+      toast.error(result.message ?? revokeErrorMsg);
       setPendingRevokeId(null);
       setIsRevoking(false);
       return;
@@ -76,7 +71,6 @@ export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
     createdToken,
     createdProjectName,
     pendingRevokeId,
-    revokeError,
     isRevoking,
     fetchTokens,
     setCreatedToken,
