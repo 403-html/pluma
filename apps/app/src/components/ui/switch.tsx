@@ -67,6 +67,7 @@ function SwitchField({
   description,
   labelPosition = "right",
   id,
+  disabled,
   ...props
 }: SwitchFieldProps) {
   const generatedId = React.useId()
@@ -75,7 +76,13 @@ function SwitchField({
   const hasLabel = label !== undefined || description !== undefined
 
   const labelElement = hasLabel ? (
-    <label htmlFor={switchId} className="flex flex-col gap-0.5 cursor-pointer">
+    <label
+      htmlFor={switchId}
+      className={cn(
+        "flex flex-col gap-0.5",
+        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+      )}
+    >
       {label && (
         <span className="text-sm font-medium leading-none">{label}</span>
       )}
@@ -88,7 +95,7 @@ function SwitchField({
   return (
     <div className="flex items-center gap-3">
       {labelPosition === "left" && labelElement}
-      <Switch id={switchId} {...props} />
+      <Switch id={switchId} disabled={disabled} {...props} />
       {labelPosition === "right" && labelElement}
     </div>
   )

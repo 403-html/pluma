@@ -217,6 +217,7 @@ export default function FlagsPage() {
                   <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
                   <TableCell className="px-3 py-3">
                     <SwitchField
+                      size="sm"
                       checked={flag.enabled}
                       onCheckedChange={() => handleToggle(flag.flagId, flag.enabled)}
                       label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
