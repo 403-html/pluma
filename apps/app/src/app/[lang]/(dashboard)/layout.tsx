@@ -3,13 +3,10 @@ import { cookies } from 'next/headers';
 import DashboardShell from '@/components/DashboardShell';
 import { resolveLocale } from '@/i18n';
 import { checkSession } from '@/lib/api/auth';
+import { serializeCookies } from '@/lib/api/utils';
 
 async function checkAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join('; ');
+  const cookieHeader = serializeCookies(await cookies());
   return checkSession(cookieHeader);
 }
 

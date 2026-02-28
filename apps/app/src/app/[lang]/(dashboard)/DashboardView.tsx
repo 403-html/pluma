@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   BarChart,
@@ -8,11 +8,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
-import type { DashboardData } from "@/lib/api/dashboard";
-import type { en } from "@/i18n/en";
+} from 'recharts';
+import type { DashboardData } from '@/lib/api/dashboard';
+import type { en } from '@/i18n/en';
 
-export type DashboardLabels = typeof en["dashboard"];
+export type DashboardLabels = typeof en['dashboard'];
 
 /** Character length of an ISO UTC date string (YYYY-MM-DD). */
 const ISO_DATE_LENGTH = 10;

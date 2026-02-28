@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { getDictionary, resolveLocale } from '@/i18n';
 import { getDashboard, EMPTY_DASHBOARD } from '@/lib/api/dashboard';
 import { PageHeader } from '@/components/PageHeader';
+import { serializeCookies } from '@/lib/api/utils';
 import DashboardView from './DashboardView';
 
 export default async function DashboardPage({
@@ -13,12 +14,7 @@ export default async function DashboardPage({
   const locale = resolveLocale(lang);
   const t = getDictionary(locale);
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
+  const cookieHeader = serializeCookies(await cookies());
   const result = await getDashboard(cookieHeader);
   const data = result.ok ? result.data : EMPTY_DASHBOARD;
 

@@ -43,6 +43,7 @@ describe('Dashboard routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     vi.setSystemTime(FIXED_NOW);
     prismaMock.session.findUnique.mockResolvedValue(mockSession);
   });
@@ -183,11 +184,12 @@ describe('Dashboard routes', () => {
         headers: { cookie: AUTH_COOKIE },
       });
 
-      const expectedSince = new Date(FIXED_NOW - CHART_DAYS * MS_PER_DAY);
+      const expectedSince = new Date(FIXED_NOW - (CHART_DAYS - 1) * MS_PER_DAY);
       expect(prismaMock.auditLog.findMany).toHaveBeenCalledWith({
-        where:  { createdAt: { gte: expectedSince } },
-        select: { createdAt: true },
-        take:   MAX_AUDIT_LOGS,
+        where:   { createdAt: { gte: expectedSince } },
+        select:  { createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take:    MAX_AUDIT_LOGS,
       });
     });
   });

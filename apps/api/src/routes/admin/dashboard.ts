@@ -59,7 +59,7 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
  */
 export async function registerDashboardRoutes(fastify: FastifyInstance) {
   fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (_request, _reply) => {
-    const since7Days = new Date(Date.now() - CHART_DAYS * MS_PER_DAY);
+    const since7Days = new Date(Date.now() - (CHART_DAYS - 1) * MS_PER_DAY);
     const since24h   = new Date(Date.now() - MS_PER_DAY);
 
     const [
