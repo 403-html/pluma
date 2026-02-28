@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Flag, ScrollText, Building2, Settings, LogOut } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { logout } from '@/lib/api/auth';
+import { cn } from '@/lib/utils';
 
 type SidebarButtonProps = {
   icon: React.ReactNode;
@@ -31,7 +32,16 @@ function SidebarButton({ icon, label, onClick, disabled, danger = false, active 
   );
 }
 
-export default function Sidebar() {
+type SidebarProps = {
+  /** HTML id applied to the aside element (used for aria-controls on the hamburger). */
+  id?: string;
+  /** Whether the sidebar drawer is open on mobile. Ignored on md+ screens. */
+  isOpen?: boolean;
+  /** Called when the sidebar should close (e.g. nav link clicked on mobile). */
+  onClose?: () => void;
+};
+
+export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
   const { t, locale } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -43,8 +53,15 @@ export default function Sidebar() {
     return (parts[2] ?? '') === segment;
   };
 
+  /** Navigate to a route and close the sidebar on mobile. */
+  function navigate(path: string) {
+    onClose?.();
+    router.push(path);
+  }
+
   async function handleLogout() {
     setIsLoggingOut(true);
+    onClose?.();
     const result = await logout(locale);
     if (result.ok) {
       router.push(`/${locale}/login`);
@@ -56,7 +73,19 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 h-screen overflow-y-auto w-[var(--sidebar-width)] bg-[#2f3e46] text-white flex flex-col z-50 border-r border-white/20">
+    <aside
+      id={id}
+      className={cn(
+        // Base styles (shared across breakpoints)
+        'top-0 h-screen overflow-y-auto w-[var(--sidebar-width)]',
+        'bg-[#2f3e46] text-white flex flex-col border-r border-white/20',
+        // Mobile: fixed drawer, slides in/out; Desktop: sticky in-grid panel
+        'fixed z-50 transition-transform duration-200 ease-in-out',
+        'md:sticky md:translate-x-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full',
+      )}
+      aria-label="Main navigation"
+    >
       <div className="flex-1 overflow-y-auto">
         {/* Logo/branding section - can be expanded in the future */}
         <div className="px-4 py-6 border-b border-white/10">
@@ -65,8 +94,8 @@ export default function Sidebar() {
 
         {/* Main navigation */}
         <nav className="py-2 px-2">
-          <SidebarButton icon={<Flag size={20} />} label={t.sidebar.projects} onClick={() => router.push(`/${locale}/projects`)} active={isActive('projects')} />
-          <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => router.push(`/${locale}/audit`)} active={isActive('audit')} />
+          <SidebarButton icon={<Flag size={20} />} label={t.sidebar.projects} onClick={() => navigate(`/${locale}/projects`)} active={isActive('projects')} />
+          <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => navigate(`/${locale}/audit`)} active={isActive('audit')} />
         </nav>
       </div>
 
@@ -75,10 +104,10 @@ export default function Sidebar() {
         <SidebarButton
           icon={<Building2 size={20} />}
           label={t.sidebar.organization}
-          onClick={() => router.push(`/${locale}/organization`)}
+          onClick={() => navigate(`/${locale}/organization`)}
           active={isActive('organization')}
         />
-        <SidebarButton icon={<Settings size={20} />} label={t.sidebar.settings} onClick={() => router.push(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
+        <SidebarButton icon={<Settings size={20} />} label={t.sidebar.settings} onClick={() => navigate(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
         <SidebarButton icon={<LogOut size={20} />} label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
     </aside>

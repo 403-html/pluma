@@ -13,7 +13,7 @@ type ModalProps = {
 export default function Modal({ titleId, title, onClose, children, size = 'sm' }: ModalProps) {
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]"
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4"
       onClick={onClose}
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
     >

@@ -135,7 +135,7 @@ export default function FlagsPage() {
   }
 
   if (isLoading) {    return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
@@ -150,7 +150,7 @@ export default function FlagsPage() {
 
   if (error && flags.length === 0) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
@@ -164,7 +164,7 @@ export default function FlagsPage() {
   }
 
   return (
-    <main className="p-8 h-screen flex flex-col overflow-hidden">
+    <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         breadcrumbs={[
           { label: t.projects.title, href: `/${locale}/projects` },

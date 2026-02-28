@@ -65,7 +65,7 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.projects.title} />
         <p>{t.common.loading}</p>
       </main>
@@ -74,7 +74,7 @@ export default function ProjectsPage() {
 
   if (error && projects.length === 0) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.projects.title} />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
@@ -82,7 +82,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <main className="p-8 h-screen flex flex-col overflow-hidden">
+    <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         title={t.projects.title}
         actions={
