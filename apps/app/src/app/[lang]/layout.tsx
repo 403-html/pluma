@@ -31,6 +31,7 @@ export default async function RootLayout({
 }>) {
   const { lang } = await params;
   const locale = resolveLocale(lang);
+  const t = getDictionary(locale);
   const cookieStore = await cookies();
   const raw = cookieStore.get(THEME_COOKIE)?.value;
   const initialTheme: Theme = (raw === 'light' || raw === 'dark' || raw === 'system') ? raw : 'system';
@@ -38,7 +39,7 @@ export default async function RootLayout({
     <LocaleProvider locale={locale}>
       <ThemeProvider initialTheme={initialTheme}>
         {children}
-        <ToastProvider />
+        <ToastProvider ariaLabel={t.ui.toastContainerLabel} />
       </ThemeProvider>
     </LocaleProvider>
   );

@@ -56,6 +56,7 @@ export const en = {
     themeSwitcherLight: 'Light',
     themeSwitcherDark: 'Dark',
     themeSwitcherSystem: 'System',
+    toastContainerLabel: 'Notifications',
   },
   common: {
     loading: 'Loading…',

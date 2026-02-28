@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => (
     <>
-      <ToastProvider />
+      <ToastProvider ariaLabel="Notifications" />
       <button onClick={() => toast.success('Action completed!')}>Show success toast</button>
     </>
   ),
@@ -26,7 +26,7 @@ export const Default: Story = {
 export const ErrorToast: Story = {
   render: () => (
     <>
-      <ToastProvider />
+      <ToastProvider ariaLabel="Notifications" />
       <button onClick={() => toast.error('Something went wrong.')}>Show error toast</button>
     </>
   ),
@@ -35,7 +35,7 @@ export const ErrorToast: Story = {
 export const LoadingToast: Story = {
   render: () => (
     <>
-      <ToastProvider />
+      <ToastProvider ariaLabel="Notifications" />
       <button
         onClick={() => {
           const id = toast.loading('Processing…');
