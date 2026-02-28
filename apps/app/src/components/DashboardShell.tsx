@@ -33,7 +33,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           aria-expanded={isSidebarOpen}
           aria-controls="app-sidebar"
           className="p-2 rounded-md text-foreground hover:bg-accent transition-colors"
-          onClick={() => setIsSidebarOpen(true)}
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
         >
           <Menu size={20} aria-hidden="true" />
         </button>
