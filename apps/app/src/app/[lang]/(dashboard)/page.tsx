@@ -1,12 +1,33 @@
+import { cookies } from 'next/headers';
 import { getDictionary, resolveLocale } from '@/i18n';
+import { getDashboard, EMPTY_DASHBOARD } from '@/lib/api/dashboard';
+import { PageHeader } from '@/components/PageHeader';
+import { serializeCookies } from '@/lib/api/utils';
+import DashboardView from './DashboardView';
 
-export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+export default async function DashboardPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
   const { lang } = await params;
-  const t = getDictionary(resolveLocale(lang));
+  const locale = resolveLocale(lang);
+  const t = getDictionary(locale);
+
+  const cookieHeader = serializeCookies(await cookies());
+  const result = await getDashboard(cookieHeader);
+  const data = result.ok ? result.data : EMPTY_DASHBOARD;
+
   return (
-    <main>
-      <h1>{t.home.heading}</h1>
-      <p>{t.home.subheading}</p>
+    <main className="p-8 overflow-y-auto">
+      <PageHeader title={t.dashboard.title} />
+      {!result.ok && (
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2 mb-6">
+          {t.dashboard.loadingError}
+        </div>
+      )}
+      <DashboardView data={data} labels={t.dashboard} />
     </main>
   );
 }
+

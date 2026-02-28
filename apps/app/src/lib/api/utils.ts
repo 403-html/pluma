@@ -18,3 +18,11 @@ export async function parseErrorMessage(response: Response, fallback: string): P
     return fallback;
   }
 }
+
+/**
+ * Serializes a Next.js cookie store into a `Cookie:` header string.
+ * Accepts the awaited result of `cookies()` from `next/headers`.
+ */
+export function serializeCookies(cookieStore: { getAll: () => Array<{ name: string; value: string }> }): string {
+  return cookieStore.getAll().map((c) => `${c.name}=${c.value}`).join('; ');
+}

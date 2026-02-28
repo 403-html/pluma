@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Flag, ScrollText, Building2, Settings, LogOut } from 'lucide-react';
+import { Flag, ScrollText, Building2, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { logout } from '@/lib/api/auth';
 import { cn } from '@/lib/utils';
@@ -94,6 +94,7 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
 
         {/* Main navigation */}
         <nav className="py-2 px-2">
+          <SidebarButton icon={<LayoutDashboard size={20} />} label={t.sidebar.dashboard} onClick={() => navigate(`/${locale}/`)} active={isActive('')} />
           <SidebarButton icon={<Flag size={20} />} label={t.sidebar.projects} onClick={() => navigate(`/${locale}/projects`)} active={isActive('projects')} />
           <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => navigate(`/${locale}/audit`)} active={isActive('audit')} />
         </nav>

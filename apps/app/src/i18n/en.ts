@@ -66,6 +66,7 @@ export const en = {
     showLess: 'less',
   },
   sidebar: {
+    dashboard: 'Dashboard',
     projects: 'Projects',
     audit: 'Audit',
     organization: 'Organization',
@@ -212,6 +213,19 @@ export const en = {
     noProjects: 'No projects found.',
     nameRequired: 'Name is required',
     projectRequired: 'Project is required',
+  },
+  dashboard: {
+    title: 'Dashboard',
+    projects: 'Projects',
+    environments: 'Environments',
+    activeFlags: 'Active Flags',
+    targetedFlags: 'Flags with Targeting',
+    rollingOutFlags: 'Rolling Out',
+    recentChanges: 'Changes Today',
+    chartTitle: 'Flag Changes – Last 7 Days',
+    chartDayLabel: 'Day',
+    chartCountLabel: 'Changes',
+    loadingError: 'Failed to load dashboard data',
   },
   flags: {
     title: 'Flags',
