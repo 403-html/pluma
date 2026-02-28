@@ -1,0 +1,28 @@
+# ─── Dependencies & generated artefacts ──────────────────────────────────────
+node_modules/
+**/node_modules/
+**/dist/
+
+# ─── Version control ──────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ─── Next.js / Storybook build output ─────────────────────────────────────────
+**/.next/
+**/coverage/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+**/*.log
+
+# ─── Environment files (never bake secrets into the image) ────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Apps not needed for the API image ────────────────────────────────────────
+# Exclude source directories but re-include package.json so pnpm workspace
+# resolution works correctly during the deps install stage.
+apps/app/
+!apps/app/package.json
+apps/storybook/
+!apps/storybook/package.json
