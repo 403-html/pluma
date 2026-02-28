@@ -93,20 +93,18 @@ RUN pnpm --filter @pluma/api build
 RUN pnpm --filter @pluma/api deploy --prod --legacy /app/deploy
 
 # ── Augment the deployment directory ─────────────────────────────────────
-# Copy Prisma schema + migrations so that:
-#   - prisma generate (next step) can locate the schema
-#   - prisma migrate deploy (entrypoint) can locate the migration files
+# Copy Prisma schema + migrations so that prisma migrate deploy
+# (entrypoint) can locate the migration files at runtime.
 RUN cp -r packages/db/prisma /app/deploy/prisma
 
-# Regenerate the Prisma client inside the deployment directory.
-# pnpm deploy --prod creates a fresh node_modules; the .prisma/client
-# artefacts must be regenerated here.  prisma is a production dep of
-# @pluma/db so node_modules/.bin/prisma is available in the deploy dir.
-# The default output (relative to the schema) resolves to
-# /app/deploy/node_modules/.prisma/client.
-RUN cd /app/deploy && \
-    DATABASE_URL=postgresql://placeholder node_modules/.bin/prisma generate \
-        --schema ./prisma/schema.prisma
+# Copy the already-generated Prisma client into the deployment directory.
+# pnpm deploy --prod creates a fresh node_modules but does NOT re-run
+# prisma generate.  The `prisma` CLI is a transitive dep (dep of @pluma/db,
+# not a direct dep of @pluma/api) so it is NOT hoisted to
+# node_modules/.bin in the deploy dir — running prisma generate there
+# would fail with "not found".  Instead, copy the client artefacts that
+# were generated earlier in this stage (by `pnpm --filter @pluma/db db:generate`).
+RUN cp -r /app/node_modules/.prisma /app/deploy/node_modules/.prisma
 
 # ─── Stage: runner ───────────────────────────────────────────────────────────
 # Minimal Alpine image containing only what is needed to serve traffic.
