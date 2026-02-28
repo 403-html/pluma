@@ -150,7 +150,7 @@ export function EditFlagModal({
   return (
     <Modal titleId="edit-flag-modal-title" title={t.flags.modalEditTitle} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-2 gap-x-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 items-start">
           {/* ── Left column: flag metadata ──────────────────────────── */}
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
@@ -204,7 +204,7 @@ export function EditFlagModal({
           </div>
 
           {/* ── Right column: targeting ──────────────────────────────── */}
-          <div className="flex flex-col border-l border-border/40 pl-6">
+          <div className="flex flex-col border-t border-border/40 pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-6">
             <h3 className="text-sm font-semibold mb-3">{t.flags.targetingTitle}</h3>
 
             <TargetingNotice

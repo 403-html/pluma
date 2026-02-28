@@ -48,11 +48,11 @@ export default function OrganizationPage() {
   }
 
   return (
-    <main className="p-8 h-screen flex flex-col overflow-hidden">
+    <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
       <h1 className="text-2xl font-semibold mb-8">{org.title}</h1>
 
       <section className="flex-1 min-h-0 flex flex-col">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
           <div>
             <h2 className="text-lg font-semibold">{org.apiKeysSection}</h2>
             <p className="text-sm text-muted-foreground mt-1">{org.apiKeysSectionDesc}</p>

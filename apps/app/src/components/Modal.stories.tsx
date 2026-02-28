@@ -46,3 +46,33 @@ function DefaultStory() {
 export const Default: Story = {
   render: () => <DefaultStory />,
 };
+
+function LargeStory() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Large Modal
+      </button>
+      {isOpen && (
+        <Modal
+          titleId="example-large-modal-title"
+          title="Large Modal"
+          onClose={() => setIsOpen(false)}
+          size="lg"
+        >
+          <p>This is a large modal. It supports taller content and is capped at 90% of the viewport height.</p>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+export const Large: Story = {
+  render: () => <LargeStory />,
+};

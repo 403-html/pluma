@@ -40,7 +40,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="p-8">
+    <main className="p-4 md:p-8">
       <PageHeader title={t.settings.title} />
 
       <section className="mb-8 flex flex-col gap-4 last:mb-0">

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import Sidebar from '@/components/Sidebar';
+import DashboardShell from '@/components/DashboardShell';
 import { resolveLocale } from '@/i18n';
 import { checkSession } from '@/lib/api/auth';
 
@@ -29,9 +29,6 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="grid grid-cols-[var(--sidebar-width)_1fr] min-h-screen">
-      <Sidebar />
-      <div className="min-w-0">{children}</div>
-    </div>
+    <DashboardShell>{children}</DashboardShell>
   );
 }

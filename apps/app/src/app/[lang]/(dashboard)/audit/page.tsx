@@ -170,7 +170,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
 
   if (isLoading && !auditData) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.audit.title} />
         <p>{t.common.loading}</p>
       </main>
@@ -179,7 +179,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
 
   if (error && !auditData) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader title={t.audit.title} />
         <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">{error}</div>
       </main>
@@ -187,7 +187,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
   }
 
   return (
-    <main className="p-8 h-screen flex flex-col overflow-hidden">
+    <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         title={t.audit.title}
         actions={
