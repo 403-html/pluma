@@ -310,7 +310,7 @@ export function EditFlagModal({
         <div className="flex gap-3 justify-end mt-5 pt-4 border-t border-border/40">
           <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             onClick={onClose}
             disabled={isSubmitting}
           >
