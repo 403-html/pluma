@@ -20,9 +20,9 @@
 # Shared foundation: Alpine Node.js with Corepack and the pinned pnpm version.
 FROM node:22-alpine AS base
 
-# Enable Corepack and activate the exact pnpm version declared in package.json.
-# This must match `packageManager` in the root package.json.
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+# Enable Corepack so that pnpm is resolved from the `packageManager` field
+# in the root package.json — single source of truth, no hardcoded version.
+RUN corepack enable
 
 WORKDIR /app
 
@@ -45,11 +45,18 @@ COPY --link packages/sdk/package.json     ./packages/sdk/
 COPY --link packages/types/package.json   ./packages/types/
 COPY --link tooling/eslint/package.json   ./tooling/eslint/
 
+# packages/db postinstall runs `node scripts/generate.mjs` which calls
+# `prisma generate` — both the script and the schema must be present.
+COPY --link packages/db/scripts/          ./packages/db/scripts/
+COPY --link packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
+
 # Prisma's postinstall hook (packages/db/scripts/generate.mjs) calls
 # `prisma generate`.  Supply a placeholder URL so it succeeds without a
 # real database available at build time.
 ENV DATABASE_URL=postgresql://placeholder
 
+# Install ALL dependencies (including devDeps) — the builder stage needs
+# tsc, tsx, and esbuild to compile the workspace packages.
 RUN pnpm install --frozen-lockfile
 
 # ─── Stage: builder ──────────────────────────────────────────────────────────
@@ -69,8 +76,9 @@ ENV DATABASE_URL=postgresql://placeholder
 # ── Build workspace packages in dependency order ──────────────────────────
 RUN pnpm --filter @pluma/types build
 
-# Regenerate the Prisma client (also ran via postinstall, but an explicit
-# call here ensures we have the freshest client for the subsequent build).
+# Regenerate the Prisma client (also ran via postinstall, but the explicit
+# call here ensures we use the client version aligned with the full source
+# overlay applied in this builder stage).
 RUN pnpm --filter @pluma/db db:generate
 
 RUN pnpm --filter @pluma/db build
@@ -84,45 +92,20 @@ RUN pnpm --filter @pluma/api build
 RUN pnpm --filter @pluma/api deploy --prod /app/deploy
 
 # ── Augment the deployment directory ─────────────────────────────────────
-# 1. Copy Prisma schema + migrations into the deployment directory so that:
-#    - prisma generate (next step) can locate the schema
-#    - prisma migrate deploy (entrypoint) can locate the migration files
+# Copy Prisma schema + migrations so that:
+#   - prisma generate (next step) can locate the schema
+#   - prisma migrate deploy (entrypoint) can locate the migration files
 RUN cp -r packages/db/prisma /app/deploy/prisma
 
-# 2. Regenerate the Prisma client inside the deployment directory.
-#    pnpm deploy --prod creates a fresh node_modules without the generated
-#    artefacts.  Running generate with the schema at
-#    /app/deploy/prisma/schema.prisma causes Prisma to write the client to
-#    ../node_modules/.prisma/client → /app/deploy/node_modules/.prisma/client
-#    (the default output is relative to the prisma/ directory).
-RUN set -e; \
-    PRISMA_BIN=$(find node_modules/.pnpm \
-        -maxdepth 5 \
-        -path "*/prisma@*/node_modules/prisma/build/index.js" \
-        | head -1); \
-    [ -n "$PRISMA_BIN" ] || \
-        { echo "ERROR: prisma CLI not found in pnpm virtual store"; exit 1; }; \
-    cd /app/deploy && \
-    DATABASE_URL=postgresql://placeholder node "$PRISMA_BIN" generate \
+# Regenerate the Prisma client inside the deployment directory.
+# pnpm deploy --prod creates a fresh node_modules; the .prisma/client
+# artefacts must be regenerated here.  prisma is a production dep of
+# @pluma/db so node_modules/.bin/prisma is available in the deploy dir.
+# The default output (relative to the schema) resolves to
+# /app/deploy/node_modules/.prisma/client.
+RUN cd /app/deploy && \
+    DATABASE_URL=postgresql://placeholder node_modules/.bin/prisma generate \
         --schema ./prisma/schema.prisma
-
-# 3. Copy the prisma CLI package from the pnpm virtual store into the
-#    deployment directory so the entrypoint can run `prisma migrate deploy`.
-#    (prisma is a devDep and therefore excluded from --prod.)
-RUN set -e; \
-    PRISMA_PKG=$(find node_modules/.pnpm \
-        -maxdepth 3 \
-        -path "*/prisma@*/node_modules/prisma" \
-        -type d \
-        | head -1); \
-    [ -n "$PRISMA_PKG" ] || \
-        { echo "ERROR: prisma package not found in pnpm virtual store"; exit 1; }; \
-    cp -r "$PRISMA_PKG" /app/deploy/node_modules/prisma; \
-    # Create a portable bin wrapper using an absolute path.  The WORKDIR in
-    # the runner stage is always /app, so this path is stable and unambiguous.
-    printf '#!/bin/sh\nexec node /app/node_modules/prisma/build/index.js "$@"\n' \
-        > /app/deploy/node_modules/.bin/prisma; \
-    chmod +x /app/deploy/node_modules/.bin/prisma
 
 # ─── Stage: runner ───────────────────────────────────────────────────────────
 # Minimal Alpine image containing only what is needed to serve traffic.
@@ -155,5 +138,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
         "require('http').get('http://localhost:2137/health', \
         (r) => process.exit(r.statusCode === 200 ? 0 : 1)) \
         .on('error', () => process.exit(1))"
+# The /health endpoint is defined in apps/api/src/app.ts and returns HTTP 200.
 
 CMD ["./docker-entrypoint.sh"]

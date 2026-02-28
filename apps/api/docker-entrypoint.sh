@@ -1,4 +1,6 @@
 #!/bin/sh
+# Alpine Linux uses busybox ash as /bin/sh, which is POSIX-compliant and
+# fully supports `set -e` and `exec` used below.
 set -e
 
 # Run pending migrations before the server starts.
