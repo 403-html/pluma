@@ -79,10 +79,11 @@ COPY . .
 ARG PLACEHOLDER_API_URL=http://placeholder.invalid
 ENV NEXT_PUBLIC_API_URL=${PLACEHOLDER_API_URL}
 
-# next.config.ts uses transpilePackages: ['@pluma/types'], so Next.js
-# reads @pluma/types TypeScript source directly via webpack — no
-# separate build step is needed for this package before `next build`.
-RUN pnpm --filter @pluma/app build
+# Build @pluma/types first — its package.json exports point to dist/index.js,
+# which does not exist in the Docker context (dist/ is excluded by .dockerignore).
+# Turbopack resolves exports.default at build time, so the compiled output
+# must exist before next build runs.
+RUN pnpm --filter @pluma/types build && pnpm --filter @pluma/app build
 
 
 # ─────────────────────────────────────────
@@ -129,7 +130,6 @@ COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next           ./apps
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/next.config.ts  ./apps/app/next.config.ts
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/package.json    ./apps/app/package.json
 # pnpm needs the workspace root manifest to resolve the start script.
-# Also copy packages/types source since next.config.ts uses transpilePackages.
 COPY --from=builder --chown=nextuser:nodejs /app/package.json             ./package.json
 COPY --from=builder --chown=nextuser:nodejs /app/pnpm-workspace.yaml      ./pnpm-workspace.yaml
 
