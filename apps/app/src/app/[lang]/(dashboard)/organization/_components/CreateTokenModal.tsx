@@ -5,12 +5,10 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Modal from '@/components/Modal';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { createOrgToken, type CreatedToken } from '@/lib/api/tokens';
 import { listProjects, type ProjectSummary } from '@/lib/api/projects';
 import { listEnvironments, type EnvironmentSummary } from '@/lib/api/environments';
-
-const SELECT_CLASS =
-  'text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring w-full';
 
 interface CreateTokenModalProps {
   labels: {
@@ -33,6 +31,13 @@ interface CreateTokenModalProps {
   onClose: () => void;
   onCreated: (token: CreatedToken, projectName: string) => void;
 }
+
+// Radix Select forbids value="" (reserved for showing the placeholder).
+// Use a sentinel value internally and map back to the empty-string convention
+// that the rest of the modal state uses.
+const ENV_NONE = '__none__';
+const toRadixEnv = (v: string) => (v === '' ? ENV_NONE : v);
+const fromRadixEnv = (v: string) => (v === ENV_NONE ? '' : v);
 
 export default function CreateTokenModal({ labels, onClose, onCreated }: CreateTokenModalProps) {
   const [newKeyName, setNewKeyName] = useState('');
@@ -132,23 +137,18 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
           ) : projects.length === 0 ? (
             <p className="text-sm text-muted-foreground">{labels.noProjects}</p>
           ) : (
-            <select
-              id="api-key-project"
-              className={SELECT_CLASS}
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              required
-              disabled={isCreating}
-            >
-              <option value="" disabled>
-                {labels.projectPlaceholder}
-              </option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedProjectId} onValueChange={setSelectedProjectId} disabled={isCreating}>
+              <SelectTrigger id="api-key-project" className="w-full" aria-required="true">
+                <SelectValue placeholder={labels.projectPlaceholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
 
@@ -159,20 +159,23 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
           {isLoadingEnvs ? (
             <p className="text-sm text-muted-foreground">{labels.loadingEnvironments}</p>
           ) : (
-            <select
-              id="api-key-env"
-              className={SELECT_CLASS}
-              value={selectedEnvId}
-              onChange={(e) => setSelectedEnvId(e.target.value)}
+            <Select
+              value={toRadixEnv(selectedEnvId)}
+              onValueChange={(v) => setSelectedEnvId(fromRadixEnv(v))}
               disabled={isCreating || !selectedProjectId}
             >
-              <option value="">{labels.envPlaceholder}</option>
-              {environments.map((env) => (
-                <option key={env.id} value={env.id}>
-                  {env.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="api-key-env" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ENV_NONE}>{labels.envPlaceholder}</SelectItem>
+                {environments.map((env) => (
+                  <SelectItem key={env.id} value={env.id}>
+                    {env.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
 

@@ -11,6 +11,7 @@ import EmptyState from '@/components/EmptyState';
 import { ScrollText } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { AuditActionBadge } from './AuditActionBadge';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -50,8 +51,6 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
   );
 }
 
-const SELECT_CLASS = "text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring";
-
 interface FilterSelectProps {
   id: string;
   label: string;
@@ -62,15 +61,26 @@ interface FilterSelectProps {
   options: { id: string; name: string }[];
 }
 
+// Radix Select forbids value="" (reserved to show the placeholder).
+// Use this sentinel internally and convert to/from the empty-string convention
+// that the rest of the filter state uses.
+const FILTER_ALL = '__all__';
+
 function FilterSelect({ id, label, value, onChange, disabled, allLabel, options }: FilterSelectProps) {
+  const radixValue = value === '' ? FILTER_ALL : value;
+  const handleChange = (v: string) => onChange(v === FILTER_ALL ? '' : v);
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="text-xs font-medium text-muted-foreground">{label}</label>
-      <select id={id} className={SELECT_CLASS} value={value}
-        onChange={(e) => onChange(e.target.value)} disabled={disabled}>
-        <option value="">{allLabel}</option>
-        {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-      </select>
+      <Select value={radixValue} onValueChange={handleChange} disabled={disabled}>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue placeholder={allLabel} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem>
+          {options.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

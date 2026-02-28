@@ -2,6 +2,7 @@
 
 import { useTheme, type Theme } from './ThemeContext';
 import { useLocale } from '@/i18n/LocaleContext';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -18,16 +19,16 @@ export default function ThemeToggle() {
       <label htmlFor="theme-select" className="text-xs font-medium whitespace-nowrap">
         {t.ui.themeSwitcherLabel}
       </label>
-      <select
-        id="theme-select"
-        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer"
-        value={theme}
-        onChange={(e) => handleChange(e.target.value)}
-      >
-        <option value="light">{t.ui.themeSwitcherLight}</option>
-        <option value="dark">{t.ui.themeSwitcherDark}</option>
-        <option value="system">{t.ui.themeSwitcherSystem}</option>
-      </select>
+      <Select value={theme} onValueChange={handleChange}>
+        <SelectTrigger id="theme-select" className="h-7 text-xs px-2">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="light">{t.ui.themeSwitcherLight}</SelectItem>
+          <SelectItem value="dark">{t.ui.themeSwitcherDark}</SelectItem>
+          <SelectItem value="system">{t.ui.themeSwitcherSystem}</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

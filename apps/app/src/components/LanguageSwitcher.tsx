@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
 import { SUPPORTED_LOCALES, isValidLocale } from '@/i18n';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 export default function LanguageSwitcher() {
   const { locale, t } = useLocale();
@@ -25,21 +26,23 @@ export default function LanguageSwitcher() {
       <label htmlFor="lang-select" className="text-xs font-medium whitespace-nowrap">
         {t.ui.languageSelectorLabel}
       </label>
-      <select
-        id="lang-select"
-        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        value={locale}
-        onChange={(e) => handleChange(e.target.value)}
-        disabled={!canSwitch}
-        title={canSwitch ? t.ui.languageSelectorTitle : t.ui.languageSelectorDisabledTitle}
-        aria-label={canSwitch ? t.ui.languageSelectorAriaLabel : t.ui.languageSelectorDisabledAriaLabel}
-      >
-        {SUPPORTED_LOCALES.map((l) => (
-          <option key={l} value={l}>
-            {l.toUpperCase()}
-          </option>
-        ))}
-      </select>
+      <Select value={locale} onValueChange={handleChange} disabled={!canSwitch}>
+        <SelectTrigger
+          id="lang-select"
+          className="h-7 text-xs px-2"
+          title={canSwitch ? t.ui.languageSelectorTitle : t.ui.languageSelectorDisabledTitle}
+          aria-label={canSwitch ? t.ui.languageSelectorAriaLabel : t.ui.languageSelectorDisabledAriaLabel}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SUPPORTED_LOCALES.map((l) => (
+            <SelectItem key={l} value={l}>
+              {l.toUpperCase()}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

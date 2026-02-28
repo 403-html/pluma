@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PageHeader } from './PageHeader';
 import { Button } from './ui/button';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
 const meta = {
   title: 'Components/PageHeader',
@@ -60,17 +61,28 @@ export const WithFiltersAsActions: Story = {
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="project-filter" className="text-xs font-medium text-muted-foreground">Project</label>
-          <select id="project-filter" className="text-sm border border-border rounded-md px-3 py-1.5 bg-background">
-            <option>All Projects</option>
-            <option>My Project</option>
-          </select>
+          {/* Radix Select forbids value="" — use a sentinel for the "all" option */}
+          <Select defaultValue="__all__">
+            <SelectTrigger id="project-filter">
+              <SelectValue placeholder="All Projects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Projects</SelectItem>
+              <SelectItem value="my-project">My Project</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="env-filter" className="text-xs font-medium text-muted-foreground">Environment</label>
-          <select id="env-filter" className="text-sm border border-border rounded-md px-3 py-1.5 bg-background">
-            <option>All Environments</option>
-            <option>Development</option>
-          </select>
+          <Select defaultValue="__all__">
+            <SelectTrigger id="env-filter">
+              <SelectValue placeholder="All Environments" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Environments</SelectItem>
+              <SelectItem value="development">Development</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     ),
