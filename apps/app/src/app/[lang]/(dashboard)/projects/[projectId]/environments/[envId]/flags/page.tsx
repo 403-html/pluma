@@ -117,7 +117,7 @@ const FlagRow = React.memo(function FlagRow({
       <TableCell className="px-3 py-3">
         <CopyPill value={flag.key} />
       </TableCell>
-      <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
+      <TableCell className="px-3 py-3 max-w-[240px]">{flag.description ? <TruncatedText text={flag.description} showMoreLabel={t.common.showMore} showLessLabel={t.common.showLess} /> : '—'}</TableCell>
       <TableCell className="px-3 py-3">
         <SwitchField
           size="sm"
