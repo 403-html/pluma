@@ -30,6 +30,7 @@ export interface FlagsState {
   handleAddFlag: () => void;
   handleEditFlag: (flag: FlagEntry) => void;
   openAddSubModal: (parentFlag: { flagId: string; name: string; key: string }) => void;
+  cancelDelete: () => void;
   closeModal: () => void;
   handleModalSuccess: () => void;
   setDeletingId: (id: string | null) => void;
@@ -128,6 +129,10 @@ export function useFlags(envId: string, projectId: string): FlagsState {
     [],
   );
 
+  const cancelDelete = useCallback(() => {
+    setDeletingId(null);
+  }, []);
+
   const closeModal = useCallback(() => {
     setModalState({ type: 'none' });
   }, []);
@@ -152,6 +157,7 @@ export function useFlags(envId: string, projectId: string): FlagsState {
     handleAddFlag,
     handleEditFlag,
     openAddSubModal,
+    cancelDelete,
     closeModal,
     handleModalSuccess,
     setDeletingId,

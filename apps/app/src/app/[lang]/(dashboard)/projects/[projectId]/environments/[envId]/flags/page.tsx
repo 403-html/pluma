@@ -37,6 +37,7 @@ export default function FlagsPage() {
     handleAddFlag,
     handleEditFlag,
     openAddSubModal,
+    cancelDelete,
     closeModal,
     handleModalSuccess,
     setDeletingId,
@@ -120,7 +121,7 @@ export default function FlagsPage() {
                   isToggling={togglingIds.has(flag.flagId)}
                   onToggle={handleToggleFlag}
                   onDeleteStart={setDeletingId}
-                  onDeleteCancel={() => setDeletingId(null)}
+                  onDeleteCancel={cancelDelete}
                   onDelete={handleDeleteFlag}
                   onEdit={handleEditFlag}
                   onAddSub={openAddSubModal}
