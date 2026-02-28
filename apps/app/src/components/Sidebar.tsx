@@ -110,6 +110,9 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
         <SidebarButton icon={<Settings size={20} />} label={t.sidebar.settings} onClick={() => navigate(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
         <SidebarButton icon={<LogOut size={20} />} label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
+      <div className="px-4 py-3 border-t border-white/10">
+        <p className="text-xs text-white/70 text-center">{t.poweredBy.text}</p>
+      </div>
     </aside>
   );
 }

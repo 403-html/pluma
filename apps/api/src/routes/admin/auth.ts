@@ -116,7 +116,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     reply.setCookie(COOKIE_NAME, token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       expires: expiresAt,
