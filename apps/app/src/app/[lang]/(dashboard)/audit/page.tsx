@@ -50,7 +50,7 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
   );
 }
 
-const SELECT_CLASS = "text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring";
+const SELECT_CLASS = "text-sm border border-border rounded-md px-3 py-1.5 pr-8 bg-background text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring";
 
 interface FilterSelectProps {
   id: string;

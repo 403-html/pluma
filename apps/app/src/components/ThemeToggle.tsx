@@ -20,7 +20,7 @@ export default function ThemeToggle() {
       </label>
       <select
         id="theme-select"
-        className="text-xs border border-border rounded px-2 py-1 bg-background text-foreground cursor-pointer"
+        className="text-xs border border-border rounded px-2 py-1 pr-8 bg-background text-foreground cursor-pointer"
         value={theme}
         onChange={(e) => handleChange(e.target.value)}
       >
