@@ -108,16 +108,21 @@ export function useFlags(envId: string, projectId: string): FlagsState {
 
   const handleDeleteFlag = useCallback(
     async (id: string) => {
-      const toastPromise = deleteFlag(id).then((result) => {
-        if (!result.ok) throw new Error(result.message ?? t.flags.deleteError);
-      });
-      await toast.promise(toastPromise, {
-        pending: t.flags.toastDeletePending,
-        success: t.flags.toastDeleteSuccess,
-        error: { render: toastErrorRender },
-      });
-      setDeletingId(null);
-      await loadFlags();
+      try {
+        const toastPromise = deleteFlag(id).then((result) => {
+          if (!result.ok) throw new Error(result.message ?? t.flags.deleteError);
+        });
+        await toast.promise(toastPromise, {
+          pending: t.flags.toastDeletePending,
+          success: t.flags.toastDeleteSuccess,
+          error: { render: toastErrorRender },
+        });
+        await loadFlags();
+      } catch {
+        // toast.promise already displayed the error toast
+      } finally {
+        setDeletingId(null);
+      }
     },
     [loadFlags, t.flags],
   );

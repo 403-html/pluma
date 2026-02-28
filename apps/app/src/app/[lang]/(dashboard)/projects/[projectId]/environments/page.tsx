@@ -66,16 +66,21 @@ export default function EnvironmentsPage() {
   }, [loadEnvironments]);
 
   async function handleDelete(id: string) {
-    const toastPromise = deleteEnvironment(id).then((result) => {
-      if (!result.ok) throw new Error(result.message ?? t.environments.deleteError);
-    });
-    await toast.promise(toastPromise, {
-      pending: t.environments.toastDeletePending,
-      success: t.environments.toastDeleteSuccess,
-      error: { render: toastErrorRender },
-    });
-    setDeletingId(null);
-    await loadEnvironments();
+    try {
+      const toastPromise = deleteEnvironment(id).then((result) => {
+        if (!result.ok) throw new Error(result.message ?? t.environments.deleteError);
+      });
+      await toast.promise(toastPromise, {
+        pending: t.environments.toastDeletePending,
+        success: t.environments.toastDeleteSuccess,
+        error: { render: toastErrorRender },
+      });
+      await loadEnvironments();
+    } catch {
+      // toast.promise already displayed the error toast
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   if (isLoading) {

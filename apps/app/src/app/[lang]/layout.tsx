@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import 'react-toastify/dist/ReactToastify.css';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import { ThemeProvider, type Theme } from '@/components/ThemeContext';

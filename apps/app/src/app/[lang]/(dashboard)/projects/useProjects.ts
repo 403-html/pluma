@@ -55,16 +55,21 @@ export function useProjects(): ProjectsState {
 
   const handleDeleteProject = useCallback(
     async (id: string) => {
-      const toastPromise = deleteProject(id).then((result) => {
-        if (!result.ok) throw new Error(result.message ?? t.projects.deleteError);
-      });
-      await toast.promise(toastPromise, {
-        pending: t.projects.toastDeletePending,
-        success: t.projects.toastDeleteSuccess,
-        error: { render: toastErrorRender },
-      });
-      setDeletingId(null);
-      await loadProjects();
+      try {
+        const toastPromise = deleteProject(id).then((result) => {
+          if (!result.ok) throw new Error(result.message ?? t.projects.deleteError);
+        });
+        await toast.promise(toastPromise, {
+          pending: t.projects.toastDeletePending,
+          success: t.projects.toastDeleteSuccess,
+          error: { render: toastErrorRender },
+        });
+        await loadProjects();
+      } catch {
+        // toast.promise already displayed the error toast
+      } finally {
+        setDeletingId(null);
+      }
     },
     [loadProjects, t.projects],
   );
