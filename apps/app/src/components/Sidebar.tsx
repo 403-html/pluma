@@ -55,8 +55,8 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
 
   /** Navigate to a route and close the sidebar on mobile. */
   function navigate(path: string) {
-    onClose?.();
     router.push(path);
+    onClose?.();
   }
 
   async function handleLogout() {

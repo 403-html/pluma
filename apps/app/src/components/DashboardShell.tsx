@@ -29,7 +29,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       >
         <button
           type="button"
-          aria-label="Open navigation"
+          aria-label={isSidebarOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={isSidebarOpen}
           aria-controls="app-sidebar"
           className="p-2 rounded-md text-foreground hover:bg-accent transition-colors"
@@ -45,6 +45,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           className="fixed inset-0 bg-black/50 z-[49] md:hidden"
           aria-hidden="true"
           onClick={() => setIsSidebarOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') { setIsSidebarOpen(false); } }}
         />
       )}
 
