@@ -83,3 +83,36 @@ function WithExistingKeysStory() {
 export const WithExistingKeys: Story = {
   render: () => <WithExistingKeysStory />,
 };
+
+function WithParentFlagStory() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => setIsOpen(true)}
+      >
+        Open Sub-flag Modal
+      </button>
+      {isOpen && (
+        <AddFlagModal
+          projectId="demo-project-id"
+          existingKeys={['payment-processing']}
+          parentFlag={{ flagId: 'f1', name: 'Payment Processing', key: 'payment-processing' }}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => {
+            alert('Sub-flag created!');
+            setIsOpen(false);
+          }}
+          onError={(message) => alert(`Error: ${message}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+export const WithParentFlag: Story = {
+  render: () => <WithParentFlagStory />,
+};

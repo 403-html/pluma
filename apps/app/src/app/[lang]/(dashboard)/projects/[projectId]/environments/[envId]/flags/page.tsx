@@ -25,6 +25,7 @@ import { usePagination } from '@/hooks/usePagination';
 type ModalState =
   | { type: 'none' }
   | { type: 'add' }
+  | { type: 'addSub'; parentFlag: { flagId: string; name: string; key: string } }
   | { type: 'edit'; flag: FlagEntry };
 
 const PAGE_SIZE = 20;
@@ -43,7 +44,8 @@ export default function FlagsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
-  const { currentPage, paginatedItems: paginatedFlags, hasPrev, hasNext, goToPrev, goToNext } = usePagination(flags, PAGE_SIZE);
+  const orderedFlags = useMemo(() => buildOrderedFlags(flags), [flags]);
+  const { currentPage, paginatedItems: paginatedOrdered, hasPrev, hasNext, goToPrev, goToNext } = usePagination(orderedFlags, PAGE_SIZE);
 
   const loadFlags = useCallback(async () => {
     setIsLoading(true);
@@ -91,8 +93,48 @@ export default function FlagsPage() {
     }
   }
 
-  if (isLoading) {
-    return (
+  /**
+   * Converts a flat FlagEntry list into a depth-annotated DFS-ordered list so
+   * that each parent appears immediately before its children in the table.
+   * Children are pushed onto the stack in reverse so the first child is popped
+   * first, preserving the original order within each sibling group.
+   * A visited Set prevents re-processing nodes, bounding the loop to at most
+   * MAX_FLAGS iterations regardless of input structure or cycles.
+   */
+  function buildOrderedFlags(flagList: FlagEntry[]): Array<{ flag: FlagEntry; depth: number; indentPx: number }> {
+    const MAX_FLAGS = 10_000;
+    const INDENT_PX_PER_LEVEL = 16;
+    if (flagList.length > MAX_FLAGS) {
+      throw new Error(`buildOrderedFlags: flag list exceeds maximum size of ${MAX_FLAGS}`);
+    }
+    const byParent = new Map<string | null, FlagEntry[]>();
+    const flagMap = new Map<string, FlagEntry>();
+    for (const f of flagList) {
+      flagMap.set(f.flagId, f);
+      const key = f.parentFlagId ?? null;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(f);
+    }
+    const result: Array<{ flag: FlagEntry; depth: number; indentPx: number }> = [];
+    const roots = (byParent.get(null) ?? []).slice().reverse();
+    const stack: Array<{ flagId: string; depth: number }> = roots.map(f => ({ flagId: f.flagId, depth: 0 }));
+    const visited = new Set<string>();
+    while (stack.length > 0) {
+      const item = stack.pop()!;
+      if (visited.has(item.flagId)) continue;
+      visited.add(item.flagId);
+      const flag = flagMap.get(item.flagId);
+      if (!flag) continue;
+      result.push({ flag, depth: item.depth, indentPx: item.depth * INDENT_PX_PER_LEVEL });
+      const children = (byParent.get(item.flagId) ?? []).slice().reverse();
+      for (const child of children) {
+        stack.push({ flagId: child.flagId, depth: item.depth + 1 });
+      }
+    }
+    return result;
+  }
+
+  if (isLoading) {    return (
       <main className="p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[
@@ -156,15 +198,26 @@ export default function FlagsPage() {
               </TableHeadRow>
             </TableHeader>
             <TableBody>
-              {paginatedFlags.map((flag) => (
-                <TableRow key={flag.flagId}>
-                  <TableCell className="px-3 py-3">{flag.name}</TableCell>
+              {paginatedOrdered.map(({ flag, depth, indentPx }) => (
+                <TableRow key={flag.flagId} className={depth > 0 ? 'bg-muted/20' : undefined}>
+                  <TableCell className="px-3 py-3">
+                    <span
+                      className="flex items-center gap-1.5"
+                      style={depth > 0 ? { paddingLeft: `${indentPx}px` } : undefined}
+                    >
+                      {depth > 0 && (
+                        <span className="text-muted-foreground/60 text-xs leading-none">{t.flags.subFlagIndicator}</span>
+                      )}
+                      <span className={depth > 0 ? 'text-sm text-muted-foreground' : undefined}>{flag.name}</span>
+                    </span>
+                  </TableCell>
                   <TableCell className="px-3 py-3">
                     <CopyPill value={flag.key} />
                   </TableCell>
                   <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
                   <TableCell className="px-3 py-3">
                     <SwitchField
+                      size="sm"
                       checked={flag.enabled}
                       onCheckedChange={() => handleToggle(flag.flagId, flag.enabled)}
                       label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
@@ -197,6 +250,15 @@ export default function FlagsPage() {
                       </div>
                     ) : (
                       <div className="flex gap-2">
+                        {depth === 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => { setError(null); setModalState({ type: 'addSub', parentFlag: { flagId: flag.flagId, name: flag.name, key: flag.key } }); }}
+                          >
+                            {t.flags.addSubFlagBtn}
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -238,6 +300,20 @@ export default function FlagsPage() {
         <AddFlagModal
           projectId={projectId}
           existingKeys={existingKeys}
+          onClose={() => setModalState({ type: 'none' })}
+          onSuccess={() => {
+            setModalState({ type: 'none' });
+            loadFlags();
+          }}
+          onError={setError}
+        />
+      )}
+
+      {modalState.type === 'addSub' && (
+        <AddFlagModal
+          projectId={projectId}
+          existingKeys={existingKeys}
+          parentFlag={modalState.parentFlag}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
             setModalState({ type: 'none' });

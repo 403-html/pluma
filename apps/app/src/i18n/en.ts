@@ -263,6 +263,11 @@ export const en = {
     rolloutHint: 'Percentage of users who receive this flag (deterministic by user ID).',
     rolloutInputError: 'Must be an integer between 0 and 100',
     rolloutNotSet: '—',
+    parentFlagLabel: 'Parent Flag',
+    parentFlagTopLevel: 'None (top-level flag)',
+    subFlagIndicator: '↳',
+    addSubFlagBtn: 'Add Sub-flag',
+    modalAddSubTitle: 'New Sub-flag',
   },
 } as const;
 

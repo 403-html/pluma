@@ -13,12 +13,15 @@ import { slugify, makeKeyUnique, isValidProjectKey } from '@/lib/projectKeyUtils
 export function AddFlagModal({
   projectId,
   existingKeys,
+  parentFlag,
   onClose,
   onSuccess,
   onError,
 }: {
   projectId: string;
   existingKeys: string[];
+  /** When provided the modal creates a sub-flag under this parent. */
+  parentFlag?: { flagId: string; name: string; key: string };
   onClose: () => void;
   onSuccess: () => void;
   onError: (message: string) => void;
@@ -100,7 +103,7 @@ export function AddFlagModal({
     }
 
     setIsSubmitting(true);
-    const result = await createFlag(projectId, key, name, description || undefined);
+    const result = await createFlag(projectId, key, name, description || undefined, parentFlag?.flagId);
     if (result.ok) {
       onSuccess();
     } else {
@@ -109,9 +112,22 @@ export function AddFlagModal({
     }
   }
 
+  const title = parentFlag ? t.flags.modalAddSubTitle : t.flags.modalAddTitle;
+
   return (
-    <Modal titleId="add-flag-modal-title" title={t.flags.modalAddTitle} onClose={onClose}>
+    <Modal titleId="add-flag-modal-title" title={title} onClose={onClose}>
       <form onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label htmlFor="parent-flag-display" className="text-sm font-medium text-muted-foreground">
+            {t.flags.parentFlagLabel}
+          </label>
+          <Input
+            id="parent-flag-display"
+            value={parentFlag ? `${parentFlag.name} (${parentFlag.key})` : t.flags.parentFlagTopLevel}
+            disabled
+          />
+        </div>
+
         <div className="flex flex-col gap-1.5">
           <label htmlFor="flag-name" className="text-sm font-medium">
             {t.flags.nameLabel}
