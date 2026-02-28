@@ -1,7 +1,8 @@
 import type { AuthUser } from '@pluma/types';
-import { MAX_EMAIL_LENGTH, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '@pluma/types';
+import { MIN_PASSWORD_LENGTH } from '@pluma/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
+import { validateEmail, validatePassword } from '@/lib/validation';
 import { parseErrorMessage } from './utils';
 
 /**
@@ -17,10 +18,10 @@ export type AuthResult =
 
 export async function login(email: string, password: string, locale: Locale): Promise<AuthResult> {
   const t = getDictionary(locale);
-  if (typeof email !== 'string' || email.length === 0 || email.length > MAX_EMAIL_LENGTH) {
+  if (validateEmail(email)) {
     return { ok: false, message: t.login.errorFallback, status: 400 };
   }
-  if (typeof password !== 'string' || password.length === 0 || password.length > MAX_PASSWORD_LENGTH) {
+  if (validatePassword(password)) {
     return { ok: false, message: t.login.errorFallback, status: 400 };
   }
   try {
@@ -45,10 +46,10 @@ export async function login(email: string, password: string, locale: Locale): Pr
 
 export async function register(email: string, password: string, locale: Locale): Promise<AuthResult> {
   const t = getDictionary(locale);
-  if (typeof email !== 'string' || email.length === 0 || email.length > MAX_EMAIL_LENGTH) {
+  if (validateEmail(email)) {
     return { ok: false, message: t.register.errorFallback, status: 400 };
   }
-  if (typeof password !== 'string' || password.length === 0 || password.length > MAX_PASSWORD_LENGTH) {
+  if (validatePassword(password)) {
     return { ok: false, message: t.register.errorFallback, status: 400 };
   }
   try {
@@ -95,14 +96,10 @@ export async function changePassword(
   locale: Locale
 ): Promise<{ ok: boolean; message?: string }> {
   const t = getDictionary(locale);
-  if (
-    typeof oldPassword !== 'string' ||
-    oldPassword.length === 0 ||
-    oldPassword.length > MAX_PASSWORD_LENGTH
-  ) {
+  if (validatePassword(oldPassword)) {
     return { ok: false, message: t.settings.oldPasswordInvalid };
   }
-  if (typeof newPassword !== 'string' || newPassword.length === 0 || newPassword.length > MAX_PASSWORD_LENGTH) {
+  if (validatePassword(newPassword)) {
     return { ok: false, message: t.settings.newPasswordInvalid };
   }
   if (newPassword.length < MIN_PASSWORD_LENGTH) {

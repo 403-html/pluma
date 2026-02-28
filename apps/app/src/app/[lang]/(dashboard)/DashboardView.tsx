@@ -11,23 +11,15 @@ import {
 } from 'recharts';
 import type { DashboardData } from '@/lib/api/dashboard';
 import type { en } from '@/i18n/en';
+import {
+  ISO_DATE_LENGTH,
+  ISO_DATE_LABEL_OFFSET,
+  CHART_HEIGHT,
+  CHART_FONT_SIZE,
+  BAR_CORNER_RADIUS,
+} from '@/lib/constants';
 
 export type DashboardLabels = typeof en['dashboard'];
-
-/** Character length of an ISO UTC date string (YYYY-MM-DD). */
-const ISO_DATE_LENGTH = 10;
-
-/** Offset into an ISO date string (YYYY-MM-DD) past the "YYYY-" prefix (5 chars), leaving MM-DD for axis labels. */
-const ISO_DATE_LABEL_OFFSET = 5;
-
-/** Pixel height of the chart container. */
-const CHART_HEIGHT = 200;
-
-/** Font size (px) for axis tick labels. */
-const CHART_FONT_SIZE = 12;
-
-/** Top-corner border radius of each bar (bottom stays square). */
-const BAR_CORNER_RADIUS = 4;
 
 interface StatCardProps {
   label: string;

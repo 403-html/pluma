@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { THEME_COOKIE_NAME, THEME_COOKIE_MAX_AGE } from '@/lib/constants';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -10,9 +11,6 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-
-const THEME_COOKIE = 'pluma-theme';
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 export function ThemeProvider({
   children,
@@ -52,7 +50,7 @@ export function ThemeProvider({
 
   function setTheme(next: Theme) {
     setThemeState(next);
-    document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    document.cookie = `${THEME_COOKIE_NAME}=${next}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; SameSite=Lax`;
   }
 
   return (
