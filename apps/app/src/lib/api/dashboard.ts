@@ -27,7 +27,7 @@ export const EMPTY_DASHBOARD: DashboardData = {
 export async function getDashboard(
   cookieHeader: string,
 ): Promise<{ ok: true; data: DashboardData } | { ok: false; message: string }> {
-  const apiUrl = process.env.API_URL;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) return { ok: false, message: 'API URL not configured' };
 
   try {

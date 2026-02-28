@@ -7,15 +7,16 @@
 #   docker build -f apps/app/Dockerfile -t pluma-app .
 #
 # The image is environment-agnostic: no API URL is baked in at build time.
-# Provide API_URL at container runtime:
+# Provide NEXT_PUBLIC_API_URL at container runtime:
 #
-#   docker run -e API_URL=https://api.example.com -p 3000:3000 pluma-app
+#   docker run -e NEXT_PUBLIC_API_URL=https://api.example.com -p 3000:3000 pluma-app
 #
 # Required env vars at runtime:
-#   API_URL — base URL of the Pluma API, used by the Next.js server for
-#             rewrites (next.config.ts) and middleware (proxy.ts).
-#             Never exposed to the browser.
-#   PORT    — (optional) HTTP port, defaults to 3000
+#   NEXT_PUBLIC_API_URL — base URL of the Pluma API, used by the Next.js
+#                         server for rewrites (next.config.ts) and middleware
+#                         (proxy.ts). All usages are server-side only —
+#                         the value is never sent to the browser.
+#   PORT               — (optional) HTTP port, defaults to 3000
 # ============================================================
 
 # pnpm version — single source of truth for all stages.
@@ -71,12 +72,12 @@ COPY --from=deps /app/ ./
 # directories restored above are not overwritten.
 COPY . .
 
-# next.config.ts throws if API_URL is empty or missing.
+# next.config.ts throws if NEXT_PUBLIC_API_URL is empty or missing.
 # We use a placeholder so the build needs no real API URL.
 # This value ONLY exists in this stage; the runner stage sets its own
-# ENV API_URL=http://localhost:2137 default (overridden at container runtime).
+# ENV NEXT_PUBLIC_API_URL=http://localhost:2137 default (overridden at container runtime).
 ARG PLACEHOLDER_API_URL=http://placeholder.invalid
-ENV API_URL=${PLACEHOLDER_API_URL}
+ENV NEXT_PUBLIC_API_URL=${PLACEHOLDER_API_URL}
 
 # next.config.ts uses transpilePackages: ['@pluma/types'], so Next.js
 # reads @pluma/types TypeScript source directly via webpack — no
@@ -98,9 +99,10 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 WORKDIR /app
 
 ENV NODE_ENV=production
-# API_URL is read by next.config.ts rewrites() and middleware at server startup.
-# Override at runtime: docker run -e API_URL=https://api.example.com ...
-ENV API_URL=http://localhost:2137
+# NEXT_PUBLIC_API_URL is read by next.config.ts rewrites() and middleware at server startup.
+# All usages are server-side only — the value is never sent to the browser.
+# Override at runtime: docker run -e NEXT_PUBLIC_API_URL=https://api.example.com ...
+ENV NEXT_PUBLIC_API_URL=http://localhost:2137
 ENV PORT=3000
 
 # Non-root user for security

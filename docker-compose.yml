@@ -6,16 +6,17 @@
 # (@pluma/types) are reachable during the build.
 #
 # The image is environment-agnostic — no API URL is baked in at build time.
-# Set API_URL at runtime to point the app at your Pluma API server.
+# Set NEXT_PUBLIC_API_URL at runtime to point the app at your Pluma API server.
 #
 # Required env var at runtime:
-#   API_URL — base URL of the Pluma API server, used by the Next.js server
-#             for rewrites and middleware. Never exposed to the browser.
-#             Default: http://localhost:2137
+#   NEXT_PUBLIC_API_URL — base URL of the Pluma API server, used by the
+#                         Next.js server for rewrites and middleware.
+#                         All usages are server-side only — never sent to
+#                         the browser. Default: http://localhost:2137
 #
 # Usage:
-#   docker compose up --build                              # initial build
-#   API_URL=https://api.example.com docker compose up     # run with a different API (no rebuild needed)
+#   docker compose up --build                                           # initial build
+#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up      # run with a different API (no rebuild needed)
 # ============================================================
 
 services:
@@ -34,6 +35,6 @@ services:
     ports:
       - '3000:3000'
     environment:
-      API_URL: ${API_URL:-http://localhost:2137}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:2137}
       PORT: 3000
       NODE_ENV: production
