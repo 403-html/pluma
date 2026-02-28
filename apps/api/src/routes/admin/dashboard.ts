@@ -2,17 +2,29 @@ import type { FastifyInstance } from 'fastify';
 import { prisma } from '@pluma/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
+/** Milliseconds in one day. */
+export const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/** Number of days shown in the chart window. */
+export const CHART_DAYS = 7;
+
+/** Character length of an ISO UTC date string (YYYY-MM-DD). */
+export const ISO_DATE_LENGTH = 10;
+
+/** Rollout percentage that represents a fully-rolled-out flag. */
+export const ROLLOUT_FULL_PERCENT = 100;
+
 /** Safety cap on rows fetched for daily-change grouping. */
-const MAX_AUDIT_LOGS = 10_000;
+export const MAX_AUDIT_LOGS = 10_000;
 
 /**
- * Builds an array of 7 consecutive UTC date strings (YYYY-MM-DD) ending today.
+ * Builds an array of CHART_DAYS consecutive UTC date strings (YYYY-MM-DD) ending today.
  */
-function buildLast7Days(): string[] {
+function buildChartDays(): string[] {
   const days: string[] = [];
-  for (let daysAgo = 6; daysAgo >= 0; daysAgo--) {
-    const d = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-    days.push(d.toISOString().slice(0, 10));
+  for (let daysAgo = CHART_DAYS - 1; daysAgo >= 0; daysAgo--) {
+    const d = new Date(Date.now() - daysAgo * MS_PER_DAY);
+    days.push(d.toISOString().slice(0, ISO_DATE_LENGTH));
   }
   return days;
 }
@@ -26,7 +38,7 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
   }
   const counts = new Map<string, number>();
   for (const { createdAt } of logs) {
-    const day = createdAt.toISOString().slice(0, 10);
+    const day = createdAt.toISOString().slice(0, ISO_DATE_LENGTH);
     counts.set(day, (counts.get(day) ?? 0) + 1);
   }
   return counts;
@@ -47,8 +59,8 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
  */
 export async function registerDashboardRoutes(fastify: FastifyInstance) {
   fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (_request, _reply) => {
-    const since7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const since24h   = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const since7Days = new Date(Date.now() - CHART_DAYS * MS_PER_DAY);
+    const since24h   = new Date(Date.now() - MS_PER_DAY);
 
     const [
       projects,
@@ -71,7 +83,7 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
         },
       }),
       prisma.flagConfig.count({
-        where: { rolloutPercentage: { not: null, lt: 100 } },
+        where: { rolloutPercentage: { not: null, lt: ROLLOUT_FULL_PERCENT } },
       }),
       prisma.auditLog.count({
         where: { createdAt: { gte: since24h } },
@@ -86,7 +98,7 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
     // Group by UTC date using extracted helper (caps at MAX_AUDIT_LOGS for safety)
     const countsByDate = groupAuditLogsByDay(recentLogs);
 
-    const dailyChanges = buildLast7Days().map((date) => ({
+    const dailyChanges = buildChartDays().map((date) => ({
       date,
       count: countsByDate.get(date) ?? 0,
     }));

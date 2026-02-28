@@ -14,6 +14,21 @@ import type { en } from "@/i18n/en";
 
 export type DashboardLabels = typeof en["dashboard"];
 
+/** Character length of an ISO UTC date string (YYYY-MM-DD). */
+const ISO_DATE_LENGTH = 10;
+
+/** Offset into an ISO date string (YYYY-MM-DD) past the "YYYY-" prefix (5 chars), leaving MM-DD for axis labels. */
+const ISO_DATE_LABEL_OFFSET = 5;
+
+/** Pixel height of the chart container. */
+const CHART_HEIGHT = 200;
+
+/** Font size (px) for axis tick labels. */
+const CHART_FONT_SIZE = 12;
+
+/** Top-corner border radius of each bar (bottom stays square). */
+const BAR_CORNER_RADIUS = 4;
+
 interface StatCardProps {
   label: string;
   value: number;
@@ -37,21 +52,21 @@ interface DailyChangesChartProps {
 
 function DailyChangesChart({ dailyChanges, countLabel }: DailyChangesChartProps) {
   const data = dailyChanges.map((d) => ({
-    date: d.date.length === 10 ? d.date.slice(5) : d.date,
+    date: d.date.length === ISO_DATE_LENGTH ? d.date.slice(ISO_DATE_LABEL_OFFSET) : d.date,
     count: d.count,
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={200}>
+    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+        <XAxis dataKey="date" tick={{ fontSize: CHART_FONT_SIZE }} />
+        <YAxis allowDecimals={false} tick={{ fontSize: CHART_FONT_SIZE }} />
         <Tooltip
           formatter={(value) => [value, countLabel]}
-          contentStyle={{ fontSize: "12px" }}
+          contentStyle={{ fontSize: `${CHART_FONT_SIZE}px` }}
         />
-        <Bar dataKey="count" name={countLabel} radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
+        <Bar dataKey="count" name={countLabel} radius={[BAR_CORNER_RADIUS, BAR_CORNER_RADIUS, 0, 0]} fill="hsl(var(--primary))" />
       </BarChart>
     </ResponsiveContainer>
   );

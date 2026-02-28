@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } 
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import { AUTH_COOKIE, mockSession } from './fixtures';
+import { MS_PER_DAY, CHART_DAYS, MAX_AUDIT_LOGS } from '../routes/admin/dashboard';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -163,7 +164,7 @@ describe('Dashboard routes', () => {
         headers: { cookie: AUTH_COOKIE },
       });
 
-      const expectedSince = new Date(FIXED_NOW - 24 * 60 * 60 * 1000);
+      const expectedSince = new Date(FIXED_NOW - MS_PER_DAY);
       expect(prismaMock.auditLog.count).toHaveBeenCalledWith({
         where: { createdAt: { gte: expectedSince } },
       });
@@ -182,11 +183,11 @@ describe('Dashboard routes', () => {
         headers: { cookie: AUTH_COOKIE },
       });
 
-      const expectedSince = new Date(FIXED_NOW - 7 * 24 * 60 * 60 * 1000);
+      const expectedSince = new Date(FIXED_NOW - CHART_DAYS * MS_PER_DAY);
       expect(prismaMock.auditLog.findMany).toHaveBeenCalledWith({
         where:  { createdAt: { gte: expectedSince } },
         select: { createdAt: true },
-        take:   10_000,
+        take:   MAX_AUDIT_LOGS,
       });
     });
   });
