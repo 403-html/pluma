@@ -40,7 +40,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4 py-8 bg-background">
+    <main className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-background">
       <div className="w-full max-w-sm p-8 bg-card border border-border rounded-lg shadow-sm">
         <h1 className="text-2xl font-semibold text-center mb-2">{t.register.title}</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">{t.register.description}</p>
@@ -57,6 +57,7 @@ export default function RegisterForm() {
           <Link href={`/${locale}/login`} className="text-primary font-medium hover:underline">{t.register.footerLink}</Link>
         </p>
       </div>
+      <p className="mt-8 text-xs text-muted-foreground/60 text-center">{t.poweredBy.text}</p>
     </main>
   );
 }
