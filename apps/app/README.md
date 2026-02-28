@@ -38,9 +38,9 @@ cp .env.example .env.local
 
 ### Required variables
 
-- `NEXT_PUBLIC_API_URL` - Base URL of the Pluma API server (e.g., `http://localhost:3001`)
+- `API_URL` - Base URL of the Pluma API server (e.g., `http://localhost:2137`)
 
-This variable is validated at build time and must be set before starting the dev server or building.
+This variable is read by the Next.js server at startup (rewrites and middleware) and must be set before starting the dev server or running the container. It is never exposed to the browser.
 
 ## Internationalisation
 

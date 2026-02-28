@@ -5,17 +5,17 @@
 # Build context is the monorepo root so that workspace packages
 # (@pluma/types) are reachable during the build.
 #
-# Required build arg / env var:
-#   NEXT_PUBLIC_API_URL — URL of the Pluma API visible to end-users'
-#                         browsers. Baked into the client bundle at build
-#                         time; also read by next.config.ts rewrites() at
-#                         server start. Pass a real URL with --build-arg
-#                         when building production images.
-#                         Default: http://localhost:2137
+# The image is environment-agnostic — no API URL is baked in at build time.
+# Set API_URL at runtime to point the app at your Pluma API server.
+#
+# Required env var at runtime:
+#   API_URL — base URL of the Pluma API server, used by the Next.js server
+#             for rewrites and middleware. Never exposed to the browser.
+#             Default: http://localhost:2137
 #
 # Usage:
-#   docker compose up --build
-#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up --build
+#   docker compose up --build                              # initial build
+#   API_URL=https://api.example.com docker compose up     # run with a different API (no rebuild needed)
 # ============================================================
 
 services:
@@ -28,17 +28,12 @@ services:
     build:
       context: .
       dockerfile: apps/app/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:2137}
     image: pluma-app:local
     container_name: pluma-app
     restart: unless-stopped
     ports:
       - '3000:3000'
     environment:
-      # NEXT_PUBLIC_API_URL is baked into the client bundle at build time (see args above).
-      # This runtime ENV only affects server-side next.config.ts rewrites().
-      # To change the API URL, pass a new --build-arg and rebuild the image.
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:2137}
+      API_URL: ${API_URL:-http://localhost:2137}
       PORT: 3000
       NODE_ENV: production

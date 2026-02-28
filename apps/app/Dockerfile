@@ -4,22 +4,18 @@
 # Multi-stage build for the Pluma Next.js 16 frontend.
 # Build context MUST be the monorepo root:
 #
-#   docker build \
-#     --build-arg NEXT_PUBLIC_API_URL=https://api.example.com \
-#     -f apps/app/Dockerfile -t pluma-app .
+#   docker build -f apps/app/Dockerfile -t pluma-app .
 #
-# Build args:
-#   NEXT_PUBLIC_API_URL — API base URL baked into the client bundle.
-#                         Use the URL that end-users' browsers will reach.
-#                         Defaults to http://localhost:2137 so the image
-#                         builds without a real URL; override at build time
-#                         for production images.
+# The image is environment-agnostic: no API URL is baked in at build time.
+# Provide API_URL at container runtime:
+#
+#   docker run -e API_URL=https://api.example.com -p 3000:3000 pluma-app
 #
 # Required env vars at runtime:
-#   NEXT_PUBLIC_API_URL — also read by next.config.ts rewrites() at
-#                         server start; must match the build-time value
-#                         or a real production URL.
-#   PORT               — (optional) HTTP port, defaults to 3000
+#   API_URL — base URL of the Pluma API, used by the Next.js server for
+#             rewrites (next.config.ts) and middleware (proxy.ts).
+#             Never exposed to the browser.
+#   PORT    — (optional) HTTP port, defaults to 3000
 # ============================================================
 
 # pnpm version — single source of truth for all stages.
@@ -75,11 +71,12 @@ COPY --from=deps /app/ ./
 # directories restored above are not overwritten.
 COPY . .
 
-# next.config.ts throws if NEXT_PUBLIC_API_URL is empty or missing.
-# Provide a placeholder that is replaced with a real URL at build time
-# via --build-arg NEXT_PUBLIC_API_URL=https://api.example.com.
-ARG NEXT_PUBLIC_API_URL=http://localhost:2137
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# next.config.ts throws if API_URL is empty or missing.
+# We use a placeholder so the build needs no real API URL.
+# This value ONLY exists in this stage; the runner stage sets its own
+# ENV API_URL=http://localhost:2137 default (overridden at container runtime).
+ARG PLACEHOLDER_API_URL=http://placeholder.invalid
+ENV API_URL=${PLACEHOLDER_API_URL}
 
 # next.config.ts uses transpilePackages: ['@pluma/types'], so Next.js
 # reads @pluma/types TypeScript source directly via webpack — no
@@ -101,10 +98,9 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Runtime value used by next.config.ts rewrites() on the server side.
-# Note: NEXT_PUBLIC_API_URL is baked into the client bundle at build time
-# (via the builder stage ARG). This ENV only affects server-side rewrites.
-ENV NEXT_PUBLIC_API_URL=http://localhost:2137
+# API_URL is read by next.config.ts rewrites() and middleware at server startup.
+# Override at runtime: docker run -e API_URL=https://api.example.com ...
+ENV API_URL=http://localhost:2137
 ENV PORT=3000
 
 # Non-root user for security
