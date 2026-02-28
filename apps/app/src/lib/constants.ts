@@ -21,3 +21,9 @@ export const CHART_FONT_SIZE = 12;
 
 /** Top-corner border radius of each bar (bottom stays square). */
 export const BAR_CORNER_RADIUS = 4;
+
+/** Maximum number of flags supported by the DFS tree walk in buildOrderedFlags(). */
+export const MAX_FLAGS = 10_000;
+
+/** Left-indent pixels added per nesting level in the flags table. */
+export const FLAG_INDENT_PX_PER_LEVEL = 16;

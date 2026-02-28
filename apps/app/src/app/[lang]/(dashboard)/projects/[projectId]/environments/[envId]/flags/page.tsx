@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
@@ -14,14 +14,13 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
-import { SwitchField } from '@/components/ui/switch';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableHead, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 import { PageHeader } from '@/components/PageHeader';
-import { CopyPill } from '@/components/CopyPill';
-import { TruncatedText } from '@/components/TruncatedText';
 import { usePagination } from '@/hooks/usePagination';
+import { buildOrderedFlags } from '@/lib/flagUtils';
+import { FlagRow } from './FlagRow';
 
 type ModalState =
   | { type: 'none' }
@@ -30,159 +29,6 @@ type ModalState =
   | { type: 'edit'; flag: FlagEntry };
 
 const PAGE_SIZE = 20;
-
-/**
- * Converts a flat FlagEntry list into a depth-annotated DFS-ordered list so
- * that each parent appears immediately before its children in the table.
- * Children are pushed onto the stack in reverse so the first child is popped
- * first, preserving the original order within each sibling group.
- * A visited Set prevents re-processing nodes, bounding the loop to at most
- * MAX_FLAGS iterations regardless of input structure or cycles.
- */
-function buildOrderedFlags(flagList: FlagEntry[]): Array<{ flag: FlagEntry; depth: number; indentPx: number }> {
-  const MAX_FLAGS = 10_000;
-  const INDENT_PX_PER_LEVEL = 16;
-  if (flagList.length > MAX_FLAGS) {
-    throw new Error(`buildOrderedFlags: flag list exceeds maximum size of ${MAX_FLAGS}`);
-  }
-  const byParent = new Map<string | null, FlagEntry[]>();
-  const flagMap = new Map<string, FlagEntry>();
-  for (const f of flagList) {
-    flagMap.set(f.flagId, f);
-    const key = f.parentFlagId ?? null;
-    if (!byParent.has(key)) byParent.set(key, []);
-    byParent.get(key)!.push(f);
-  }
-  const result: Array<{ flag: FlagEntry; depth: number; indentPx: number }> = [];
-  const roots = (byParent.get(null) ?? []).slice().reverse();
-  const stack: Array<{ flagId: string; depth: number }> = roots.map(f => ({ flagId: f.flagId, depth: 0 }));
-  const visited = new Set<string>();
-  while (stack.length > 0) {
-    const item = stack.pop()!;
-    if (visited.has(item.flagId)) continue;
-    visited.add(item.flagId);
-    const flag = flagMap.get(item.flagId);
-    if (!flag) continue;
-    result.push({ flag, depth: item.depth, indentPx: item.depth * INDENT_PX_PER_LEVEL });
-    const children = (byParent.get(item.flagId) ?? []).slice().reverse();
-    for (const child of children) {
-      stack.push({ flagId: child.flagId, depth: item.depth + 1 });
-    }
-  }
-  return result;
-}
-
-interface FlagRowProps {
-  flag: FlagEntry;
-  depth: number;
-  indentPx: number;
-  isDeleting: boolean;
-  isToggling: boolean;
-  onToggle: (flagId: string, currentEnabled: boolean) => void;
-  onDeleteStart: (flagId: string) => void;
-  onDeleteCancel: () => void;
-  onDelete: (flagId: string) => void;
-  onEdit: (flag: FlagEntry) => void;
-  onAddSub: (parentFlag: { flagId: string; name: string; key: string }) => void;
-}
-
-const FlagRow = React.memo(function FlagRow({
-  flag,
-  depth,
-  indentPx,
-  isDeleting,
-  isToggling,
-  onToggle,
-  onDeleteStart,
-  onDeleteCancel,
-  onDelete,
-  onEdit,
-  onAddSub,
-}: FlagRowProps) {
-  const { t } = useLocale();
-
-  return (
-    <TableRow className={depth > 0 ? 'bg-muted/20' : undefined}>
-      <TableCell className="px-3 py-3">
-        <span
-          className="flex items-center gap-1.5"
-          style={depth > 0 ? { paddingLeft: `${indentPx}px` } : undefined}
-        >
-          {depth > 0 && (
-            <span className="text-muted-foreground/60 text-xs leading-none">{t.flags.subFlagIndicator}</span>
-          )}
-          <span className={depth > 0 ? 'text-sm text-muted-foreground' : undefined}>{flag.name}</span>
-        </span>
-      </TableCell>
-      <TableCell className="px-3 py-3">
-        <CopyPill value={flag.key} />
-      </TableCell>
-      <TableCell className="px-3 py-3 max-w-[240px]">{flag.description ? <TruncatedText text={flag.description} showMoreLabel={t.common.showMore} showLessLabel={t.common.showLess} /> : '—'}</TableCell>
-      <TableCell className="px-3 py-3">
-        <SwitchField
-          size="sm"
-          checked={flag.enabled}
-          disabled={isToggling}
-          onCheckedChange={() => onToggle(flag.flagId, flag.enabled)}
-          label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
-          aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
-        />
-      </TableCell>
-      <TableCell className="px-3 py-3 text-sm text-muted-foreground">
-        {flag.rolloutPercentage !== null
-          ? `${flag.rolloutPercentage}%`
-          : t.flags.rolloutNotSet}
-      </TableCell>
-      <TableCell className="px-3 py-3">
-        {isDeleting ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-destructive">{t.flags.confirmDelete}</span>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(flag.flagId)}
-            >
-              {t.flags.confirmDeleteBtn}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onDeleteCancel}
-            >
-              {t.flags.cancelBtn}
-            </Button>
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            {depth === 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onAddSub({ flagId: flag.flagId, name: flag.name, key: flag.key })}
-              >
-                {t.flags.addSubFlagBtn}
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(flag)}
-            >
-              {t.flags.editBtn}
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDeleteStart(flag.flagId)}
-            >
-              {t.flags.deleteBtn}
-            </Button>
-          </div>
-        )}
-      </TableCell>
-    </TableRow>
-  );
-});
 
 export default function FlagsPage() {
   const { t, locale } = useLocale();
