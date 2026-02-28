@@ -82,7 +82,7 @@ export default function Sidebar() {
         <SidebarButton icon={<LogOut size={20} />} label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
       <div className="px-4 py-3 border-t border-white/10">
-        <p className="text-xs text-white/40 text-center">{t.poweredBy.text}</p>
+        <p className="text-xs text-white/70 text-center">{t.poweredBy.text}</p>
       </div>
     </aside>
   );
