@@ -28,6 +28,11 @@ export function TruncatedText({
     return <span>{text}</span>;
   }
 
+  function handleToggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  }
+
   return (
     <span>
       {expanded ? text : `${text.slice(0, maxChars)}…`}
@@ -35,7 +40,7 @@ export function TruncatedText({
       <button
         type="button"
         className="text-xs text-muted-foreground underline hover:no-underline whitespace-nowrap"
-        onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+        onClick={handleToggle}
         aria-expanded={expanded}
       >
         {expanded ? showLessLabel : showMoreLabel}
