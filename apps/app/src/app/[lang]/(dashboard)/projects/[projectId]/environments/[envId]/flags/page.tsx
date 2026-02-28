@@ -20,6 +20,7 @@ import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
+import { TruncatedText } from '@/components/TruncatedText';
 import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
@@ -214,7 +215,7 @@ export default function FlagsPage() {
                   <TableCell className="px-3 py-3">
                     <CopyPill value={flag.key} />
                   </TableCell>
-                  <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
+                  <TableCell className="px-3 py-3 max-w-[240px]">{flag.description ? <TruncatedText text={flag.description} showMoreLabel={t.common.showMore} showLessLabel={t.common.showLess} /> : '—'}</TableCell>
                   <TableCell className="px-3 py-3">
                     <SwitchField
                       size="sm"

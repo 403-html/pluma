@@ -59,6 +59,8 @@ export const en = {
     prevPage: 'Previous',
     nextPage: 'Next',
     pageInfo: 'Page {page}',
+    showMore: 'more',
+    showLess: 'less',
   },
   sidebar: {
     projects: 'Projects',

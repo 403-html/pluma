@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 const Table = React.forwardRef<HTMLTableElement, React.TableHTMLAttributes<HTMLTableElement>>(
   ({ className, children, ...props }, ref) => (
     <div className="overflow-auto rounded-md border border-border mt-4 flex-1 min-h-0">
-      <table ref={ref} className={cn("w-full text-sm", className)} {...props}>
+      <table ref={ref} className={cn("min-w-full text-sm", className)} {...props}>
         {children}
       </table>
     </div>
