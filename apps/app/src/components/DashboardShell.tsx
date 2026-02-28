@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 
@@ -19,6 +19,15 @@ interface DashboardShellProps {
  */
 export default function DashboardShell({ children }: DashboardShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isSidebarOpen]);
 
   return (
     <div className="min-h-screen flex flex-col md:grid md:grid-cols-[var(--sidebar-width)_1fr]">
@@ -45,7 +54,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           className="fixed inset-0 bg-black/50 z-[49] md:hidden"
           aria-hidden="true"
           onClick={() => setIsSidebarOpen(false)}
-          onKeyDown={(e) => { if (e.key === 'Escape') { setIsSidebarOpen(false); } }}
         />
       )}
 
