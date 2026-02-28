@@ -1,89 +1,28 @@
 # ============================================================
 # docker-compose.yml — monorepo root
 #
-# Orchestrates three services:
-#   postgres  — PostgreSQL 16 (matches packages/db/docker-compose.yml exactly)
-#   api       — Pluma API (Fastify, built from apps/api/Dockerfile)
-#   app       — Pluma frontend (Next.js 16, built from apps/app/Dockerfile)
+# Runs the Pluma Next.js frontend as a Docker container.
+# Build context is the monorepo root so that workspace packages
+# (@pluma/types) are reachable during the build.
 #
-# Build context for both api and app is the monorepo root so that
-# workspace packages (@pluma/db, @pluma/types) are reachable.
-#
-# Required — set these in a .env file or export them before running:
-#   DATABASE_URL        Used by the api service to connect to postgres.
-#                       Default below works with the bundled postgres service.
-#   NEXT_PUBLIC_API_URL Used by the app service (build-arg + runtime).
-#                       For local use, http://localhost:2137 reaches the
-#                       api container via the mapped host port.
-#                       For production, set to the public API URL and
-#                       rebuild the app image with the correct build-arg.
+# Required build arg / env var:
+#   NEXT_PUBLIC_API_URL — URL of the Pluma API visible to end-users'
+#                         browsers. Baked into the client bundle at build
+#                         time; also read by next.config.ts rewrites() at
+#                         server start. Pass a real URL with --build-arg
+#                         when building production images.
+#                         Default: http://localhost:2137
 #
 # Usage:
 #   docker compose up --build
-#   docker compose up --build --build-arg NEXT_PUBLIC_API_URL=https://api.example.com app
+#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up --build
 # ============================================================
 
 services:
 
   # ──────────────────────────────────────────────────────────
-  # postgres
-  # Identical configuration to packages/db/docker-compose.yml.
-  # ──────────────────────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine
-    container_name: pluma-postgres
-    restart: unless-stopped
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_USER: pluma
-      POSTGRES_PASSWORD: pluma
-      POSTGRES_DB: pluma
-    volumes:
-      - pluma_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U pluma']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ──────────────────────────────────────────────────────────
-  # api
-  # Pluma Fastify API.
-  #
-  # Required env vars:
-  #   DATABASE_URL — connection string for postgres
-  # ──────────────────────────────────────────────────────────
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    image: pluma-api:local
-    container_name: pluma-api
-    restart: unless-stopped
-    ports:
-      - '2137:2137'
-    environment:
-      # Points at the postgres service using its Docker-network hostname.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://pluma:pluma@postgres:5432/pluma?schema=public}
-      PORT: 2137
-      HOST: 0.0.0.0
-      NODE_ENV: production
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  # ──────────────────────────────────────────────────────────
   # app
   # Pluma Next.js frontend.
-  #
-  # NEXT_PUBLIC_API_URL is baked into the client bundle at build time.
-  # For local compose use, http://localhost:2137 works because the api
-  # port is mapped to the Docker host.  For production, pass the real
-  # public API URL as a build-arg and rebuild this image.
-  #
-  # Required env vars / build args:
-  #   NEXT_PUBLIC_API_URL — API base URL visible to end-users' browsers
   # ──────────────────────────────────────────────────────────
   app:
     build:
@@ -99,13 +38,7 @@ services:
     environment:
       # NEXT_PUBLIC_API_URL is baked into the client bundle at build time (see args above).
       # This runtime ENV only affects server-side next.config.ts rewrites().
-      # If you need to change the API URL, pass a new --build-arg and rebuild the image.
+      # To change the API URL, pass a new --build-arg and rebuild the image.
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:2137}
       PORT: 3000
       NODE_ENV: production
-    depends_on:
-      - api
-
-volumes:
-  pluma_postgres_data:
-    name: pluma_postgres_data
