@@ -231,7 +231,7 @@ export default function FlagsPage() {
     );
     const result = await toggleFlagEnabled(envId, flagId, !currentEnabled);
     if (!result.ok) {
-      // Revert: use currentEnabled directly (captured in closure) — no second array scan.
+      // Revert: use currentEnabled directly (captured in closure) to restore the previous value.
       setFlags(prev =>
         prev.map(f => (f.flagId === flagId ? { ...f, enabled: currentEnabled } : f))
       );
