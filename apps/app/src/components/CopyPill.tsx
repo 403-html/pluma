@@ -69,8 +69,11 @@ export function CopyPill({ value, variant = 'pill', className = '' }: CopyPillPr
 
   const variantClasses =
     variant === 'inline'
-      ? 'flex-1 bg-transparent px-0 py-0 hover:bg-muted/20 text-foreground font-mono text-[0.95rem]'
+      ? 'bg-transparent px-0 py-0 hover:bg-muted/20 text-foreground font-mono text-[0.95rem]'
       : 'bg-muted px-2 py-0.5 hover:bg-muted/80 font-mono text-xs';
+
+  const textSpanClass = variant === 'inline' ? 'truncate min-w-0 flex-1' : undefined;
+  const iconClass = variant === 'inline' ? 'shrink-0' : undefined;
 
   return (
     <button
@@ -87,8 +90,8 @@ export function CopyPill({ value, variant = 'pill', className = '' }: CopyPillPr
         className
       )}
     >
-      <span>{value}</span>
-      <Icon size={iconSize} aria-hidden="true" />
+      <span className={textSpanClass}>{value}</span>
+      <Icon size={iconSize} aria-hidden="true" className={iconClass} />
     </button>
   );
 }

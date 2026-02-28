@@ -1,9 +1,18 @@
-import type { DashboardData } from '@/lib/api/dashboard';
-import type { en } from '@/i18n/en';
+"use client";
 
-export type DashboardLabels = typeof en['dashboard'];
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import type { DashboardData } from "@/lib/api/dashboard";
+import type { en } from "@/i18n/en";
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
+export type DashboardLabels = typeof en["dashboard"];
 
 interface StatCardProps {
   label: string;
@@ -21,83 +30,32 @@ function StatCard({ label, value }: StatCardProps) {
   );
 }
 
-// ── Bar Chart (inline SVG) ────────────────────────────────────────────────────
-
-const VIEW_W = 700;
-const VIEW_H = 130;
-const BAR_SLOT = VIEW_W / 7; // ~100px per bar slot
-const BAR_W = 60;
-const MAX_BAR_H = 76;
-const BASE_Y = 88; // y-coordinate of bar bottom
-const LABEL_Y = VIEW_H - 10;
-const MIN_BAR_H = 4; // minimum visible height for non-zero bars
-
-interface BarChartProps {
+interface DailyChangesChartProps {
   dailyChanges: Array<{ date: string; count: number }>;
-  dayLabel: string;
   countLabel: string;
 }
 
-function BarChart({ dailyChanges, dayLabel, countLabel }: BarChartProps) {
-  const maxCount = Math.max(...dailyChanges.map((d) => d.count), 1);
+function DailyChangesChart({ dailyChanges, countLabel }: DailyChangesChartProps) {
+  const data = dailyChanges.map((d) => ({
+    date: d.date.length === 10 ? d.date.slice(5) : d.date,
+    count: d.count,
+  }));
 
   return (
-    <svg
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-      role="img"
-      aria-label={`${countLabel} by ${dayLabel}`}
-      className="w-full"
-      style={{ maxHeight: '160px' }}
-    >
-      {dailyChanges.map((day, i) => {
-        const barH = Math.max(
-          Math.round((day.count / maxCount) * MAX_BAR_H),
-          day.count > 0 ? MIN_BAR_H : 0,
-        );
-        const cx = i * BAR_SLOT + BAR_SLOT / 2;
-        const barX = cx - BAR_W / 2;
-        const barY = BASE_Y - barH;
-        const dateLabel = day.date.length === 10 ? day.date.slice(5) : day.date; // MM-DD from YYYY-MM-DD
-
-        return (
-          <g key={day.date}>
-            <rect
-              x={barX}
-              y={barY}
-              width={BAR_W}
-              height={barH}
-              rx={4}
-              className="fill-primary"
-              opacity={0.7}
-            />
-            {day.count > 0 && (
-              <text
-                x={cx}
-                y={barY - 5}
-                textAnchor="middle"
-                className="fill-foreground"
-                style={{ fontSize: '10px' }}
-              >
-                {day.count}
-              </text>
-            )}
-            <text
-              x={cx}
-              y={LABEL_Y}
-              textAnchor="middle"
-              className="fill-muted-foreground"
-              style={{ fontSize: '10px' }}
-            >
-              {dateLabel}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+    <ResponsiveContainer width="100%" height={200}>
+      <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+        <Tooltip
+          formatter={(value) => [value, countLabel]}
+          contentStyle={{ fontSize: "12px" }}
+        />
+        <Bar dataKey="count" name={countLabel} radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
-
-// ── Dashboard View ────────────────────────────────────────────────────────────
 
 export interface DashboardViewProps {
   data: DashboardData;
@@ -133,9 +91,8 @@ export default function DashboardView({ data, labels }: DashboardViewProps) {
             {labels.chartTitle}
           </h2>
           {data.dailyChanges.length > 0 ? (
-            <BarChart
+            <DailyChangesChart
               dailyChanges={data.dailyChanges}
-              dayLabel={labels.chartDayLabel}
               countLabel={labels.chartCountLabel}
             />
           ) : (

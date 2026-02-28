@@ -75,7 +75,7 @@ export default function EnvironmentsPage() {
 
   if (isLoading) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
           title={projectName ?? '…'}
@@ -87,7 +87,7 @@ export default function EnvironmentsPage() {
 
   if (error && environments.length === 0) {
     return (
-      <main className="p-8 h-screen flex flex-col overflow-hidden">
+      <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
         <PageHeader 
           breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
           title={projectName ?? '…'}
@@ -98,7 +98,7 @@ export default function EnvironmentsPage() {
   }
 
   return (
-    <main className="p-8 h-screen flex flex-col overflow-hidden">
+    <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
       <PageHeader 
         breadcrumbs={[{ label: t.projects.title, href: `/${locale}/projects` }]}
         title={projectName ?? '…'}
