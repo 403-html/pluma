@@ -273,7 +273,6 @@ export const en = {
     keyDuplicate: 'This key already exists. Please choose a different key.',
     toastDeletePending: 'Deleting flag…',
     toastDeleteSuccess: 'Flag deleted',
-    toastTogglePending: 'Toggling flag…',
     toastToggleSuccess: 'Flag updated',
     toastCreateSuccess: 'Flag created',
     toastEditSuccess: 'Flag saved',
