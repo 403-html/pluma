@@ -76,6 +76,7 @@ interface FlagRowProps {
   depth: number;
   indentPx: number;
   isDeleting: boolean;
+  isToggling: boolean;
   onToggle: (flagId: string, currentEnabled: boolean) => void;
   onDeleteStart: (flagId: string) => void;
   onDeleteCancel: () => void;
@@ -89,6 +90,7 @@ const FlagRow = React.memo(function FlagRow({
   depth,
   indentPx,
   isDeleting,
+  isToggling,
   onToggle,
   onDeleteStart,
   onDeleteCancel,
@@ -119,6 +121,7 @@ const FlagRow = React.memo(function FlagRow({
         <SwitchField
           size="sm"
           checked={flag.enabled}
+          disabled={isToggling}
           onCheckedChange={() => onToggle(flag.flagId, flag.enabled)}
           label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
           aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
@@ -192,6 +195,7 @@ export default function FlagsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
   const orderedFlags = useMemo(() => buildOrderedFlags(flags), [flags]);
@@ -225,18 +229,22 @@ export default function FlagsPage() {
   }, [loadFlags]);
 
   const handleToggle = useCallback(async (flagId: string, currentEnabled: boolean) => {
-    // Optimistic update — flip the flag immediately in local state.
+    setTogglingIds(prev => new Set(prev).add(flagId));
     setFlags(prev =>
       prev.map(f => (f.flagId === flagId ? { ...f, enabled: !currentEnabled } : f))
     );
     const result = await toggleFlagEnabled(envId, flagId, !currentEnabled);
     if (!result.ok) {
-      // Revert: use currentEnabled directly (captured in closure) to restore the previous value.
       setFlags(prev =>
         prev.map(f => (f.flagId === flagId ? { ...f, enabled: currentEnabled } : f))
       );
       setError(t.flags.toggleError);
     }
+    setTogglingIds(prev => {
+      const next = new Set(prev);
+      next.delete(flagId);
+      return next;
+    });
   }, [envId, t.flags.toggleError]);
 
   const handleDelete = useCallback(async (id: string) => {
@@ -344,6 +352,7 @@ export default function FlagsPage() {
                   depth={depth}
                   indentPx={indentPx}
                   isDeleting={deletingId === flag.flagId}
+                  isToggling={togglingIds.has(flag.flagId)}
                   onToggle={handleToggle}
                   onDeleteStart={handleDeleteStart}
                   onDeleteCancel={handleDeleteCancel}
