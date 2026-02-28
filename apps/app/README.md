@@ -20,6 +20,25 @@ pnpm build
 
 Generates an optimized production build.
 
+## Docker
+
+Build context must be the **monorepo root** (not `apps/app/`):
+
+```bash
+docker build -f apps/app/Dockerfile -t pluma-app .
+```
+
+Run the container (replace the API URL with your actual API address):
+
+```bash
+docker run -d -p 80:3000 -e NEXT_PUBLIC_API_URL=http://localhost:2137 pluma-app
+```
+
+The app will be reachable at `http://localhost`.
+
+- `-p 80:3000` — maps host port 80 to the container's port 3000 (change the left side to use a different host port)
+- `-e NEXT_PUBLIC_API_URL=...` — base URL of the running Pluma API server; required at container startup (see [Environment Variables](#environment-variables)). Note: inside a container `localhost` refers to the container itself — use your host machine's IP or `host.docker.internal` (Docker Desktop) to reach a locally-running API.
+
 ### Lint
 
 ```bash
