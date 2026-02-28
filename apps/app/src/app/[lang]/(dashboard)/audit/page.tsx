@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from '@/i18n/LocaleContext';
-import type { AuditLogEntry, AuditAction } from '@pluma/types';
+import type { AuditLogEntry } from '@pluma/types';
 import type { ProjectSummary } from '@pluma/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
@@ -10,23 +10,9 @@ import { formatDateTime } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import { ScrollText } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
+import { AuditActionBadge } from './AuditActionBadge';
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-const ACTION_BADGE_CLASSES: Record<AuditAction, string> = {
-  // Creation-like / enabling actions → secondary-style badge
-  create: 'bg-secondary text-secondary-foreground',
-  enable: 'bg-secondary text-secondary-foreground',
-  // Non-destructive updates / toggles → muted-style badge
-  update: 'bg-muted text-foreground',
-  disable: 'bg-muted text-muted-foreground',
-  // Destructive actions → destructive-style badge
-  delete: 'bg-destructive text-destructive-foreground',
-};
-
-function getActionBadgeClass(action: AuditAction): string {
-  return ACTION_BADGE_CLASSES[action] ?? 'bg-muted text-muted-foreground';
-}
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDetails(details: unknown): string {
   if (details === null || details === undefined) return '—';
@@ -50,9 +36,7 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
         {entry.actorEmail}
       </TableCell>
       <TableCell className="px-3 py-3">
-        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${getActionBadgeClass(entry.action)}`}>
-          {entry.action}
-        </span>
+        <AuditActionBadge action={entry.action} />
       </TableCell>
       <TableCell className="px-3 py-3 text-sm">
         <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">

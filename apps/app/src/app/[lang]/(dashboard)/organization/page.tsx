@@ -12,16 +12,7 @@ import TokenTable from './_components/TokenTable';
 import { TablePagination } from '@/components/ui/table';
 import type { CreatedToken } from '@/lib/api/tokens';
 import { usePagination } from '@/hooks/usePagination';
-
-function LoadingSkeleton() {
-  return (
-    <div className="animate-pulse flex flex-col gap-3" aria-label="Loading API keys">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="h-12 bg-muted rounded-md" />
-      ))}
-    </div>
-  );
-}
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 const PAGE_SIZE = 20;
 

@@ -1,5 +1,5 @@
 import type { FeatureFlag } from '@pluma/types';
-import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH } from '@pluma/types';
+import { validateKey, validateName } from '@/lib/validation';
 import { parseErrorMessage } from './utils';
 
 export type { FeatureFlag };
@@ -44,18 +44,10 @@ export async function createFlag(
   description?: string,
   parentFlagId?: string
 ): Promise<{ ok: true; flag: FeatureFlag } | { ok: false; message: string }> {
-  if (typeof key !== 'string' || key.length === 0) {
-    return { ok: false, message: 'Key is required' };
-  }
-  if (key.length > MAX_PROJECT_KEY_LENGTH) {
-    return { ok: false, message: `Key must be ${MAX_PROJECT_KEY_LENGTH} characters or fewer` };
-  }
-  if (typeof name !== 'string' || name.length === 0) {
-    return { ok: false, message: 'Name is required' };
-  }
-  if (name.length > MAX_PROJECT_NAME_LENGTH) {
-    return { ok: false, message: `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer` };
-  }
+  const keyError = validateKey(key);
+  if (keyError) return keyError;
+  const nameError = validateName(name);
+  if (nameError) return nameError;
   try {
     const body: { key: string; name: string; description?: string; parentFlagId?: string } = { key, name };
     if (description !== undefined && description.length > 0) {
@@ -92,28 +84,12 @@ export async function updateFlag(
     return { ok: false, message: 'Provide a valid key, name, or description to update' };
   }
   if (data.key !== undefined) {
-    const keyLength = data.key.length;
-    if (keyLength === 0) {
-      return { ok: false, message: 'Key is required' };
-    }
-    if (keyLength > MAX_PROJECT_KEY_LENGTH) {
-      return {
-        ok: false,
-        message: `Key must be ${MAX_PROJECT_KEY_LENGTH} characters or fewer`,
-      };
-    }
+    const keyError = validateKey(data.key);
+    if (keyError) return keyError;
   }
   if (data.name !== undefined) {
-    const nameLength = data.name.length;
-    if (nameLength === 0) {
-      return { ok: false, message: 'Name is required' };
-    }
-    if (nameLength > MAX_PROJECT_NAME_LENGTH) {
-      return {
-        ok: false,
-        message: `Name must be ${MAX_PROJECT_NAME_LENGTH} characters or fewer`,
-      };
-    }
+    const nameError = validateName(data.name);
+    if (nameError) return nameError;
   }
   try {
     const response = await fetch(`/api/v1/flags/${flagId}`, {

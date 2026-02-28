@@ -80,6 +80,42 @@ All colors **must** come from semantic tokens — never use hardcoded Tailwind p
 - Keep components modular and maintainable.
 - When creating new component in `apps/app/src` add a corresponding `*.stories.tsx`
 
+## Architecture Rules (from refactoring lessons)
+
+### Constants
+- All magic numbers and string literals (cookie names, chart dimensions, tree traversal limits, etc.) **must** live in `src/lib/constants.ts`. Never define them inline inside a component or page file.
+
+### Validation Helpers
+- Client-side validation belongs in `src/lib/validation.ts` as pure functions returning `ValidationResult = { ok: false; message: string } | null` (null = valid).
+- Do **not** duplicate the same length/empty checks across multiple API files.
+- `typeof` guards are intentionally omitted in TypeScript-only callers — add a comment explaining this if the absence is non-obvious.
+- When a caller needs a stricter constraint than the shared helper (e.g. `MIN_PASSWORD_LENGTH` for `changePassword` but not `login`), keep that extra check inline at the call site and document why in the shared helper's JSDoc.
+
+### Algorithm Extraction
+- Non-trivial algorithms (tree walks, DFS orderings, graph traversals) **must not** live inside page components. Extract to `src/lib/<feature>Utils.ts` so they can be read and tested in isolation.
+- Pure utility functions must be free of React imports and side effects.
+
+### Component Decomposition
+- When a page or component file exceeds ~150 lines of JSX/logic, split it:
+  - Extract the row/card rendering to a co-located `<FeatureRow>.tsx` sub-component.
+  - Wrap list-rendered sub-components with `React.memo` to avoid unnecessary re-renders.
+  - Extract the state management + API calls to a co-located `use<Feature>.ts` custom hook (see Hook Extraction below).
+- Components extracted from a specific feature directory should be co-located there (e.g. `flags/FlagRow.tsx`), not moved to `src/components/`.
+- Components placed in `src/components/` are shared across features and **must** have domain-neutral prop defaults (e.g. `label="Loading content"`, not `label="Loading API keys"`).
+
+### Hook Extraction
+- When a page component has more than ~50 lines of state management and API calls, extract them into a co-located `use<Feature>.ts` hook following the existing pattern of `useOrgTokens.ts` and `useAuditFilters.ts`.
+- The hook should own: state declarations, API fetch functions, and event handlers (create/edit/delete/toggle).
+- Leave in the page: `usePagination()`, derived values (e.g. `existingKeys` memos), and JSX rendering.
+- Custom hooks do **not** need a `'use client'` directive — the boundary is at the page level.
+- Always explicitly type the hook's return interface (e.g. `interface UseProjectsResult { ... }`).
+
+### Floating Promises
+- Use the `void` operator for floating promises in `useEffect` callbacks and UI event handlers (e.g. `void loadData()`). This is required to satisfy the `@typescript-eslint/no-floating-promises` rule and signals intentional fire-and-forget.
+
+### Badge / Status Indicator Components
+- When a component's only logic is mapping an enum/string to a CSS class or color, extract it to a standalone presentational component (e.g. `AuditActionBadge.tsx`) without `'use client'` — these are valid server components.
+
 ## When Assigned a Task
 
 1. Provide a short implementation plan:
