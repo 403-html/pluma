@@ -97,6 +97,7 @@ RUN cp -r packages/db/prisma /app/deploy/prisma
 #    (the default output is relative to the prisma/ directory).
 RUN set -e; \
     PRISMA_BIN=$(find node_modules/.pnpm \
+        -maxdepth 5 \
         -path "*/prisma@*/node_modules/prisma/build/index.js" \
         | head -1); \
     [ -n "$PRISMA_BIN" ] || \
@@ -117,9 +118,9 @@ RUN set -e; \
     [ -n "$PRISMA_PKG" ] || \
         { echo "ERROR: prisma package not found in pnpm virtual store"; exit 1; }; \
     cp -r "$PRISMA_PKG" /app/deploy/node_modules/prisma; \
-    # Create a portable bin wrapper using a relative path so it works
-    # regardless of the absolute install location inside the container.
-    printf '#!/bin/sh\nexec node "$(dirname "$(dirname "$0")")/prisma/build/index.js" "$@"\n' \
+    # Create a portable bin wrapper using an absolute path.  The WORKDIR in
+    # the runner stage is always /app, so this path is stable and unambiguous.
+    printf '#!/bin/sh\nexec node /app/node_modules/prisma/build/index.js "$@"\n' \
         > /app/deploy/node_modules/.bin/prisma; \
     chmod +x /app/deploy/node_modules/.bin/prisma
 
@@ -152,7 +153,7 @@ EXPOSE 2137
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD node -e \
         "require('http').get('http://localhost:2137/health', \
-        (r) => process.exit(r.statusCode === 200 ? 0 : 1))" \
-        || exit 1
+        (r) => process.exit(r.statusCode === 200 ? 0 : 1)) \
+        .on('error', () => process.exit(1))"
 
 CMD ["./docker-entrypoint.sh"]
