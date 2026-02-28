@@ -74,13 +74,16 @@ COPY . .
 # API build script) doesn't fail without a real DATABASE_URL.
 ENV DATABASE_URL=postgresql://placeholder
 
-# 1. Compile @pluma/types — produces packages/types/dist/index.js which
-#    packages/db/dist/index.js imports at runtime (esbuild packages:external).
+# 1. Build @pluma/types — produces packages/types/dist/index.js.
+#    tsc resolves @pluma/types via the "types" export condition (src/index.ts)
+#    so this step is NOT required for TypeScript compilation of @pluma/db.
+#    It IS required at runtime: packages/db/dist/index.js imports @pluma/types
+#    via the "default" export condition (dist/index.js), and the API esbuild
+#    bundle leaves @pluma/types external — so the dist must exist in the runner.
 RUN pnpm --filter @pluma/types build
 
-# 2. Compile @pluma/db — produces packages/db/dist/index.js.
-#    tsc resolves @pluma/types via the "types" export condition (src/index.ts),
-#    so step 1 is not strictly required for compilation but is needed for runtime.
+# 2. Build @pluma/db — produces packages/db/dist/index.js.
+#    tsc resolves @pluma/types types from src/index.ts (no dist needed for compilation).
 RUN pnpm --filter @pluma/db build
 
 # 3. Build the API — mirrors the exact local build command:
@@ -144,8 +147,10 @@ WORKDIR /app/apps/api
 
 EXPOSE 2137
 
-# /health is registered unconditionally in src/app.ts
+# /health is registered unconditionally in src/app.ts.
+# wget is provided by BusyBox in node:20-alpine; -qO /dev/null discards
+# the response body and exits non-zero on any network or HTTP error.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s \
-  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT||2137) + '/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+  CMD wget -qO /dev/null http://localhost:${PORT:-2137}/health || exit 1
 
 CMD ["node", "dist/index.js"]
