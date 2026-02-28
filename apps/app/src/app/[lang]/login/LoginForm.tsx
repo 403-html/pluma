@@ -49,7 +49,7 @@ function LoginFormContent() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen px-4 py-8 bg-background">
+    <main className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-background">
       <div className="w-full max-w-sm p-8 bg-card border border-border rounded-lg shadow-sm">
         <h1 className="text-2xl font-semibold text-center mb-2">{t.login.title}</h1>
         {notice && <p className="text-sm text-primary bg-primary/10 border border-primary/20 rounded-md px-3 py-2 text-center mb-4">{notice}</p>}
@@ -66,6 +66,7 @@ function LoginFormContent() {
           <Link href={`/${locale}/register`} className="text-primary font-medium hover:underline">{t.login.footerLink}</Link>
         </p>
       </div>
+      <p className="mt-8 text-xs text-muted-foreground/60 text-center">{t.poweredBy.text}</p>
     </main>
   );
 }

@@ -1,4 +1,7 @@
 export const en = {
+  poweredBy: {
+    text: 'Powered by Pluma',
+  },
   metadata: {
     title: 'Pluma',
     description: 'Pluma – feature flag management',
