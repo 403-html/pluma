@@ -97,19 +97,26 @@ RUN pnpm --filter @pluma/api deploy --prod --legacy /app/deploy
 # (entrypoint) can locate the migration files at runtime.
 RUN cp -r packages/db/prisma /app/deploy/prisma
 
-# Generate the Prisma client directly into the deployment directory.
-# pnpm deploy --prod creates a fresh node_modules but does NOT run
-# prisma generate.  The `prisma` CLI is a direct dep of @pluma/db (not
-# @pluma/api), so it is NOT hoisted to node_modules/.bin in the deploy
-# dir.  Instead, run prisma generate via pnpm's @pluma/db package context
-# (where the prisma binary IS a direct dep) and point --schema at the
-# deploy dir's copy of the schema.  Prisma resolves the output path
-# relative to the schema file, so it writes the generated client to
-# /app/deploy/node_modules/.prisma/client — exactly where the runtime
-# expects it.
-RUN DATABASE_URL=postgresql://placeholder \
-    pnpm --filter @pluma/db exec prisma generate \
-        --schema /app/deploy/prisma/schema.prisma
+# Copy the already-generated Prisma client into the deployment directory.
+# pnpm deploy --prod creates a fresh node_modules but does NOT re-run
+# prisma generate.  With pnpm's virtual-store layout, the generated client
+# lives INSIDE the store entry for @prisma/client, not at the workspace root:
+#
+#   packages/db/node_modules/@prisma/client  (symlink)
+#     → node_modules/.pnpm/@prisma+client@<ver>/node_modules/@prisma/client
+#
+# Going up two dirname levels reaches the store's node_modules/ directory,
+# where .prisma/client sits as a sibling of @prisma/.
+# Expected layout after `prisma generate`:
+#   node_modules/.pnpm/@prisma+client@<ver>/node_modules/.prisma/client/
+#
+# The copy targets /app/deploy/node_modules/.prisma so that at runtime
+# @prisma/client can resolve the bare specifier `.prisma/client/default`
+# by walking up the node_modules tree to /app/deploy/node_modules/.prisma.
+RUN src=$(readlink -f packages/db/node_modules/@prisma/client) && \
+    prisma_dir="$(dirname "$(dirname "$src")")/.prisma" && \
+    [ -d "$prisma_dir" ] || { echo "ERROR: $prisma_dir not found — was prisma generate run?"; exit 1; } && \
+    cp -r "$prisma_dir" /app/deploy/node_modules/.prisma
 
 # ─── Stage: runner ───────────────────────────────────────────────────────────
 # Minimal Alpine image containing only what is needed to serve traffic.
