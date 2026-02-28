@@ -113,17 +113,12 @@ export default function ProjectsPage() {
               {paginatedProjects.map((project) => (
                 <TableRow
                   key={project.id}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    if (window.getSelection()?.toString()) return;
-                    router.push(`/${locale}/projects/${project.id}/environments`);
-                  }}
                 >
-                  <TableCell className="px-3 py-3"><span className="cursor-text" onClick={(e) => e.stopPropagation()}>{project.name}</span></TableCell>
-                  <TableCell className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="px-3 py-3">{project.name}</TableCell>
+                  <TableCell className="px-3 py-3">
                     <CopyPill value={project.key} />
                   </TableCell>
-                  <TableCell className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="px-3 py-3">
                     {deletingId === project.id ? (
                       <div className="flex gap-2 items-center">
                         <span className="text-xs text-destructive">{t.projects.confirmDelete}</span>
@@ -146,6 +141,14 @@ export default function ProjectsPage() {
                       </div>
                     ) : (
                       <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
+                        >
+                          {t.projects.environmentsBtn}
+                        </Button>
                         <Button
                           type="button"
                           variant="outline"

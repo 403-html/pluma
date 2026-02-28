@@ -95,6 +95,7 @@ export const en = {
     colEnvironments: 'Environments',
     colActions: 'Actions',
     editBtn: 'Edit',
+    environmentsBtn: 'Environments',
     deleteBtn: 'Delete',
     confirmDelete: 'Are you sure you want to delete this project?',
     confirmDeleteBtn: 'Confirm',

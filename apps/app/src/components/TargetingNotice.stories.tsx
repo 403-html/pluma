@@ -17,3 +17,12 @@ export const Default: Story = {
     dismissLabel: 'Dismiss targeting notice',
   },
 };
+
+export const LongCodeSnippet: Story = {
+  args: {
+    title: 'How targeting works',
+    body: 'IDs are matched against the subjectKey passed to the SDK evaluator.',
+    codeSnippet: "const result = await evaluator({ subjectKey: 'some-very-long-user-id-that-would-normally-overflow-the-container' });",
+    dismissLabel: 'Dismiss targeting notice',
+  },
+};
