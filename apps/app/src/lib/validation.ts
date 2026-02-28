@@ -1,3 +1,5 @@
+// Note: `typeof` guards are intentionally omitted throughout this file.
+// All callers are TypeScript-typed, so runtime type coercion checks are unnecessary.
 import {
   MAX_EMAIL_LENGTH,
   MAX_PASSWORD_LENGTH,
@@ -20,7 +22,9 @@ export function validateEmail(email: string): ValidationResult {
 }
 
 /**
- * Validates a password (checks non-empty and max length only).
+ * Validates a password: non-empty and within MAX_PASSWORD_LENGTH.
+ * Does NOT enforce MIN_PASSWORD_LENGTH — callers that require a minimum (e.g. changePassword)
+ * must add that check inline after calling this helper.
  * Returns null when valid, or a ValidationError describing why it is invalid.
  */
 export function validatePassword(password: string): ValidationResult {

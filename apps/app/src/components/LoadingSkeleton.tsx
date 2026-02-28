@@ -2,7 +2,7 @@ interface LoadingSkeletonProps {
   label?: string;
 }
 
-export default function LoadingSkeleton({ label = 'Loading API keys' }: LoadingSkeletonProps) {
+export default function LoadingSkeleton({ label = 'Loading content' }: LoadingSkeletonProps) {
   return (
     <div className="animate-pulse flex flex-col gap-3" aria-label={label}>
       {[1, 2, 3].map((i) => (
