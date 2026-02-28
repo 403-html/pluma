@@ -1,13 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
-import {
-  listProjects,
-  deleteProject,
-  type ProjectSummary,
-} from '@/lib/api/projects';
 import EmptyState from '@/components/EmptyState';
 import { Layers } from 'lucide-react';
 import { AddProjectModal } from './AddProjectModal';
@@ -17,51 +12,30 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHea
 import { PageHeader } from '@/components/PageHeader';
 import { CopyPill } from '@/components/CopyPill';
 import { usePagination } from '@/hooks/usePagination';
-
-type ModalState =
-  | { type: 'none' }
-  | { type: 'add' }
-  | { type: 'edit'; project: ProjectSummary };
+import { useProjects } from './useProjects';
 
 const PAGE_SIZE = 20;
 
 export default function ProjectsPage() {
   const { t, locale } = useLocale();
   const router = useRouter();
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const {
+    projects,
+    isLoading,
+    error,
+    modalState,
+    deletingId,
+    handleDeleteProject,
+    openAddModal,
+    openEditModal,
+    closeModal,
+    handleModalSuccess,
+    setDeletingId,
+    setError,
+  } = useProjects();
 
-  const existingKeys = useMemo(() => projects.map(p => p.key), [projects]);
+  const existingKeys = useMemo(() => projects.map((p) => p.key), [projects]);
   const { currentPage, paginatedItems: paginatedProjects, hasPrev, hasNext, goToPrev, goToNext } = usePagination(projects, PAGE_SIZE);
-
-  const loadProjects = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    const result = await listProjects();
-    if (result.ok) {
-      setProjects(result.projects);
-    } else {
-      setError(result.message);
-    }
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
-
-  async function handleDelete(id: string) {
-    const result = await deleteProject(id);
-    setDeletingId(null);
-    if (result.ok) {
-      await loadProjects();
-    } else {
-      setError(result.message);
-    }
-  }
 
   if (isLoading) {
     return (
@@ -83,13 +57,10 @@ export default function ProjectsPage() {
 
   return (
     <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
-      <PageHeader 
+      <PageHeader
         title={t.projects.title}
         actions={
-          <Button
-            type="button"
-            onClick={() => { setError(null); setModalState({ type: 'add' }); }}
-          >
+          <Button type="button" onClick={openAddModal}>
             {t.projects.newProject}
           </Button>
         }
@@ -111,9 +82,7 @@ export default function ProjectsPage() {
             </TableHeader>
             <TableBody>
               {paginatedProjects.map((project) => (
-                <TableRow
-                  key={project.id}
-                >
+                <TableRow key={project.id}>
                   <TableCell className="px-3 py-3">{project.name}</TableCell>
                   <TableCell className="px-3 py-3">
                     <CopyPill value={project.key} />
@@ -126,7 +95,7 @@ export default function ProjectsPage() {
                           type="button"
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDelete(project.id)}
+                          onClick={() => handleDeleteProject(project.id)}
                         >
                           {t.projects.confirmDeleteBtn}
                         </Button>
@@ -153,7 +122,7 @@ export default function ProjectsPage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => { setError(null); setModalState({ type: 'edit', project }); }}
+                          onClick={() => openEditModal(project)}
                         >
                           {t.projects.editBtn}
                         </Button>
@@ -191,11 +160,8 @@ export default function ProjectsPage() {
       {modalState.type === 'add' && (
         <AddProjectModal
           existingKeys={existingKeys}
-          onClose={() => setModalState({ type: 'none' })}
-          onSuccess={() => {
-            setModalState({ type: 'none' });
-            loadProjects();
-          }}
+          onClose={closeModal}
+          onSuccess={handleModalSuccess}
           onError={setError}
         />
       )}
@@ -203,11 +169,8 @@ export default function ProjectsPage() {
       {modalState.type === 'edit' && (
         <EditProjectModal
           project={modalState.project}
-          onClose={() => setModalState({ type: 'none' })}
-          onSuccess={() => {
-            setModalState({ type: 'none' });
-            loadProjects();
-          }}
+          onClose={closeModal}
+          onSuccess={handleModalSuccess}
           onError={setError}
         />
       )}

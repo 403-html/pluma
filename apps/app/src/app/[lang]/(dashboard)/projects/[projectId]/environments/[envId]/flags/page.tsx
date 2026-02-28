@@ -1,18 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useLocale } from '@/i18n/LocaleContext';
-import {
-  listFlagsForEnvironment,
-  deleteFlag,
-  toggleFlagEnabled,
-  type FlagEntry,
-} from '@/lib/api/flags';
 import EmptyState from '@/components/EmptyState';
 import { Flag } from 'lucide-react';
-import { getProject } from '@/lib/api/projects';
-import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableHead, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
@@ -21,12 +13,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { usePagination } from '@/hooks/usePagination';
 import { buildOrderedFlags } from '@/lib/flagUtils';
 import { FlagRow } from './FlagRow';
-
-type ModalState =
-  | { type: 'none' }
-  | { type: 'add' }
-  | { type: 'addSub'; parentFlag: { flagId: string; name: string; key: string } }
-  | { type: 'edit'; flag: FlagEntry };
+import { useFlags } from './useFlags';
 
 const PAGE_SIZE = 20;
 
@@ -35,107 +22,38 @@ export default function FlagsPage() {
   const params = useParams();
   const projectId = params.projectId as string;
   const envId = params.envId as string;
-  const [flags, setFlags] = useState<FlagEntry[]>([]);
-  const [projectName, setProjectName] = useState<string | null>(null);
-  const [envName, setEnvName] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
-  const existingKeys = useMemo(() => flags.map(flag => flag.key), [flags]);
+  const {
+    flags,
+    isLoading,
+    error,
+    modalState,
+    deletingId,
+    togglingIds,
+    projectName,
+    envName,
+    handleToggleFlag,
+    handleDeleteFlag,
+    handleAddFlag,
+    handleEditFlag,
+    openAddSubModal,
+    closeModal,
+    handleModalSuccess,
+    setDeletingId,
+    setError,
+  } = useFlags(envId, projectId);
+
+  const existingKeys = useMemo(() => flags.map((flag) => flag.key), [flags]);
   const orderedFlags = useMemo(() => buildOrderedFlags(flags), [flags]);
   const { currentPage, paginatedItems: paginatedOrdered, hasPrev, hasNext, goToPrev, goToNext } = usePagination(orderedFlags, PAGE_SIZE);
-
-  const loadFlags = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    const [flagsResult, projectResult, envsResult] = await Promise.all([
-      listFlagsForEnvironment(envId),
-      getProject(projectId),
-      listEnvironments(projectId),
-    ]);
-    if (flagsResult.ok) {
-      setFlags(flagsResult.flags);
-    } else {
-      setError(flagsResult.message);
-    }
-    if (projectResult.ok) {
-      setProjectName(projectResult.project.name);
-    }
-    if (envsResult.ok) {
-      const env = envsResult.environments.find(e => e.id === envId);
-      if (env) setEnvName(env.name);
-    }
-    setIsLoading(false);
-  }, [envId, projectId]);
-
-  useEffect(() => {
-    loadFlags();
-  }, [loadFlags]);
-
-  const handleToggle = useCallback(async (flagId: string, currentEnabled: boolean) => {
-    setTogglingIds(prev => new Set(prev).add(flagId));
-    setFlags(prev =>
-      prev.map(f => (f.flagId === flagId ? { ...f, enabled: !currentEnabled } : f))
-    );
-    const result = await toggleFlagEnabled(envId, flagId, !currentEnabled);
-    if (!result.ok) {
-      setFlags(prev =>
-        prev.map(f => (f.flagId === flagId ? { ...f, enabled: currentEnabled } : f))
-      );
-      setError(t.flags.toggleError);
-    }
-    setTogglingIds(prev => {
-      const next = new Set(prev);
-      next.delete(flagId);
-      return next;
-    });
-  }, [envId, t.flags.toggleError]);
-
-  const handleDelete = useCallback(async (id: string) => {
-    const result = await deleteFlag(id);
-    setDeletingId(null);
-    if (result.ok) {
-      await loadFlags();
-    } else {
-      setError(result.message);
-    }
-  }, [loadFlags]);
-
-  const handleDeleteStart = useCallback((id: string) => setDeletingId(id), []);
-  const handleDeleteCancel = useCallback(() => setDeletingId(null), []);
-
-  const handleAddFlag = useCallback(() => {
-    setError(null);
-    setModalState({ type: 'add' });
-  }, []);
-
-  const handleEditFlag = useCallback((flag: FlagEntry) => {
-    setError(null);
-    setModalState({ type: 'edit', flag });
-  }, []);
-
-  const handleAddSubFlag = useCallback((parentFlag: { flagId: string; name: string; key: string }) => {
-    setError(null);
-    setModalState({ type: 'addSub', parentFlag });
-  }, []);
-
-  const handleModalClose = useCallback(() => setModalState({ type: 'none' }), []);
-
-  const handleModalSuccess = useCallback(() => {
-    setModalState({ type: 'none' });
-    loadFlags();
-  }, [loadFlags]);
 
   if (isLoading) {
     return (
       <main className="p-8 h-screen flex flex-col overflow-hidden">
-        <PageHeader 
+        <PageHeader
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
-            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` }
+            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` },
           ]}
           title={envName ?? '…'}
         />
@@ -147,10 +65,10 @@ export default function FlagsPage() {
   if (error && flags.length === 0) {
     return (
       <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
-        <PageHeader 
+        <PageHeader
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
-            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` }
+            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` },
           ]}
           title={envName ?? '…'}
         />
@@ -161,10 +79,10 @@ export default function FlagsPage() {
 
   return (
     <main className="p-4 md:p-8 h-screen flex flex-col overflow-hidden">
-      <PageHeader 
+      <PageHeader
         breadcrumbs={[
           { label: t.projects.title, href: `/${locale}/projects` },
-          { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` }
+          { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` },
         ]}
         title={envName ?? '…'}
         actions={
@@ -200,12 +118,12 @@ export default function FlagsPage() {
                   indentPx={indentPx}
                   isDeleting={deletingId === flag.flagId}
                   isToggling={togglingIds.has(flag.flagId)}
-                  onToggle={handleToggle}
-                  onDeleteStart={handleDeleteStart}
-                  onDeleteCancel={handleDeleteCancel}
-                  onDelete={handleDelete}
+                  onToggle={handleToggleFlag}
+                  onDeleteStart={setDeletingId}
+                  onDeleteCancel={() => setDeletingId(null)}
+                  onDelete={handleDeleteFlag}
                   onEdit={handleEditFlag}
-                  onAddSub={handleAddSubFlag}
+                  onAddSub={openAddSubModal}
                 />
               ))}
             </TableBody>
@@ -230,7 +148,7 @@ export default function FlagsPage() {
         <AddFlagModal
           projectId={projectId}
           existingKeys={existingKeys}
-          onClose={handleModalClose}
+          onClose={closeModal}
           onSuccess={handleModalSuccess}
           onError={setError}
         />
@@ -241,7 +159,7 @@ export default function FlagsPage() {
           projectId={projectId}
           existingKeys={existingKeys}
           parentFlag={modalState.parentFlag}
-          onClose={handleModalClose}
+          onClose={closeModal}
           onSuccess={handleModalSuccess}
           onError={setError}
         />
@@ -251,7 +169,7 @@ export default function FlagsPage() {
         <EditFlagModal
           flag={modalState.flag}
           envId={envId}
-          onClose={handleModalClose}
+          onClose={closeModal}
           onSuccess={handleModalSuccess}
           onError={setError}
         />
