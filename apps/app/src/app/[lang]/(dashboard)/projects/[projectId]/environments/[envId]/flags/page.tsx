@@ -14,7 +14,7 @@ import { Flag } from 'lucide-react';
 import { getProject } from '@/lib/api/projects';
 import { listEnvironments } from '@/lib/api/environments';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { SwitchField } from '@/components/ui/switch';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { AddFlagModal } from './AddFlagModal';
 import { EditFlagModal } from './EditFlagModal';
@@ -216,11 +216,11 @@ export default function FlagsPage() {
                   </TableCell>
                   <TableCell className="px-3 py-3">{flag.description || '—'}</TableCell>
                   <TableCell className="px-3 py-3">
-                    <Switch
-                      id={`flag-toggle-${flag.flagId}`}
+                    <SwitchField
                       checked={flag.enabled}
-                      onChange={() => handleToggle(flag.flagId, flag.enabled)}
+                      onCheckedChange={() => handleToggle(flag.flagId, flag.enabled)}
                       label={flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}
+                      aria-label={`${flag.name}: ${flag.enabled ? t.flags.enabledLabel : t.flags.disabledLabel}`}
                     />
                   </TableCell>
                   <TableCell className="px-3 py-3 text-sm text-muted-foreground">

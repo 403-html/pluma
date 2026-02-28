@@ -7,6 +7,7 @@ import Modal from '@/components/Modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
+import { SwitchField } from '@/components/ui/switch';
 import { TargetingInput } from '@/components/TargetingInput';
 import { TargetingNotice } from '@/components/TargetingNotice';
 import { updateFlag, updateFlagConfig, type FlagEntry } from '@/lib/api/flags';
@@ -254,21 +255,17 @@ export function EditFlagModal({
             {/* ── Rollout percentage ──────────────────────────────── */}
             <div className="flex flex-col gap-2 mt-4">
               <h3 className="text-sm font-semibold">{t.flags.rolloutLabel}</h3>
-              <label className="flex items-center gap-2 cursor-pointer text-sm">
-                <input
-                  type="checkbox"
-                  id="flag-rollout-enabled"
-                  checked={rolloutEnabled}
-                  onChange={(e) => {
-                    setRolloutEnabled(e.target.checked);
-                    setRolloutError(null);
-                    if (!e.target.checked) setRolloutValue('');
-                  }}
-                  disabled={isSubmitting}
-                  className="cursor-pointer"
-                />
-                {t.flags.rolloutCheckboxLabel}
-              </label>
+              <SwitchField
+                id="flag-rollout-enabled"
+                checked={rolloutEnabled}
+                onCheckedChange={(checked) => {
+                  setRolloutEnabled(checked);
+                  setRolloutError(null);
+                  if (!checked) setRolloutValue('');
+                }}
+                disabled={isSubmitting}
+                label={t.flags.rolloutCheckboxLabel}
+              />
               {rolloutEnabled && (
                 <div className="flex flex-col gap-1">
                   <label htmlFor="flag-rollout-value" className="text-xs text-muted-foreground">
