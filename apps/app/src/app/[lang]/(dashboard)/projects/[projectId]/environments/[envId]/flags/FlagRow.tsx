@@ -15,10 +15,10 @@ interface FlagRowProps {
   indentPx: number;
   isDeleting: boolean;
   isToggling: boolean;
-  onToggle: (flagId: string, currentEnabled: boolean) => void;
+  onToggle: (flagId: string, currentEnabled: boolean) => Promise<void>;
   onDeleteStart: (flagId: string) => void;
   onDeleteCancel: () => void;
-  onDelete: (flagId: string) => void;
+  onDelete: (flagId: string) => Promise<void>;
   onEdit: (flag: FlagEntry) => void;
   onAddSub: (parentFlag: { flagId: string; name: string; key: string }) => void;
 }
