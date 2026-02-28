@@ -61,16 +61,23 @@ interface FilterSelectProps {
   options: { id: string; name: string }[];
 }
 
+// Radix Select forbids value="" (reserved to show the placeholder).
+// Use this sentinel internally and convert to/from the empty-string convention
+// that the rest of the filter state uses.
+const FILTER_ALL = '__all__';
+
 function FilterSelect({ id, label, value, onChange, disabled, allLabel, options }: FilterSelectProps) {
+  const radixValue = value === '' ? FILTER_ALL : value;
+  const handleChange = (v: string) => onChange(v === FILTER_ALL ? '' : v);
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="text-xs font-medium text-muted-foreground">{label}</label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <Select value={radixValue} onValueChange={handleChange} disabled={disabled}>
         <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder={allLabel} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">{allLabel}</SelectItem>
+          <SelectItem value={FILTER_ALL}>{allLabel}</SelectItem>
           {options.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
         </SelectContent>
       </Select>

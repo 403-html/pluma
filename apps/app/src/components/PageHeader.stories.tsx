@@ -61,24 +61,25 @@ export const WithFiltersAsActions: Story = {
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="project-filter" className="text-xs font-medium text-muted-foreground">Project</label>
-          <Select defaultValue="">
+          {/* Radix Select forbids value="" — use a sentinel for the "all" option */}
+          <Select defaultValue="__all__">
             <SelectTrigger id="project-filter">
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Projects</SelectItem>
+              <SelectItem value="__all__">All Projects</SelectItem>
               <SelectItem value="my-project">My Project</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="env-filter" className="text-xs font-medium text-muted-foreground">Environment</label>
-          <Select defaultValue="">
+          <Select defaultValue="__all__">
             <SelectTrigger id="env-filter">
               <SelectValue placeholder="All Environments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Environments</SelectItem>
+              <SelectItem value="__all__">All Environments</SelectItem>
               <SelectItem value="development">Development</SelectItem>
             </SelectContent>
           </Select>

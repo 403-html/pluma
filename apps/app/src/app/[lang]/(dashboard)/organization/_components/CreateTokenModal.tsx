@@ -32,6 +32,13 @@ interface CreateTokenModalProps {
   onCreated: (token: CreatedToken, projectName: string) => void;
 }
 
+// Radix Select forbids value="" (reserved for showing the placeholder).
+// Use a sentinel value internally and map back to the empty-string convention
+// that the rest of the modal state uses.
+const ENV_NONE = '__none__';
+const toRadixEnv = (v: string) => (v === '' ? ENV_NONE : v);
+const fromRadixEnv = (v: string) => (v === ENV_NONE ? '' : v);
+
 export default function CreateTokenModal({ labels, onClose, onCreated }: CreateTokenModalProps) {
   const [newKeyName, setNewKeyName] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -152,12 +159,16 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
           {isLoadingEnvs ? (
             <p className="text-sm text-muted-foreground">{labels.loadingEnvironments}</p>
           ) : (
-            <Select value={selectedEnvId} onValueChange={setSelectedEnvId} disabled={isCreating || !selectedProjectId}>
+            <Select
+              value={toRadixEnv(selectedEnvId)}
+              onValueChange={(v) => setSelectedEnvId(fromRadixEnv(v))}
+              disabled={isCreating || !selectedProjectId}
+            >
               <SelectTrigger id="api-key-env" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{labels.envPlaceholder}</SelectItem>
+                <SelectItem value={ENV_NONE}>{labels.envPlaceholder}</SelectItem>
                 {environments.map((env) => (
                   <SelectItem key={env.id} value={env.id}>
                     {env.name}
