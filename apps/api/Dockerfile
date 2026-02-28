@@ -89,7 +89,8 @@ RUN pnpm --filter @pluma/api build
 # ── Create the pruned production deployment directory ─────────────────────
 # pnpm deploy copies the package files and installs only production deps,
 # replacing workspace:* references with their built local packages.
-RUN pnpm --filter @pluma/api deploy --prod /app/deploy
+# --legacy is required in pnpm v10+ for workspaces without inject-workspace-packages=true.
+RUN pnpm --filter @pluma/api deploy --prod --legacy /app/deploy
 
 # ── Augment the deployment directory ─────────────────────────────────────
 # Copy Prisma schema + migrations so that:
