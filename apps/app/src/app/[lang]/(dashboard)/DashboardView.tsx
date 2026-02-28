@@ -30,6 +30,7 @@ const BAR_W = 60;
 const MAX_BAR_H = 76;
 const BASE_Y = 88; // y-coordinate of bar bottom
 const LABEL_Y = VIEW_H - 10;
+const MIN_BAR_H = 4; // minimum visible height for non-zero bars
 
 interface BarChartProps {
   dailyChanges: Array<{ date: string; count: number }>;
@@ -51,7 +52,7 @@ function BarChart({ dailyChanges, dayLabel, countLabel }: BarChartProps) {
       {dailyChanges.map((day, i) => {
         const barH = Math.max(
           Math.round((day.count / maxCount) * MAX_BAR_H),
-          day.count > 0 ? 4 : 0,
+          day.count > 0 ? MIN_BAR_H : 0,
         );
         const cx = i * BAR_SLOT + BAR_SLOT / 2;
         const barX = cx - BAR_W / 2;

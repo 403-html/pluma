@@ -41,7 +41,8 @@ export async function getDashboard(
 
     const data = (await response.json()) as DashboardData;
     return { ok: true, data };
-  } catch {
-    return { ok: false, message: 'Unable to reach the server' };
+  } catch (err) {
+    const message = err instanceof TypeError ? 'Unable to reach the server' : 'Failed to load dashboard data';
+    return { ok: false, message };
   }
 }

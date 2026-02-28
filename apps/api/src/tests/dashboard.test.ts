@@ -186,6 +186,7 @@ describe('Dashboard routes', () => {
       expect(prismaMock.auditLog.findMany).toHaveBeenCalledWith({
         where:  { createdAt: { gte: expectedSince } },
         select: { createdAt: true },
+        take:   10_000,
       });
     });
   });

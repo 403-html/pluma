@@ -79,6 +79,7 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       prisma.auditLog.findMany({
         where:  { createdAt: { gte: since7Days } },
         select: { createdAt: true },
+        take:   MAX_AUDIT_LOGS,
       }),
     ]);
 
