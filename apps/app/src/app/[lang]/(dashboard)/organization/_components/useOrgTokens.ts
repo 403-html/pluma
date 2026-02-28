@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import { listOrgTokens, revokeOrgToken, type SdkToken, type CreatedToken } from '@/lib/api/tokens';
+import { useLocale } from '@/i18n/LocaleContext';
 
 export interface OrgTokensState {
   tokens: SdkToken[];
@@ -20,6 +22,7 @@ export interface OrgTokensState {
 }
 
 export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
+  const { t } = useLocale();
   const [tokens, setTokens] = useState<SdkToken[]>([]);
   const [isLoadingTokens, setIsLoadingTokens] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -50,11 +53,14 @@ export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
     setRevokeError(null);
     const result = await revokeOrgToken(id);
     if (!result.ok) {
-      setRevokeError(result.message ?? revokeErrorMsg);
+      const msg = result.message ?? revokeErrorMsg;
+      setRevokeError(msg);
+      toast.error(msg);
       setPendingRevokeId(null);
       setIsRevoking(false);
       return;
     }
+    toast.success(t.organization.toastRevokeSuccess);
     setTokens((prev) => prev.filter((tk) => tk.id !== id));
     setPendingRevokeId(null);
     if (createdToken?.id === id) {

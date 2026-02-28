@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import { ThemeProvider, type Theme } from '@/components/ThemeContext';
+import { ToastProvider } from '@/components/ToastProvider';
 import { cookies } from 'next/headers';
 
 const THEME_COOKIE = 'pluma-theme';
@@ -37,6 +38,7 @@ export default async function RootLayout({
     <LocaleProvider locale={locale}>
       <ThemeProvider initialTheme={initialTheme}>
         {children}
+        <ToastProvider />
       </ThemeProvider>
     </LocaleProvider>
   );

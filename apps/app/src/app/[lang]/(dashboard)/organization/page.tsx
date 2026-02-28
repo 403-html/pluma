@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ export default function OrganizationPage() {
   const { currentPage: tokenPage, paginatedItems: paginatedTokens, hasPrev: hasTokenPrev, hasNext: hasTokenNext, goToPrev: goTokenPrev, goToNext: goTokenNext } = usePagination(tokens, PAGE_SIZE);
 
   function handleCreated(token: CreatedToken, projectName: string) {
+    toast.success(t.organization.toastCreateSuccess);
     setCreatedToken(token);
     setCreatedProjectName(projectName);
     setIsModalOpen(false);

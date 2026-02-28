@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import {
   listProjects,
   deleteProject,
   type ProjectSummary,
 } from '@/lib/api/projects';
+import { useLocale } from '@/i18n/LocaleContext';
 
 export type ProjectsModalState =
   | { type: 'none' }
@@ -27,6 +29,7 @@ export interface ProjectsState {
 }
 
 export function useProjects(): ProjectsState {
+  const { t } = useLocale();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,15 +54,18 @@ export function useProjects(): ProjectsState {
 
   const handleDeleteProject = useCallback(
     async (id: string) => {
-      const result = await deleteProject(id);
+      const toastPromise = deleteProject(id).then((result) => {
+        if (!result.ok) throw new Error(result.message ?? t.projects.deleteError);
+      });
+      await toast.promise(toastPromise, {
+        pending: t.projects.toastDeletePending,
+        success: t.projects.toastDeleteSuccess,
+        error: { render({ data }) { return (data as Error).message; } },
+      });
       setDeletingId(null);
-      if (result.ok) {
-        await loadProjects();
-      } else {
-        setError(result.message);
-      }
+      await loadProjects();
     },
-    [loadProjects],
+    [loadProjects, t.projects],
   );
 
   const openAddModal = useCallback(() => {
@@ -77,9 +83,11 @@ export function useProjects(): ProjectsState {
   }, []);
 
   const handleModalSuccess = useCallback(() => {
+    const msg = modalState.type === 'edit' ? t.projects.toastEditSuccess : t.projects.toastCreateSuccess;
+    toast.success(msg);
     setModalState({ type: 'none' });
     void loadProjects();
-  }, [loadProjects]);
+  }, [loadProjects, modalState.type, t.projects]);
 
   return {
     projects,

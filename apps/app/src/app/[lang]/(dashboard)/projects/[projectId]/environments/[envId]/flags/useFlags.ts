@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import {
   listFlagsForEnvironment,
   deleteFlag,
@@ -88,6 +89,9 @@ export function useFlags(envId: string, projectId: string): FlagsState {
           prev.map((f) => (f.flagId === flagId ? { ...f, enabled: currentEnabled } : f)),
         );
         setError(t.flags.toggleError);
+        toast.error(t.flags.toggleError);
+      } else {
+        toast.success(t.flags.toastToggleSuccess);
       }
       setTogglingIds((prev) => {
         const next = new Set(prev);
@@ -95,20 +99,23 @@ export function useFlags(envId: string, projectId: string): FlagsState {
         return next;
       });
     },
-    [envId, t.flags.toggleError],
+    [envId, t.flags],
   );
 
   const handleDeleteFlag = useCallback(
     async (id: string) => {
-      const result = await deleteFlag(id);
+      const toastPromise = deleteFlag(id).then((result) => {
+        if (!result.ok) throw new Error(result.message ?? t.flags.deleteError);
+      });
+      await toast.promise(toastPromise, {
+        pending: t.flags.toastDeletePending,
+        success: t.flags.toastDeleteSuccess,
+        error: { render({ data }) { return (data as Error).message; } },
+      });
       setDeletingId(null);
-      if (result.ok) {
-        await loadFlags();
-      } else {
-        setError(result.message);
-      }
+      await loadFlags();
     },
-    [loadFlags],
+    [loadFlags, t.flags],
   );
 
   const handleAddFlag = useCallback(() => {
@@ -138,9 +145,11 @@ export function useFlags(envId: string, projectId: string): FlagsState {
   }, []);
 
   const handleModalSuccess = useCallback(() => {
+    const msg = modalState.type === 'edit' ? t.flags.toastEditSuccess : t.flags.toastCreateSuccess;
+    toast.success(msg);
     setModalState({ type: 'none' });
     void loadFlags();
-  }, [loadFlags]);
+  }, [loadFlags, modalState.type, t.flags]);
 
   return {
     flags,

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { useLocale } from '@/i18n/LocaleContext';
 import {
   listEnvironments,
@@ -64,13 +65,16 @@ export default function EnvironmentsPage() {
   }, [loadEnvironments]);
 
   async function handleDelete(id: string) {
-    const result = await deleteEnvironment(id);
+    const toastPromise = deleteEnvironment(id).then((result) => {
+      if (!result.ok) throw new Error(result.message ?? t.environments.deleteError);
+    });
+    await toast.promise(toastPromise, {
+      pending: t.environments.toastDeletePending,
+      success: t.environments.toastDeleteSuccess,
+      error: { render({ data }) { return (data as Error).message; } },
+    });
     setDeletingId(null);
-    if (result.ok) {
-      await loadEnvironments();
-    } else {
-      setError(result.message);
-    }
+    await loadEnvironments();
   }
 
   if (isLoading) {
@@ -213,8 +217,9 @@ export default function EnvironmentsPage() {
           existingKeys={existingKeys}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
+            toast.success(t.environments.toastCreateSuccess);
             setModalState({ type: 'none' });
-            loadEnvironments();
+            void loadEnvironments();
           }}
           onError={setError}
         />
@@ -225,8 +230,9 @@ export default function EnvironmentsPage() {
           env={modalState.env}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {
+            toast.success(t.environments.toastEditSuccess);
             setModalState({ type: 'none' });
-            loadEnvironments();
+            void loadEnvironments();
           }}
           onError={setError}
         />
