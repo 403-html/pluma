@@ -22,13 +22,17 @@
 #   PORT               — (optional) HTTP port, defaults to 3000
 # ============================================================
 
+# pnpm version — single source of truth for all stages.
+ARG PNPM_VERSION=10.29.3
+
 # ─────────────────────────────────────────
 # Stage 1 — deps
 # Install the full workspace dependency tree.
 # ─────────────────────────────────────────
 FROM node:20-alpine AS deps
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+ARG PNPM_VERSION
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
@@ -59,7 +63,8 @@ RUN pnpm install --frozen-lockfile
 # ─────────────────────────────────────────
 FROM node:20-alpine AS builder
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+ARG PNPM_VERSION
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
@@ -96,9 +101,10 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Runtime value for next.config.ts rewrites(); override per-deployment.
-ARG NEXT_PUBLIC_API_URL=http://localhost:2137
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# Runtime value used by next.config.ts rewrites() on the server side.
+# Note: NEXT_PUBLIC_API_URL is baked into the client bundle at build time
+# (via the builder stage ARG). This ENV only affects server-side rewrites.
+ENV NEXT_PUBLIC_API_URL=http://localhost:2137
 ENV PORT=3000
 
 # Non-root user for security
@@ -124,7 +130,8 @@ COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next           ./apps
 # next.config.ts is read by `next start` to apply rewrites at runtime.
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/next.config.ts  ./apps/app/next.config.ts
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/package.json    ./apps/app/package.json
-# pnpm needs the workspace root manifest to resolve the start script
+# pnpm needs the workspace root manifest to resolve the start script.
+# Also copy packages/types source since next.config.ts uses transpilePackages.
 COPY --from=builder --chown=nextuser:nodejs /app/package.json             ./package.json
 COPY --from=builder --chown=nextuser:nodejs /app/pnpm-workspace.yaml      ./pnpm-workspace.yaml
 
@@ -134,5 +141,5 @@ WORKDIR /app/apps/app
 
 EXPOSE 3000
 
-# pnpm start → next start (reads scripts.start from apps/app/package.json)
-CMD ["pnpm", "start"]
+# Invoke next directly — no pnpm wrapper needed at runtime.
+CMD ["node_modules/.bin/next", "start"]

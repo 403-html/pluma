@@ -17,13 +17,17 @@
 # @pluma/types) are resolved from node_modules at runtime.
 # ============================================================
 
+# pnpm version — single source of truth for all stages.
+ARG PNPM_VERSION=10.29.3
+
 # ─────────────────────────────────────────
 # Stage 1 — deps
 # Install the full workspace dependency tree.
 # ─────────────────────────────────────────
 FROM node:20-alpine AS deps
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+ARG PNPM_VERSION
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
@@ -55,7 +59,8 @@ RUN pnpm install --frozen-lockfile
 # ─────────────────────────────────────────
 FROM node:20-alpine AS builder
 
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+ARG PNPM_VERSION
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
