@@ -108,6 +108,10 @@ ENV HOST=0.0.0.0
 
 COPY --from=builder --chown=node:node /app/deploy ./
 
+# pnpm deploy --prod follows .gitignore which excludes dist/; copy the
+# compiled API output explicitly so the entrypoint can run node dist/index.js.
+COPY --from=builder --chown=node:node /app/apps/api/dist ./dist
+
 COPY --link --chown=node:node apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
