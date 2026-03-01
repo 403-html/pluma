@@ -74,7 +74,6 @@ jobs:
       actions: write
 
     env:
-      API_URL: "http://localhost:2137"
       DATABASE_URL: "postgresql://pluma:pluma@localhost:5432/pluma?schema=public"
 
     steps:
