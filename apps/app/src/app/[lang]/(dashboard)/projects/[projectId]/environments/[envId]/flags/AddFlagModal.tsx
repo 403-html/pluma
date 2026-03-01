@@ -182,7 +182,7 @@ export function AddFlagModal({
         <div className="flex gap-3 justify-end mt-5">
           <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             onClick={onClose}
             disabled={isSubmitting}
           >

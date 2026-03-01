@@ -112,7 +112,6 @@ export function EditEnvironmentModal({
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={onClose}
             disabled={isSubmitting}
           >
