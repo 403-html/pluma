@@ -29,9 +29,7 @@ services:
     ports:
       - "2137:2137"
     environment:
-      DB_USER: ${DB_USER:-pluma}
-      DB_PASSWORD: ${DB_PASSWORD:-pluma}
-      DB_NAME: ${DB_NAME:-pluma}
+      DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@db:5432/${DB_NAME:-pluma}?schema=public
     depends_on:
       db:
         condition: service_healthy
@@ -89,7 +87,7 @@ import { PlumaSnapshotCache } from "@pluma/sdk";
 const client = PlumaSnapshotCache.create({
   baseUrl: "http://localhost:2137",
   token: "sdk_your_token_here", // from UI → Settings
-  ttlMs: 30_000, // optional; defaults to 30 000 ms (30 s)
+  ttlMs: 30_000, // optional; defaults to 30_000 ms (30 s)
 });
 
 const evaluator = await client.evaluator({ subjectKey: "user-123" });
@@ -99,7 +97,7 @@ if (evaluator.isEnabled("my-feature-flag")) {
 }
 ```
 
-`evaluator()` fetches a snapshot from `/sdk/v1/snapshot` and caches it for `ttlMs`. Call it once per request or reuse across calls as appropriate for your workload.
+`evaluator()` is async — it fetches a snapshot from `/sdk/v1/snapshot` on first call and caches it for `ttlMs`. Subsequent calls within the TTL window return from cache. Reuse the same `client` instance across requests to benefit from caching; the snapshot is not scoped to `subjectKey`.
 
 ## Contributing
 
