@@ -62,6 +62,9 @@ importers:
       '@pluma/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@prisma/client':
+        specifier: ^7.4.0
+        version: 7.4.0(prisma@7.4.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       bcryptjs:
         specifier: 3.0.3
         version: 3.0.3
