@@ -3,11 +3,11 @@ import type { NextRequest } from 'next/server';
 import { DEFAULT_LOCALE, isValidLocale } from '@/i18n';
 import type { Locale } from '@/i18n';
 
-if (typeof process.env.NEXT_PUBLIC_API_URL !== 'string' || process.env.NEXT_PUBLIC_API_URL.length === 0) {
-  throw new Error('NEXT_PUBLIC_API_URL environment variable is required and cannot be empty');
+if (typeof process.env.API_URL !== 'string' || process.env.API_URL.length === 0) {
+  throw new Error('API_URL environment variable is required and cannot be empty');
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL.trim();
+const API_URL = process.env.API_URL.trim();
 
 type RouteRule = { path: string; match: 'exact' | 'prefix' };
 

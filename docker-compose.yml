@@ -11,7 +11,7 @@
 #
 # Override defaults with env vars:
 #   DB_PASSWORD=secret docker compose up
-#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up
+#   API_URL=https://api.example.com docker compose up
 
 services:
 
@@ -65,8 +65,8 @@ services:
       - '3000:3000'
     environment:
       # "api" resolves to the api service on the shared compose network.
-      # Override with NEXT_PUBLIC_API_URL for external access (e.g. https://api.example.com).
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:2137}
+      # Override with API_URL for external access (e.g. https://api.example.com).
+      API_URL: ${API_URL:-http://api:2137}
       PORT: 3000
       NODE_ENV: production
 
