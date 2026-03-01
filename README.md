@@ -18,6 +18,11 @@ services:
       POSTGRES_DB: ${DB_NAME:-pluma}
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pluma} -d ${DB_NAME:-pluma}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     image: ghcr.io/403-html/pluma-api:latest
@@ -28,7 +33,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-pluma}
       DB_NAME: ${DB_NAME:-pluma}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   app:
     image: ghcr.io/403-html/pluma-app:latest
@@ -80,10 +86,10 @@ SDK tokens are created in the Pluma UI under **Settings**. Each token is scoped 
 ```ts
 import { PlumaSnapshotCache } from "@pluma/sdk";
 
-const client = await PlumaSnapshotCache.create({
+const client = PlumaSnapshotCache.create({
   baseUrl: "http://localhost:2137",
   token: "sdk_your_token_here", // from UI → Settings
-  ttlMs: 30_000, // optional, cache TTL in ms
+  ttlMs: 30_000, // optional; defaults to 30 000 ms (30 s)
 });
 
 const evaluator = await client.evaluator({ subjectKey: "user-123" });
