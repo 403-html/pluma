@@ -1,0 +1,118 @@
+# .github/workflows/release-sdk.yml
+#
+# SDK Release Pipeline
+#
+# Triggers when a tag matching sdk/v*.*.* is pushed (e.g. sdk/v1.0.0).
+# The sdk/ prefix keeps SDK releases independent from Docker/app releases so
+# the two release cadences do not interfere with each other.
+#
+# Release flow:
+#   1. Checkout the tagged commit.
+#   2. Install all workspace dependencies (frozen lockfile — tag must match
+#      the lock file already merged to the branch).
+#   3. Build @pluma/sdk (TypeScript → dist/).
+#   4. Publish the compiled package to the npm public registry.
+#
+# Tag format:
+#   sdk/v<semver>         — stable release   (e.g. sdk/v1.0.0)
+#   sdk/v<semver>-rc.N    — pre-release      (e.g. sdk/v1.1.0-rc.1)
+#
+# Required secrets:
+#   NPM_TOKEN — npm Automation token with publish rights to @pluma/sdk.
+#               Create at https://www.npmjs.com/settings/<user>/tokens
+#               and store as a repository secret named NPM_TOKEN.
+#
+# Required permissions:
+#   contents:  read  — checkout
+#   id-token:  write — OIDC token for npm provenance attestation
+
+name: "Release \u2014 SDK"
+
+on:
+  push:
+    tags:
+      - "sdk/v*.*.*"
+
+# Cancel any in-flight run for the same tag so a force-pushed tag does not
+# result in duplicate publishes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Node.js version — kept in sync with the CI workflow (ci.yml).
+  NODE_VERSION: "20"
+
+permissions:
+  contents: read
+  # id-token: write is required for npm provenance attestation via OIDC.
+  # See: https://docs.npmjs.com/generating-provenance-statements
+  id-token: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Build @pluma/sdk and publish to npm
+  # ─────────────────────────────────────────────────────────────────────────
+  publish-sdk:
+    name: Publish SDK to npm
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # pnpm/action-setup@v4 reads the `packageManager` field from the root
+      # package.json to determine the pnpm version — no explicit version key
+      # needed (and adding one would conflict with packageManager).
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      # registry-url configures an .npmrc that maps NODE_AUTH_TOKEN to the
+      # registry authentication header — required for `pnpm publish` to work.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      # Cache the pnpm content-addressable store so repeated SDK releases
+      # (e.g. patch bumps) do not re-download unchanged packages.
+      - name: Get pnpm store path
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Compile TypeScript → dist/ for @pluma/sdk only.
+      # Other workspace packages are not rebuilt here to keep the job fast.
+      - name: Build SDK
+        run: pnpm --filter @pluma/sdk build
+
+      # Publish the contents of packages/sdk (only the `dist/` directory, as
+      # declared in the `files` field of packages/sdk/package.json) to npm.
+      #
+      # Flags:
+      #   --no-git-checks  — skips the "working tree must be clean" guard;
+      #                      the install step modifies the pnpm store, which
+      #                      would otherwise trigger a false-positive dirty-
+      #                      tree error.
+      #   --access public  — required for scoped packages (@pluma/sdk) that
+      #                      do not declare `publishConfig.access` in their
+      #                      package.json.
+      #
+      # NODE_AUTH_TOKEN is read by the .npmrc written by actions/setup-node to
+      # authenticate the publish request against the npm registry.
+      - name: Publish to npm
+        run: pnpm --filter @pluma/sdk publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
