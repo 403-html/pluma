@@ -89,6 +89,38 @@ Run from repository root:
 - **Prisma type/client drift**: run `pnpm --filter @pluma/db db:generate` after pulling schema changes.
 - **Port already in use**: update `apps/api/.env` `PORT` value and restart dev servers.
 - **Workspace import issues**: rerun `pnpm install` at root to refresh workspace links.
+- **`docker run` can't reach database (`P1001`)**: `localhost` inside a container resolves to the container itself.
+  Use `docker compose up` (recommended), `host.docker.internal` on macOS/Windows, or `--network=host` on Linux.
+
+## Running with Docker
+
+The root `docker-compose.yml` runs the full stack — PostgreSQL, API, and frontend — on a shared compose network so services reach each other by name.
+
+```bash
+# Build and start everything
+docker compose up --build
+
+# API only (starts its postgres dependency automatically)
+docker compose up api
+
+# Override default credentials or API URL
+DB_PASSWORD=secret NEXT_PUBLIC_API_URL=http://api.example.com docker compose up
+```
+
+The API is available at `http://localhost:2137` and the UI at `http://localhost:3000`.
+
+If you prefer a standalone `docker run`, note that `localhost` resolves to the container itself — not the host machine:
+
+```bash
+# macOS / Windows (Docker Desktop provides host.docker.internal)
+docker run -e DATABASE_URL=postgresql://pluma:pluma@host.docker.internal:5432/pluma \
+           -p 2137:2137 pluma-api
+
+# Linux (--network=host exposes the port directly; -p is not needed)
+docker run --network=host \
+           -e DATABASE_URL=postgresql://pluma:pluma@localhost:5432/pluma \
+           pluma-api
+```
 
 ## Notes for Contributors
 

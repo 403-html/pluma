@@ -1,25 +1,66 @@
 # ============================================================
 # docker-compose.yml — monorepo root
 #
-# Runs the Pluma Next.js frontend as a Docker container.
+# Runs the full Pluma stack: PostgreSQL, API, and Next.js frontend.
 # Build context is the monorepo root so that workspace packages
 # (@pluma/types) are reachable during the build.
 #
-# The image is environment-agnostic — no API URL is baked in at build time.
-# Set NEXT_PUBLIC_API_URL at runtime to point the app at your Pluma API server.
-#
-# Required env var at runtime:
-#   NEXT_PUBLIC_API_URL — base URL of the Pluma API server, used by the
-#                         Next.js server for rewrites and middleware.
-#                         All usages are server-side only — never sent to
-#                         the browser. Default: http://localhost:2137
-#
 # Usage:
-#   docker compose up --build                                           # initial build
-#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up      # run with a different API (no rebuild needed)
+#   docker compose up --build          # first run (builds images)
+#   docker compose up                  # subsequent runs
+#   docker compose up api              # API + its postgres dependency only
+#
+# Override defaults with env vars:
+#   DB_PASSWORD=secret docker compose up
+#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up
 # ============================================================
 
 services:
+
+  # ──────────────────────────────────────────────────────────
+  # postgres
+  # Shared PostgreSQL 16 database.
+  # ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: pluma-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: ${DB_USER:-pluma}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pluma}
+      POSTGRES_DB: ${DB_NAME:-pluma}
+    volumes:
+      - pluma_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pluma']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────
+  # api
+  # Pluma Fastify API server.
+  # Waits for postgres to be healthy, then runs migrations and starts.
+  # ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: pluma-api:local
+    container_name: pluma-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '2137:2137'
+    environment:
+      # "postgres" resolves to the postgres service on the shared compose network.
+      DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@postgres:5432/${DB_NAME:-pluma}
+      PORT: 2137
+      NODE_ENV: production
 
   # ──────────────────────────────────────────────────────────
   # app
@@ -35,6 +76,12 @@ services:
     ports:
       - '3000:3000'
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:2137}
+      # "api" resolves to the api service on the shared compose network.
+      # Override with NEXT_PUBLIC_API_URL for external access (e.g. https://api.example.com).
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:2137}
       PORT: 3000
       NODE_ENV: production
+
+volumes:
+  pluma_postgres_data:
+    name: pluma_postgres_data

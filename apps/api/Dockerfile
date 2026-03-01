@@ -7,11 +7,24 @@
 #
 #   docker build -f apps/api/Dockerfile -t pluma-api .
 #
-# Required env var at runtime:
-#   DATABASE_URL  PostgreSQL connection string
-#                 e.g. postgresql://<user>:<pass>@<host>/<db>
+# Recommended: use Docker Compose so the API and database share a
+# network and DATABASE_URL can reference the postgres service by name:
 #
-#   docker run -e DATABASE_URL=<url> -p 2137:2137 pluma-api
+#   docker compose up --build
+#
+# Standalone docker run: `localhost` resolves to the container itself,
+# not the host machine. Use the appropriate host for your platform:
+#
+#   # macOS / Windows — Docker Desktop provides host.docker.internal:
+#   docker run -e DATABASE_URL=postgresql://user:pass@host.docker.internal:5432/db \
+#              -p 2137:2137 pluma-api
+#
+#   # Linux — use --network=host so localhost works as expected.
+#   # Port mapping (-p) is ignored with --network=host; the port is
+#   # exposed directly on the host interface:
+#   docker run --network=host \
+#              -e DATABASE_URL=postgresql://user:pass@localhost:5432/db \
+#              pluma-api
 # ============================================================
 
 # ─────────────────────────────────────────
