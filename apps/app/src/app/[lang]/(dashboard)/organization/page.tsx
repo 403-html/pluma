@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export default function OrganizationPage() {
   const {
     tokens, isLoadingTokens, loadError,
     createdToken, createdProjectName,
-    pendingRevokeId, revokeError, isRevoking,
+    pendingRevokeId, isRevoking,
     fetchTokens, setCreatedToken, setCreatedProjectName,
     setPendingRevokeId, handleRevoke,
   } = useOrgTokens(org.revokeError);
@@ -32,6 +33,7 @@ export default function OrganizationPage() {
   const { currentPage: tokenPage, paginatedItems: paginatedTokens, hasPrev: hasTokenPrev, hasNext: hasTokenNext, goToPrev: goTokenPrev, goToNext: goTokenNext } = usePagination(tokens, PAGE_SIZE);
 
   function handleCreated(token: CreatedToken, projectName: string) {
+    toast.success(t.organization.toastCreateSuccess);
     setCreatedToken(token);
     setCreatedProjectName(projectName);
     setIsModalOpen(false);
@@ -53,13 +55,6 @@ export default function OrganizationPage() {
             {org.newApiKey}
           </Button>
         </div>
-
-        {revokeError && (
-          <div role="alert" className="mb-4 flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            <AlertCircle size={15} aria-hidden="true" />
-            {revokeError}
-          </div>
-        )}
 
         {createdToken && (
           <TokenRevealBanner

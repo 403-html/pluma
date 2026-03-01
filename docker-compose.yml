@@ -1,0 +1,40 @@
+# ============================================================
+# docker-compose.yml — monorepo root
+#
+# Runs the Pluma Next.js frontend as a Docker container.
+# Build context is the monorepo root so that workspace packages
+# (@pluma/types) are reachable during the build.
+#
+# The image is environment-agnostic — no API URL is baked in at build time.
+# Set NEXT_PUBLIC_API_URL at runtime to point the app at your Pluma API server.
+#
+# Required env var at runtime:
+#   NEXT_PUBLIC_API_URL — base URL of the Pluma API server, used by the
+#                         Next.js server for rewrites and middleware.
+#                         All usages are server-side only — never sent to
+#                         the browser. Default: http://localhost:2137
+#
+# Usage:
+#   docker compose up --build                                           # initial build
+#   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up      # run with a different API (no rebuild needed)
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────────────────────────
+  # app
+  # Pluma Next.js frontend.
+  # ──────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: apps/app/Dockerfile
+    image: pluma-app:local
+    container_name: pluma-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:2137}
+      PORT: 3000
+      NODE_ENV: production
