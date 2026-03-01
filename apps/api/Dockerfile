@@ -9,7 +9,7 @@
 #
 # Required env var at runtime:
 #   DATABASE_URL  PostgreSQL connection string
-#                 e.g. postgresql://user:pass@host/db
+#                 e.g. postgresql://<user>:<pass>@<host>/<db>
 #
 #   docker run -e DATABASE_URL=<url> -p 2137:2137 pluma-api
 # ============================================================
