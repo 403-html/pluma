@@ -13,9 +13,9 @@
 #
 # Required env vars at runtime:
 #   API_URL — base URL of the Pluma API, used by the Next.js
-#             server for rewrites (next.config.ts) and middleware
-#             (proxy.ts). All usages are server-side only —
-#             the value is never sent to the browser.
+#             server-side route handlers to proxy API requests at
+#             runtime. All usages are server-side only — the value
+#             is never sent to the browser.
 #   PORT    — (optional) HTTP port, defaults to 3000
 # ============================================================
 
