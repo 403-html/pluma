@@ -103,6 +103,8 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=2137
+ENV HOST=0.0.0.0
 
 COPY --from=builder --chown=node:node /app/deploy ./
 
