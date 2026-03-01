@@ -126,12 +126,12 @@ export async function changePassword(
 
 /**
  * Server-side only: verifies the current session by calling GET /api/v1/auth/me
- * with a forwarded Cookie header. Requires NEXT_PUBLIC_API_URL to be set.
+ * with a forwarded Cookie header. Requires API_URL to be set.
  */
 export async function checkSession(cookieHeader: string): Promise<boolean> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env.API_URL;
   if (!apiUrl) {
-    console.error('[checkSession] NEXT_PUBLIC_API_URL is not set');
+    console.error('[checkSession] API_URL is not set');
     return false;
   }
   try {

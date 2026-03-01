@@ -89,6 +89,16 @@ Run from repository root:
 - **Prisma type/client drift**: run `pnpm --filter @pluma/db db:generate` after pulling schema changes.
 - **Port already in use**: update `apps/api/.env` `PORT` value and restart dev servers.
 - **Workspace import issues**: rerun `pnpm install` at root to refresh workspace links.
+- **`docker run` can't reach database (`P1001`)**: `localhost` inside a container resolves to the container itself.
+  Use `docker compose up` (recommended), `host.docker.internal` on macOS/Windows, or `--network=host` on Linux.
+
+## Running with Docker
+
+```bash
+docker compose up --build
+```
+
+The API is available at `http://localhost:2137` and the UI at `http://localhost:3000`.
 
 ## Notes for Contributors
 

@@ -62,6 +62,9 @@ importers:
       '@pluma/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@prisma/client':
+        specifier: ^7.4.0
+        version: 7.4.0(prisma@7.4.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       bcryptjs:
         specifier: 3.0.3
         version: 3.0.3
@@ -74,6 +77,9 @@ importers:
       http-status-codes:
         specifier: 2.3.0
         version: 2.3.0
+      prisma:
+        specifier: ^7.4.0
+        version: 7.4.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -214,6 +220,9 @@ importers:
       pg:
         specifier: ^8.18.0
         version: 8.18.0
+      prisma:
+        specifier: ^7.4.0
+        version: 7.4.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
     devDependencies:
       '@types/bcryptjs':
         specifier: ^2.4.6
@@ -224,9 +233,6 @@ importers:
       '@types/pg':
         specifier: ^8.16.0
         version: 8.16.0
-      prisma:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
