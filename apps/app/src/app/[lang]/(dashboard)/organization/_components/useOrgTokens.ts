@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import { listOrgTokens, revokeOrgToken, type SdkToken, type CreatedToken } from '@/lib/api/tokens';
+import { useLocale } from '@/i18n/LocaleContext';
 
 export interface OrgTokensState {
   tokens: SdkToken[];
@@ -10,7 +12,6 @@ export interface OrgTokensState {
   createdToken: CreatedToken | null;
   createdProjectName: string;
   pendingRevokeId: string | null;
-  revokeError: string | null;
   isRevoking: boolean;
   fetchTokens: () => Promise<void>;
   setCreatedToken: (token: CreatedToken | null) => void;
@@ -20,13 +21,13 @@ export interface OrgTokensState {
 }
 
 export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
+  const { t } = useLocale();
   const [tokens, setTokens] = useState<SdkToken[]>([]);
   const [isLoadingTokens, setIsLoadingTokens] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [createdToken, setCreatedToken] = useState<CreatedToken | null>(null);
   const [createdProjectName, setCreatedProjectName] = useState('');
   const [pendingRevokeId, setPendingRevokeId] = useState<string | null>(null);
-  const [revokeError, setRevokeError] = useState<string | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
 
   const fetchTokens = useCallback(async () => {
@@ -47,14 +48,14 @@ export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
 
   async function handleRevoke(id: string) {
     setIsRevoking(true);
-    setRevokeError(null);
     const result = await revokeOrgToken(id);
     if (!result.ok) {
-      setRevokeError(result.message ?? revokeErrorMsg);
+      toast.error(result.message ?? revokeErrorMsg);
       setPendingRevokeId(null);
       setIsRevoking(false);
       return;
     }
+    toast.success(t.organization.toastRevokeSuccess);
     setTokens((prev) => prev.filter((tk) => tk.id !== id));
     setPendingRevokeId(null);
     if (createdToken?.id === id) {
@@ -70,7 +71,6 @@ export function useOrgTokens(revokeErrorMsg: string): OrgTokensState {
     createdToken,
     createdProjectName,
     pendingRevokeId,
-    revokeError,
     isRevoking,
     fetchTokens,
     setCreatedToken,

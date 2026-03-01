@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { toastErrorRender } from '@/lib/toastUtils';
 import { useLocale } from '@/i18n/LocaleContext';
 import { changePassword } from '@/lib/api/auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -14,26 +16,25 @@ export default function SettingsPage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
-    setMessage(null);
     setIsChangingPassword(true);
 
-    try {
-      const result = await changePassword(oldPassword, newPassword, locale);
+    const toastPromise = changePassword(oldPassword, newPassword, locale).then((result) => {
+      if (!result.ok) throw new Error(result.message ?? t.settings.changePasswordError);
+    });
 
-      if (result.ok) {
-        setMessage({ type: 'success', text: t.settings.changePasswordSuccess });
-        setOldPassword('');
-        setNewPassword('');
-      } else {
-        setMessage({
-          type: 'error',
-          text: result.message ?? t.settings.changePasswordError,
-        });
-      }
+    try {
+      await toast.promise(toastPromise, {
+        pending: t.settings.toastPasswordPending,
+        success: t.settings.changePasswordSuccess,
+        error: { render: toastErrorRender },
+      });
+      setOldPassword('');
+      setNewPassword('');
+    } catch {
+      // error already shown via toast.promise — no additional handling needed
     } finally {
       setIsChangingPassword(false);
     }
@@ -79,12 +80,6 @@ export default function SettingsPage() {
               disabled={isChangingPassword}
             />
           </div>
-
-          {message && (
-            <div className={message.type === 'success' ? 'text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2' : 'text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2'}>
-              {message.text}
-            </div>
-          )}
 
           <Button type="submit" disabled={isChangingPassword}>
             {isChangingPassword ? t.settings.changePasswordLoading : t.settings.changePassword}

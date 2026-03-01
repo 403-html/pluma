@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getDictionary, SUPPORTED_LOCALES, resolveLocale } from '@/i18n';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import { ThemeProvider, type Theme } from '@/components/ThemeContext';
+import { ToastProvider } from '@/components/ToastProvider';
 import { cookies } from 'next/headers';
 
 const THEME_COOKIE = 'pluma-theme';
@@ -30,6 +31,7 @@ export default async function RootLayout({
 }>) {
   const { lang } = await params;
   const locale = resolveLocale(lang);
+  const t = getDictionary(locale);
   const cookieStore = await cookies();
   const raw = cookieStore.get(THEME_COOKIE)?.value;
   const initialTheme: Theme = (raw === 'light' || raw === 'dark' || raw === 'system') ? raw : 'system';
@@ -37,6 +39,7 @@ export default async function RootLayout({
     <LocaleProvider locale={locale}>
       <ThemeProvider initialTheme={initialTheme}>
         {children}
+        <ToastProvider ariaLabel={t.ui.toastContainerLabel} />
       </ThemeProvider>
     </LocaleProvider>
   );
