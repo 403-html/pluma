@@ -25,26 +25,57 @@ const STRIPPED_RES_HEADERS: ReadonlySet<string> = new Set([
 // HTTP methods that carry a request body.
 const METHODS_WITH_BODY: ReadonlySet<string> = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-export type ProxyContext = { params: Promise<{ path: string[] }> };
+/**
+ * Reads the request body in chunks, aborting as soon as the cumulative size
+ * exceeds maxBytes. Returns null when the limit is exceeded so the caller
+ * can return a 413 without having buffered the full oversized payload.
+ * The loop is bounded: at MAX_BODY_BYTES / chunk_size iterations at most.
+ */
+async function readBodyWithLimit(
+  body: ReadableStream<Uint8Array>,
+  maxBytes: number,
+): Promise<ArrayBuffer | null> {
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const combined = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return combined.buffer;
+}
 
 /**
  * Forwards a Next.js request to the upstream API server and streams the response back.
  * Reads API_URL at request time so it can be injected at container runtime.
  */
-export async function createProxyHandler(
-  request: NextRequest,
-  context: ProxyContext,
-  prefix: string,
-): Promise<NextResponse> {
+export async function createProxyHandler(request: NextRequest): Promise<NextResponse> {
   const apiUrl = process.env.API_URL;
   if (typeof apiUrl !== 'string' || apiUrl.length === 0) {
     return NextResponse.json({ error: 'API not configured' }, { status: 502 });
   }
 
-  await context.params;
-  const requestPathname = request.nextUrl.pathname.replace(/^\/+/, '');
-  const upstreamPath = `${requestPathname}${request.nextUrl.search}`;
-  const target = new URL(upstreamPath, apiUrl);
+  // Derive the upstream URL from the request pathname to preserve percent-encoding.
+  const target = new URL(request.nextUrl.pathname, apiUrl);
+  target.search = request.nextUrl.search;
 
   const reqHeaders = new Headers();
   request.headers.forEach((value, key) => {
@@ -54,15 +85,19 @@ export async function createProxyHandler(
   });
 
   let body: ArrayBuffer | undefined;
-  if (METHODS_WITH_BODY.has(request.method)) {
-    const contentLength = parseInt(request.headers.get('content-length') ?? '0', 10);
-    if (contentLength > MAX_BODY_BYTES) {
+  if (METHODS_WITH_BODY.has(request.method) && request.body) {
+    // Reject known-large bodies immediately before reading any bytes.
+    const contentLength = parseInt(request.headers.get('content-length') ?? '', 10);
+    if (!isNaN(contentLength) && contentLength > MAX_BODY_BYTES) {
       return NextResponse.json({ error: 'Request too large' }, { status: 413 });
     }
-    body = await request.arrayBuffer();
-    if (body.byteLength > MAX_BODY_BYTES) {
+    // Stream the body in chunks so we abort as soon as MAX_BODY_BYTES is exceeded
+    // rather than buffering the entire oversized payload first.
+    const buf = await readBodyWithLimit(request.body, MAX_BODY_BYTES);
+    if (buf === null) {
       return NextResponse.json({ error: 'Request too large' }, { status: 413 });
     }
+    body = buf;
   }
 
   let upstream: Response;

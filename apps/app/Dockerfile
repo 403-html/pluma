@@ -72,8 +72,8 @@ COPY --from=deps /app/ ./
 # directories restored above are not overwritten.
 COPY . .
 
-# next.config.ts throws if API_URL is empty or missing.
-# We use a placeholder so the build needs no real API URL.
+# The Next.js middleware (src/proxy.ts) reads API_URL at module scope.
+# A placeholder is provided so `next build` succeeds without a real API URL.
 # This value ONLY exists in this stage; the runner stage sets its own
 # ENV API_URL=http://localhost:2137 default (overridden at container runtime).
 ARG PLACEHOLDER_API_URL=http://placeholder.invalid
@@ -100,7 +100,7 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 WORKDIR /app
 
 ENV NODE_ENV=production
-# API_URL is read by next.config.ts rewrites() and middleware at server startup.
+# API_URL is read by route handlers and middleware at request time.
 # All usages are server-side only — the value is never sent to the browser.
 # Override at runtime: docker run -e API_URL=https://api.example.com ...
 ENV API_URL=http://localhost:2137
@@ -126,7 +126,7 @@ COPY --from=builder --chown=nextuser:nodejs /app/apps/app/node_modules    ./apps
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next           ./apps/app/.next
 
 # ── Runtime configuration ────────────────────────────────────────────
-# next.config.ts is read by `next start` to apply rewrites at runtime.
+# next.config.ts is loaded by `next start` at server startup.
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/next.config.ts  ./apps/app/next.config.ts
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/package.json    ./apps/app/package.json
 # pnpm needs the workspace root manifest to resolve the start script.
