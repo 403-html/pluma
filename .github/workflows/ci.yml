@@ -163,3 +163,85 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+  # ─────────────────────────────────────────────
+  # Job 4 — Pack test  (requires build ✓)
+  # Packs @pluma/types and @pluma/sdk into tarballs
+  # and installs them in an isolated directory to
+  # verify they work as external npm consumers would.
+  # ─────────────────────────────────────────────
+  pack-test:
+    name: Pack test
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Get pnpm store path
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Pack @pluma/types and @pluma/sdk
+        run: |
+          mkdir -p /tmp/packs
+          pnpm --filter @pluma/types pack --pack-destination /tmp/packs
+          pnpm --filter @pluma/sdk pack --pack-destination /tmp/packs
+
+      - name: Run pack smoke test
+        run: |
+          TYPES_TGZ=$(ls /tmp/packs/pluma-types-*.tgz | head -1)
+          SDK_TGZ=$(ls /tmp/packs/pluma-sdk-*.tgz | head -1)
+
+          mkdir /tmp/smoke-test
+          cat > /tmp/smoke-test/smoke.mjs << 'EOF'
+          import { PlumaSnapshotCache } from '@pluma/sdk';
+          import { MAX_EMAIL_LENGTH } from '@pluma/types';
+          if (typeof PlumaSnapshotCache.create !== 'function') {
+            throw new Error('PlumaSnapshotCache.create is not a function');
+          }
+          if (typeof MAX_EMAIL_LENGTH !== 'number' || MAX_EMAIL_LENGTH <= 0) {
+            throw new Error('MAX_EMAIL_LENGTH is not a positive number');
+          }
+          const cache = PlumaSnapshotCache.create({ baseUrl: 'https://pluma.example.com', token: 'test-token' });
+          if (!(cache instanceof PlumaSnapshotCache)) {
+            throw new Error('PlumaSnapshotCache.create() did not return a PlumaSnapshotCache instance');
+          }
+          if (typeof cache.evaluator !== 'function') {
+            throw new Error('cache.evaluator is not a function');
+          }
+          console.log('Pack smoke test passed.');
+          EOF
+
+          cd /tmp/smoke-test
+          npm install --no-package-lock "${TYPES_TGZ}" "${SDK_TGZ}"
+          node smoke.mjs
