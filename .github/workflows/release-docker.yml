@@ -1,44 +1,10 @@
-# .github/workflows/release-docker.yml
-#
-# Docker Release Pipeline
-#
-# Triggers when a tag matching v*.*.* is pushed (e.g. v1.2.3, v2.0.0-rc.1).
-# Builds the pluma-api and pluma-app Docker images in parallel using their
-# existing multi-stage Dockerfiles, then pushes both to GitHub Container
-# Registry (GHCR).
-#
-# Image names:
-#   ghcr.io/<owner>/pluma-api
-#   ghcr.io/<owner>/pluma-app
-#
-# Tags produced per image:
-#   v{{version}}         — full semver from the tag  (e.g. v1.2.3)
-#   v{{major}}.{{minor}} — minor-pinned alias         (e.g. v1.2)
-#   latest               — stable releases only (tags without a pre-release
-#                          segment, i.e. no hyphen in the tag name)
-#   sha-<short>          — immutable git SHA reference
-#
-# Build context: monorepo root (required by the multi-package Dockerfiles).
-# DATABASE_URL is passed as a build-arg placeholder so that any layer that
-# references it during `pnpm install` / `prisma generate` succeeds without
-# a real database connection.
-#
-# Required secrets:
-#   GITHUB_TOKEN — auto-provided by Actions; used for GHCR authentication
-#
-# Required permissions:
-#   contents: read  — checkout
-#   packages: write — push images to GHCR
-
-name: "Release \u2014 Docker"
+name: "Release — Docker"
 
 on:
   push:
     tags:
       - "v*.*.*"
 
-# Cancel any in-flight run for the same tag so a force-pushed tag
-# does not result in two simultaneous image pushes.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -48,10 +14,6 @@ permissions:
   packages: write
 
 jobs:
-  # ─────────────────────────────────────────────────────────────────────────
-  # Job 1 — Build and push pluma-api image
-  # Dockerfile: apps/api/Dockerfile  |  Build context: repo root
-  # ─────────────────────────────────────────────────────────────────────────
   release-api:
     name: Release API image
     runs-on: ubuntu-latest
@@ -60,12 +22,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Enable multi-platform builds and advanced BuildKit features (layer
-      # caching, inline cache manifests, etc.).
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Authenticate to GHCR with the built-in GITHUB_TOKEN — no extra secret needed.
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -73,16 +32,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Derive the full set of image tags and OCI labels from the git tag.
-      # type=semver   — produces v{{version}} and v{{major}}.{{minor}}
-      # type=raw      — adds `latest` only for stable (non-pre-release) tags.
-      #                 Semver §9 mandates that pre-release identifiers are
-      #                 always hyphen-separated (e.g. v1.2.3-rc.1, v2.0.0-beta.2).
-      #                 Checking for '-' in the tag name is therefore the correct,
-      #                 spec-compliant way to distinguish stable from pre-release
-      #                 — more precise than a keyword list (rc/beta/alpha), which
-      #                 would silently miss patterns like v1.2.3-pre.1.
-      # type=sha      — immutable short-SHA tag (sha-<7-char>)
       - name: Extract image metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -94,12 +43,6 @@ jobs:
             type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
             type=sha
 
-      # Build from the monorepo root so the Dockerfile can COPY files from
-      # any workspace package.
-      # DATABASE_URL is forwarded as a build-arg placeholder — the Dockerfile
-      # already defaults it via ENV, but passing it here satisfies any CI
-      # lint rule that expects the value to be explicitly provided.
-      # GHA cache is used to accelerate layer rebuilds across tag pushes.
       - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
@@ -113,11 +56,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ─────────────────────────────────────────────────────────────────────────
-  # Job 2 — Build and push pluma-app image
-  # Dockerfile: apps/app/Dockerfile  |  Build context: repo root
-  # Runs in parallel with release-api.
-  # ─────────────────────────────────────────────────────────────────────────
   release-app:
     name: Release App image
     runs-on: ubuntu-latest
@@ -137,8 +75,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract image metadata
-        # Same tag/label derivation as the API job above; see that block
-        # for a full explanation of each tag type and the pre-release check.
         id: meta
         uses: docker/metadata-action@v5
         with:
