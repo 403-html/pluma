@@ -41,10 +41,10 @@ export async function createProxyHandler(
     return NextResponse.json({ error: 'API not configured' }, { status: 502 });
   }
 
-  const { path } = await context.params;
-  const segments = path.join('/');
-  const target = new URL(`/${prefix}/${segments}`, apiUrl);
-  target.search = request.nextUrl.search;
+  await context.params;
+  const requestPathname = request.nextUrl.pathname.replace(/^\/+/, '');
+  const upstreamPath = `${requestPathname}${request.nextUrl.search}`;
+  const target = new URL(upstreamPath, apiUrl);
 
   const reqHeaders = new Headers();
   request.headers.forEach((value, key) => {
