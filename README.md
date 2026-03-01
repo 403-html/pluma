@@ -1,107 +1,103 @@
 # Pluma
 
-Self-hosted feature flag system built as a pnpm monorepo.
+Self-hosted feature flag system — manage flags via a web UI and evaluate them in your application with a lightweight SDK.
 
-Pluma has two API planes:
+## Running with Docker Compose
 
-- **Admin API** (`/api/v1/*`): authenticated management endpoints for projects, environments, flags, tokens, and config.
-- **SDK API** (`/sdk/v1/*`): read-only snapshot endpoints authenticated with SDK tokens.
+Pluma ships as pre-built Docker images. No build step required.
 
-## Monorepo Architecture
+**1. Create a `docker-compose.yml`:**
 
-- `apps/app` - Next.js UI for operators ([README](apps/app/README.md))
-- `apps/api` - Fastify API server (Admin + SDK routes)
-- `packages/db` - Prisma + PostgreSQL schema, migrations, and client package
-- `packages/sdk` - npm SDK package
-- `packages/types` - shared TypeScript types and schemas
+```yaml
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER:-pluma}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pluma}
+      POSTGRES_DB: ${DB_NAME:-pluma}
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
-## Prerequisites
+  api:
+    image: ghcr.io/403-html/pluma-api:latest
+    ports:
+      - "2137:2137"
+    environment:
+      DB_USER: ${DB_USER:-pluma}
+      DB_PASSWORD: ${DB_PASSWORD:-pluma}
+      DB_NAME: ${DB_NAME:-pluma}
+    depends_on:
+      - db
 
-- Node.js (current LTS recommended)
-- pnpm `10.29.3+`
-- Docker (for local PostgreSQL)
+  app:
+    image: ghcr.io/403-html/pluma-app:latest
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: ${API_URL:-http://api:2137}
+    depends_on:
+      - api
 
-## First-Time Setup
-
-1. Install dependencies at repo root:
-
-    ```bash
-    pnpm install
-    ```
-
-2. Bootstrap database from `packages/db`:
-
-    ```bash
-    cd packages/db
-    docker-compose up -d
-    cp .env.example .env
-    pnpm db:generate
-    pnpm db:migrate
-    pnpm db:seed   # optional
-    cd ../..
-    ```
-
-3. Create app env files:
-
-    ```bash
-    cp apps/api/.env.example apps/api/.env
-    cp apps/app/.env.example apps/app/.env
-    ```
-
-## Common Workflows
-
-### Root Commands
-
-Run from repository root:
-
-- `pnpm dev` - run all workspace `dev` scripts
-- `pnpm build` - build all workspaces
-- `pnpm lint` - lint repository
-- `pnpm test` - run workspace tests
-
-### Package-Specific Examples
-
-- `pnpm --filter @pluma/api dev` - run API only
-- `pnpm --filter @pluma/app dev` - run UI only
-- `pnpm --filter @pluma/sdk test` - run SDK tests
-- `pnpm --filter @pluma/db db:studio` - open Prisma Studio
-
-### Database Workflow (`packages/db`)
-
-- `pnpm db:generate` - regenerate Prisma client
-- `pnpm db:migrate` - create/apply migration in development
-- `pnpm db:push` - push schema without migration files (quick local iteration)
-- `pnpm db:migrate:deploy` - apply committed migrations (deployment)
-
-## Environment Variables
-
-- Keep environment files local; do not commit `.env` files.
-- Templates:
-  - `apps/api/.env.example`
-  - `apps/app/.env.example`
-  - `packages/db/.env.example`
-- `apps/api` and `packages/db` both use `DATABASE_URL` for PostgreSQL connection.
-- If running UI and API together, ensure API `PORT` does not conflict with the UI dev port.
-
-## Troubleshooting
-
-- **Database connection errors**: verify Docker is running and PostgreSQL container is healthy (`cd packages/db && docker-compose ps`).
-- **Prisma type/client drift**: run `pnpm --filter @pluma/db db:generate` after pulling schema changes.
-- **Port already in use**: update `apps/api/.env` `PORT` value and restart dev servers.
-- **Workspace import issues**: rerun `pnpm install` at root to refresh workspace links.
-- **`docker run` can't reach database (`P1001`)**: `localhost` inside a container resolves to the container itself.
-  Use `docker compose up` (recommended), `host.docker.internal` on macOS/Windows, or `--network=host` on Linux.
-
-## Running with Docker
-
-```bash
-docker compose up --build
+volumes:
+  db_data:
 ```
 
-The API is available at `http://localhost:2137` and the UI at `http://localhost:3000`.
+**2. Start the stack:**
 
-## Notes for Contributors
+```bash
+docker compose up -d
+```
 
-- Keep changes inside package boundaries; share cross-package contracts via `@pluma/types`.
-- If schema changes are introduced, commit generated migration files under `packages/db/prisma/migrations`.
-- Validate before opening PRs with: `pnpm lint && pnpm test && pnpm build`.
+- **UI** → [http://localhost:3000](http://localhost:3000)
+- **API** → [http://localhost:2137](http://localhost:2137)
+
+### Environment Variables
+
+| Variable      | Default              | Description                                      |
+|---------------|----------------------|--------------------------------------------------|
+| `DB_USER`     | `pluma`              | PostgreSQL username                              |
+| `DB_PASSWORD` | `pluma`              | PostgreSQL password                              |
+| `DB_NAME`     | `pluma`              | PostgreSQL database name                         |
+| `API_URL`     | `http://api:2137`    | API base URL (override when API is external)     |
+
+> **Production:** set `DB_PASSWORD` to a strong value and override `API_URL` if the API is publicly accessible.
+
+## SDK
+
+### Install
+
+```bash
+npm install @pluma/sdk
+# or
+pnpm add @pluma/sdk
+```
+
+### Usage
+
+SDK tokens are created in the Pluma UI under **Settings**. Each token is scoped to a project and environment.
+
+```ts
+import { PlumaSnapshotCache } from "@pluma/sdk";
+
+const client = await PlumaSnapshotCache.create({
+  baseUrl: "http://localhost:2137",
+  token: "sdk_your_token_here", // from UI → Settings
+  ttlMs: 30_000, // optional, cache TTL in ms
+});
+
+const evaluator = await client.evaluator({ subjectKey: "user-123" });
+
+if (evaluator.isEnabled("my-feature-flag")) {
+  // feature is enabled for this subject
+}
+```
+
+`evaluator()` fetches a snapshot from `/sdk/v1/snapshot` and caches it for `ttlMs`. Call it once per request or reuse across calls as appropriate for your workload.
+
+## Contributing
+
+- Full development setup (Node.js, pnpm, Prisma, local DB) is documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+- The stack is a pnpm monorepo: `apps/api` (Fastify), `apps/app` (Next.js), `packages/sdk`, `packages/db`, `packages/types`.
+- Lint, test, and build must pass before opening a PR.
+- Keep cross-package contracts in `@pluma/types`; commit migration files when the schema changes.
