@@ -78,18 +78,20 @@ RUN pnpm --filter @pluma/api build
 # --legacy is required in pnpm v10+ for workspaces without inject-workspace-packages=true.
 RUN pnpm --filter @pluma/api deploy --prod --legacy /app/deploy
 
-# Copy Prisma schema, migrations, and config so the entrypoint can run `prisma migrate deploy`.
-# prisma.config.ts is required by Prisma 7 to resolve DATABASE_URL at runtime.
+# Copy Prisma schema, migrations, and config into the deploy directory so:
+# - `prisma generate` (run below) finds the schema.
+# - `prisma migrate deploy` (run by the entrypoint) finds the migrations.
+# - `prisma.config.ts` lets the Prisma 7 CLI resolve DATABASE_URL at runtime.
 RUN cp -r packages/db/prisma /app/deploy/prisma && \
     cp packages/db/prisma.config.ts /app/deploy/prisma.config.ts
 
-# Copy the pre-generated Prisma client into the deployment directory.
-# pnpm's virtual-store layout places the generated client inside the store entry
-# for @prisma/client; follow the symlink and navigate up two levels to find .prisma/.
-RUN src=$(readlink -f packages/db/node_modules/@prisma/client) && \
-    prisma_dir="$(dirname "$(dirname "$src")")/.prisma" && \
-    [ -d "$prisma_dir" ] || { echo "ERROR: $prisma_dir not found — was prisma generate run?"; exit 1; } && \
-    cp -r "$prisma_dir" /app/deploy/node_modules/.prisma
+# Re-generate the Prisma client inside the deploy directory so the generated
+# code resolves @prisma/client/runtime/client.js against the @prisma/client
+# that is actually installed there.  Copying the pre-built client from the
+# pnpm virtual store breaks because that client was generated against the
+# monorepo-root virtual-store layout, not the flat deploy/node_modules layout.
+RUN cd /app/deploy && \
+    DATABASE_URL=postgresql://placeholder node_modules/.bin/prisma generate
 
 # Stage 4 — runner
 # Minimal production image.
