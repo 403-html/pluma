@@ -73,8 +73,10 @@ RUN pnpm --filter @pluma/api build
 # --legacy is required in pnpm v10+ for workspaces without inject-workspace-packages=true.
 RUN pnpm --filter @pluma/api deploy --prod --legacy /app/deploy
 
-# Copy Prisma schema + migrations so the entrypoint can run `prisma migrate deploy`.
-RUN cp -r packages/db/prisma /app/deploy/prisma
+# Copy Prisma schema, migrations, and config so the entrypoint can run `prisma migrate deploy`.
+# prisma.config.ts is required by Prisma 7 to resolve DATABASE_URL at runtime.
+RUN cp -r packages/db/prisma /app/deploy/prisma && \
+    cp packages/db/prisma.config.ts /app/deploy/prisma.config.ts
 
 # Copy the pre-generated Prisma client into the deployment directory.
 # pnpm's virtual-store layout places the generated client inside the store entry
