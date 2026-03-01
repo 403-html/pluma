@@ -1,4 +1,3 @@
-# ============================================================
 # docker-compose.yml — monorepo root
 #
 # Runs the full Pluma stack: PostgreSQL, API, and Next.js frontend.
@@ -13,14 +12,10 @@
 # Override defaults with env vars:
 #   DB_PASSWORD=secret docker compose up
 #   NEXT_PUBLIC_API_URL=https://api.example.com docker compose up
-# ============================================================
 
 services:
 
-  # ──────────────────────────────────────────────────────────
-  # postgres
-  # Shared PostgreSQL 16 database.
-  # ──────────────────────────────────────────────────────────
+  # postgres — shared PostgreSQL 16 database
   postgres:
     image: postgres:16-alpine
     container_name: pluma-postgres
@@ -34,16 +29,12 @@ services:
     volumes:
       - pluma_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U pluma']
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER']
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ──────────────────────────────────────────────────────────
-  # api
-  # Pluma Fastify API server.
-  # Waits for postgres to be healthy, then runs migrations and starts.
-  # ──────────────────────────────────────────────────────────
+  # api — Pluma Fastify API server; waits for postgres to be healthy
   api:
     build:
       context: .
@@ -62,10 +53,7 @@ services:
       PORT: 2137
       NODE_ENV: production
 
-  # ──────────────────────────────────────────────────────────
-  # app
-  # Pluma Next.js frontend.
-  # ──────────────────────────────────────────────────────────
+  # app — Pluma Next.js frontend
   app:
     build:
       context: .

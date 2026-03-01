@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-# ============================================================
 # apps/api/Dockerfile
 #
 # Multi-stage build for the Pluma API (Fastify).
@@ -25,11 +24,8 @@
 #   docker run --network=host \
 #              -e DATABASE_URL=postgresql://user:pass@localhost:5432/db \
 #              pluma-api
-# ============================================================
 
-# ─────────────────────────────────────────
 # Stage 1 — base
-# ─────────────────────────────────────────
 FROM node:22-alpine AS base
 
 # Resolve pnpm from the `packageManager` field in the root package.json.
@@ -37,10 +33,8 @@ RUN corepack enable
 
 WORKDIR /app
 
-# ─────────────────────────────────────────
 # Stage 2 — deps
 # Install the full workspace dependency tree.
-# ─────────────────────────────────────────
 FROM base AS deps
 
 # Copy workspace manifests — pnpm needs every package.json to resolve the lockfile.
@@ -63,10 +57,8 @@ ENV DATABASE_URL=postgresql://placeholder
 
 RUN pnpm install --frozen-lockfile
 
-# ─────────────────────────────────────────
 # Stage 3 — builder
 # Build all workspace packages and create the pruned deployment directory.
-# ─────────────────────────────────────────
 FROM base AS builder
 
 COPY --from=deps /app ./
@@ -99,10 +91,8 @@ RUN src=$(readlink -f packages/db/node_modules/@prisma/client) && \
     [ -d "$prisma_dir" ] || { echo "ERROR: $prisma_dir not found — was prisma generate run?"; exit 1; } && \
     cp -r "$prisma_dir" /app/deploy/node_modules/.prisma
 
-# ─────────────────────────────────────────
 # Stage 4 — runner
 # Minimal production image.
-# ─────────────────────────────────────────
 FROM node:22-alpine AS runner
 
 LABEL org.opencontainers.image.title="Pluma API"
