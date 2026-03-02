@@ -177,6 +177,22 @@ describe('Feature Flag routes', () => {
       );
     });
 
+    it('should return 400 when the composed sub-flag key exceeds 100 characters', async () => {
+      const longParentKey = 'a'.repeat(95); // 95 chars; suffix 'v2' → composed = 98 + dot = 99, fine; use 99 to force overflow
+      const parentFlag = { ...mockFlag, key: longParentKey };
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.findUnique.mockResolvedValue({ ...parentFlag, parentFlagId: null }); // no depth issue
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mockProject.key}/flags`,
+        payload: { key: 'toolongkey', name: 'Too Long', parentFlagId: FLAG_ID }, // 95 + 1 + 10 = 106 > 100
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 404 when parentFlagId does not exist', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
       prismaMock.featureFlag.findUnique.mockResolvedValue(null);

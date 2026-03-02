@@ -135,6 +135,14 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
       }
 
       composedKey = `${parentFlag.key}.${parsedBody.data.key}`;
+
+      if (composedKey.length > 100) {
+        request.log.warn(
+          { composedKey, length: composedKey.length },
+          'POST /projects/:projectId/flags rejected: composed key exceeds maximum length of 100',
+        );
+        return reply.badRequest('Composed flag key exceeds the maximum length of 100 characters.');
+      }
     }
 
     try {
