@@ -63,7 +63,7 @@ export function EditProjectModal({
     e.preventDefault();
     setIsSubmitting(true);
 
-    const result = await updateProject(project.id, { key, name });
+    const result = await updateProject(project.key, { key, name });
     if (result.ok) {
       onSuccess();
     } else {

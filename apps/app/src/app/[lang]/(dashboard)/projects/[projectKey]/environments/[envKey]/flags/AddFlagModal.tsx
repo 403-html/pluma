@@ -174,26 +174,31 @@ export function AddFlagModal({
           </label>
 
           {parentFlag ? (
-            <div className="flex items-stretch">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 py-2 text-sm text-muted-foreground select-none shrink-0">
-                {parentFlag.key}.
-              </span>
-              <div className="flex-1 min-w-0 [&_input]:rounded-l-none [&>div]:rounded-l-none">
-                <ProjectKeyField
-                  id="flag-key"
-                  value={key}
-                  isEditing={isKeyEditing}
-                  error={keyError}
-                  disabled={isSubmitting}
-                  placeholder={t.flags.keyPlaceholder}
-                  editBtnLabel={t.flags.keyEditBtnLabel}
-                  hint={!isKeyCustomized && key ? t.flags.keyAutoHint : undefined}
-                  onEditStart={handleEditKey}
-                  onChange={handleKeyChange}
-                  onBlur={handleKeyBlur}
-                />
+            <>
+              <div className="flex items-stretch">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 py-2 text-sm text-muted-foreground select-none shrink-0">
+                  {parentFlag.key}.
+                </span>
+                <div className="flex-1 min-w-0 [&_input]:rounded-l-none [&>div]:rounded-l-none">
+                  <ProjectKeyField
+                    id="flag-key"
+                    value={key}
+                    isEditing={isKeyEditing}
+                    error={keyError}
+                    disabled={isSubmitting}
+                    placeholder={t.flags.keyPlaceholder}
+                    editBtnLabel={t.flags.keyEditBtnLabel}
+                    copyValue={buildComposedKey(key)}
+                    onEditStart={handleEditKey}
+                    onChange={handleKeyChange}
+                    onBlur={handleKeyBlur}
+                  />
+                </div>
               </div>
-            </div>
+              {!isKeyCustomized && key && !keyError && (
+                <p className="text-xs text-muted-foreground">{t.flags.keyAutoHint}</p>
+              )}
+            </>
           ) : (
             <ProjectKeyField
               id="flag-key"

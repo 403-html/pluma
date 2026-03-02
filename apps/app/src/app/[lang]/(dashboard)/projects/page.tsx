@@ -90,7 +90,7 @@ export default function ProjectsPage() {
                           type="button"
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteProject(project.id)}
+                          onClick={() => handleDeleteProject(project.key)}
                         >
                           {t.projects.confirmDeleteBtn}
                         </Button>
