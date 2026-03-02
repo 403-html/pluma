@@ -1,8 +1,8 @@
 'use client';
 
 import { useLocale } from '@/i18n/LocaleContext';
-import type { AuditLogEntry } from '@pluma/types';
-import type { ProjectSummary } from '@pluma/types';
+import type { AuditLogEntry } from '@pluma-flags/types';
+import type { ProjectSummary } from '@pluma-flags/types';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
 import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';

@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { randomBytes, createHash } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 import { TOKEN_BYTES, TOKEN_PREFIX, TOKEN_PREFIX_LENGTH } from '../../lib/tokenConstants';

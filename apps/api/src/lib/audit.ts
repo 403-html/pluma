@@ -1,5 +1,5 @@
-import { prisma, type Prisma } from '@pluma/db';
-import type { AuditAction, AuditEntityType } from '@pluma/types';
+import { prisma, type Prisma } from '@pluma-flags/db';
+import type { AuditAction, AuditEntityType } from '@pluma-flags/types';
 
 export interface AuditParams {
   action: AuditAction;

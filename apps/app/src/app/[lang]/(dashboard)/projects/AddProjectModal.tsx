@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
-import { MAX_PROJECT_KEY_LENGTH } from '@pluma/types';
+import { MAX_PROJECT_KEY_LENGTH } from '@pluma-flags/types';
 import Modal from '@/components/Modal';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
 import { createProject } from '@/lib/api/projects';

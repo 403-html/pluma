@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
-import { MAX_PARENT_DEPTH } from '@pluma/types';
+import { prisma } from '@pluma-flags/db';
+import { MAX_PARENT_DEPTH } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 

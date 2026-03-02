@@ -56,7 +56,7 @@ const { prismaMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
+vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
 
 /**
  * Derived from the TOKEN_PREFIX constant ('pluma_sdk_') used in route files.

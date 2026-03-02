@@ -56,10 +56,10 @@ importers:
       '@fastify/sensible':
         specifier: ^6.0.4
         version: 6.0.4
-      '@pluma/db':
+      '@pluma-flags/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@pluma/types':
+      '@pluma-flags/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@prisma/client':
@@ -99,7 +99,7 @@ importers:
 
   apps/app:
     dependencies:
-      '@pluma/types':
+      '@pluma-flags/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@radix-ui/react-select':
@@ -202,7 +202,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@pluma/types':
+      '@pluma-flags/types':
         specifier: workspace:*
         version: link:../types
       '@prisma/adapter-pg':
@@ -242,7 +242,7 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@pluma/types':
+      '@pluma-flags/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:

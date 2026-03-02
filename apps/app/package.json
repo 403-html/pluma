@@ -1,5 +1,5 @@
 {
-  "name": "@pluma/app",
+  "name": "@pluma-flags/app",
   "license": "Apache-2.0",
   "type": "module",
   "private": true,
@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@pluma/types": "workspace:*",
+    "@pluma-flags/types": "workspace:*",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",

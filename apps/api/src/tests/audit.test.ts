@@ -15,7 +15,7 @@ const { prismaMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
+vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
 
 describe('Audit routes', () => {
   let app: FastifyInstance;

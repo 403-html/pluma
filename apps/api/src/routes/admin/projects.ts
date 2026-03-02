@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
-import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH, PROJECT_KEY_REGEX } from '@pluma/types';
+import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
 import { writeAuditLog } from '../../lib/audit';
 
 const PAGE_SIZE = 100;

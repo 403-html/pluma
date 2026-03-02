@@ -53,7 +53,7 @@ const { prismaMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@pluma/db', () => ({
+vi.mock('@pluma-flags/db', () => ({
   prisma: prismaMock,
 }));
 

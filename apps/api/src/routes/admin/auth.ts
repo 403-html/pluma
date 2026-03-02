@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
-import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, MAX_EMAIL_LENGTH } from '@pluma/types';
+import { prisma } from '@pluma-flags/db';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, MAX_EMAIL_LENGTH } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days

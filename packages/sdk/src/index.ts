@@ -1,5 +1,5 @@
-import type { Snapshot, SnapshotFlag } from '@pluma/types';
-import { MAX_PARENT_DEPTH } from '@pluma/types';
+import type { Snapshot, SnapshotFlag } from '@pluma-flags/types';
+import { MAX_PARENT_DEPTH } from '@pluma-flags/types';
 
 export type { Snapshot, SnapshotFlag };
 
@@ -86,7 +86,7 @@ export class PlumaSnapshotCache {
     const subjectKey = options.subjectKey;
 
     // Maximum parent-chain depth per evaluation. Shared with the API's creation
-    // guard via MAX_PARENT_DEPTH from @pluma/types so both sides use the same limit.
+    // guard via MAX_PARENT_DEPTH from @pluma-flags/types so both sides use the same limit.
 
     // Evaluates a flag key following the precedence chain:
     //   denyList → allowList (additive grant) → rolloutPercentage (null = skipped) → parent inheritance → base enabled state.

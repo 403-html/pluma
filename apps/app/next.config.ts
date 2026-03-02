@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@pluma/types'],
+  transpilePackages: ['@pluma-flags/types'],
 };
 
 export default nextConfig;

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import AuditPage from './page';
 import { LocaleProvider } from '@/i18n/LocaleContext';
 import type { AuditPage as AuditPageData } from '@/lib/api/audit';
-import type { ProjectSummary } from '@pluma/types';
+import type { ProjectSummary } from '@pluma-flags/types';
 
 const mockProjects: ProjectSummary[] = [
   {

@@ -1,5 +1,5 @@
 {
-  "name": "@pluma/sdk",
+  "name": "@pluma-flags/sdk",
   "license": "Apache-2.0",
   "version": "0.1.0",
   "type": "module",
@@ -26,6 +26,6 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@pluma/types": "workspace:*"
+    "@pluma-flags/types": "workspace:*"
   }
 }

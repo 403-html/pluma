@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 import { createHash } from 'crypto';
 
 /**
@@ -12,7 +12,7 @@ import { createHash } from 'crypto';
  *
  * ## When to use
  * - Route is under `/sdk/v1/*`
- * - The caller is a non-human client (a backend app, the `@pluma/sdk` package, etc.)
+ * - The caller is a non-human client (a backend app, the `@pluma-flags/sdk` package, etc.)
  * - Authentication is via `Authorization: Bearer <pluma_sdk_…>` header
  *
  * ## What it rejects (→ 401)

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
 const PAGE_SIZE = 50;
