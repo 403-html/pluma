@@ -23,7 +23,7 @@ const projectUpdateBodySchema = z
   });
 
 const projectParamsSchema = z.object({
-  id: z.string().min(1).max(100),
+  id: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).regex(PROJECT_KEY_REGEX, 'Invalid project key format'),
 });
 
 export async function registerProjectRoutes(fastify: FastifyInstance) {

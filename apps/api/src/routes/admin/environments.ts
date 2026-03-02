@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
 import { writeAuditLog } from '../../lib/audit';
 
 const envBodySchema = z.object({
@@ -20,7 +21,7 @@ const envUpdateBodySchema = z
   });
 
 const projectParamsSchema = z.object({
-  projectId: z.string().min(1).max(100),
+  projectId: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).regex(PROJECT_KEY_REGEX, 'Invalid project key format'),
 });
 
 const envParamsSchema = z.object({
