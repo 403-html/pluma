@@ -18,7 +18,7 @@ export default function Modal({ titleId, title, onClose, children, size = 'sm' }
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
     >
       <div
-        className={`bg-card border border-border rounded-lg p-6 w-full shadow-2xl max-h-[90vh] overflow-y-auto ${size === 'lg' ? 'max-w-2xl' : 'max-w-sm'}`}
+        className={`bg-card border border-border rounded-lg p-6 w-full shadow-2xl max-h-[90vh] overflow-y-auto ${size === 'lg' ? 'max-w-2xl' : 'max-w-sm'} [&_button]:h-9 [&_button]:px-4 [&_button]:py-0 [&_button]:min-h-0`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
