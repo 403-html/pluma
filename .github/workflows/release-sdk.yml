@@ -50,14 +50,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Set package version from tag
+      - name: Verify tag version matches package.json
         run: |
           VERSION="${GITHUB_REF_NAME#sdk/v}"
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
             echo "Invalid version extracted from tag: '$VERSION'" >&2
             exit 1
           fi
-          pnpm --filter @pluma/sdk pkg set version="$VERSION"
+          PKG_VERSION="$(node -e "console.log(JSON.parse(require('fs').readFileSync('packages/sdk/package.json', 'utf8')).version)")"
+          if [ "$VERSION" != "$PKG_VERSION" ]; then
+            echo "Tag version '$VERSION' does not match packages/sdk/package.json version '$PKG_VERSION'" >&2
+            exit 1
+          fi
 
       - name: Build SDK
         run: pnpm --filter @pluma/sdk build
