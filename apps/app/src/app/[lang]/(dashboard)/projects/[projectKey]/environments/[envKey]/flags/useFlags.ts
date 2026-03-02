@@ -85,7 +85,7 @@ export function useFlags(envKey: string, projectKey: string): FlagsState {
       }
     }
     setIsLoading(false);
-  }, [envKey, projectKey]);
+  }, [envKey, projectKey, t.environments]);
 
   useEffect(() => {
     void loadFlags();

@@ -74,6 +74,10 @@ export function AddFlagModal({
     setKeyError(null);
   }
 
+  function buildComposedKey(suffix: string): string {
+    return parentFlag ? `${parentFlag.key}.${suffix}` : suffix;
+  }
+
   function handleKeyBlur() {
     const trimmedKey = key.trim();
 
@@ -89,7 +93,11 @@ export function AddFlagModal({
       setKeyError(t.flags.keyInvalid);
       return;
     }
-    const composedKey = parentFlag ? `${parentFlag.key}.${trimmedKey}` : trimmedKey;
+    const composedKey = buildComposedKey(trimmedKey);
+    if (composedKey.length > MAX_PROJECT_KEY_LENGTH) {
+      setKeyError(t.flags.keyTooLong);
+      return;
+    }
     if (existingKeys.includes(composedKey)) {
       setKeyError(t.flags.keyDuplicate);
       return;
@@ -113,7 +121,7 @@ export function AddFlagModal({
       setKeyError(t.flags.keyInvalid);
       return;
     }
-    const composedKey = parentFlag ? `${parentFlag.key}.${key}` : key;
+    const composedKey = buildComposedKey(key);
     if (existingKeys.includes(composedKey)) {
       setKeyError(t.flags.keyDuplicate);
       return;
