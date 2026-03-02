@@ -26,8 +26,11 @@ const thumbVariants = cva(
   {
     variants: {
       size: {
+        // h-4 w-4 (vs the old h-5 w-5) gives 2 px breathing room inside the h-6 track,
+        // preventing the oblate half-fill appearance in the OFF state; translate-x-6 = 24 px
+        // = inner-width(40) − thumb(16) keeps the thumb flush at the right edge when ON.
         default:
-          "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
+          "h-4 w-4 data-[state=checked]:translate-x-6 data-[state=unchecked]:translate-x-0",
         sm: "h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0",
       },
     },
