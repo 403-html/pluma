@@ -219,10 +219,11 @@ jobs:
 
       - name: Run pack smoke test
         run: |
-          TYPES_TGZ=$(ls /tmp/packs/pluma-types-*.tgz | head -1)
-          SDK_TGZ=$(ls /tmp/packs/pluma-sdk-*.tgz | head -1)
+          TYPES_TGZ=$(ls /tmp/packs/pluma-flags-types-*.tgz | head -1)
+          SDK_TGZ=$(ls /tmp/packs/pluma-flags-sdk-*.tgz | head -1)
 
           mkdir /tmp/smoke-test
+          cd /tmp/smoke-test && npm init -y && cd -
           cat > /tmp/smoke-test/smoke.mjs << 'EOF'
           import { PlumaSnapshotCache } from '@pluma-flags/sdk';
           import { MAX_EMAIL_LENGTH } from '@pluma-flags/types';
