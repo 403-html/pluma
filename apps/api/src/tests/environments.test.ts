@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  PROJECT_ID, ENV_ID, FLAG_ID, AUTH_COOKIE,
+  ENV_ID, FLAG_ID, AUTH_COOKIE,
   mockSession, mockProject, mockEnvironment,
 } from './fixtures';
 
@@ -88,7 +88,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -111,7 +111,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -125,7 +125,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -135,7 +135,7 @@ describe('Environment routes', () => {
     it('should return 401 when no session cookie', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
       });
 
       expect(response.statusCode).toBe(401);
@@ -149,7 +149,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         payload: { key: mockEnvironment.key, name: mockEnvironment.name },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -164,7 +164,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         payload: { key: 'staging', name: 'Staging' },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -178,7 +178,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         payload: { key: 'staging', name: 'Staging' },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -191,7 +191,7 @@ describe('Environment routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/environments`,
+        url: `/api/v1/projects/${mockProject.key}/environments`,
         payload: {},
         headers: { cookie: AUTH_COOKIE },
       });

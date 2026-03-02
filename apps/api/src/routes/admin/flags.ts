@@ -26,7 +26,7 @@ const flagUpdateBodySchema = z
   );
 
 const projectParamsSchema = z.object({
-  projectId: z.uuid(),
+  projectId: z.string().min(1).max(100),
 });
 
 const flagParamsSchema = z.object({
@@ -46,7 +46,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: parsedParams.data.projectId },
+      where: { key: parsedParams.data.projectId },
     });
 
     if (!project) {
@@ -55,7 +55,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     }
 
     return prisma.featureFlag.findMany({
-      where: { projectId: parsedParams.data.projectId },
+      where: { projectId: project.id },
       orderBy: { createdAt: 'desc' },
     });
   });
@@ -78,13 +78,15 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: parsedParams.data.projectId },
+      where: { key: parsedParams.data.projectId },
     });
 
     if (!project) {
       request.log.warn({ projectId: parsedParams.data.projectId }, 'POST /projects/:projectId/flags rejected: project not found');
       return reply.notFound(ReasonPhrases.NOT_FOUND);
     }
+
+    let composedKey = parsedBody.data.key;
 
     if (parsedBody.data.parentFlagId !== undefined) {
       const parentFlag = await prisma.featureFlag.findUnique({
@@ -96,7 +98,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
-      if (parentFlag.projectId !== parsedParams.data.projectId) {
+      if (parentFlag.projectId !== project.id) {
         request.log.warn(
           { parentFlagId: parsedBody.data.parentFlagId, parentProjectId: parentFlag.projectId, projectId: parsedParams.data.projectId },
           'POST /projects/:projectId/flags rejected: parent flag belongs to a different project',
@@ -131,14 +133,16 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         }
         cursor = ancestor;
       }
+
+      composedKey = `${parentFlag.key}.${parsedBody.data.key}`;
     }
 
     try {
       const flag = await prisma.$transaction(async (tx) => {
         const created = await tx.featureFlag.create({
           data: {
-            projectId: parsedParams.data.projectId,
-            key: parsedBody.data.key,
+            projectId: project.id,
+            key: composedKey,
             name: parsedBody.data.name,
             description: parsedBody.data.description,
             parentFlagId: parsedBody.data.parentFlagId,
@@ -146,7 +150,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
         });
 
         await tx.environment.updateMany({
-          where: { projectId: parsedParams.data.projectId },
+          where: { projectId: project.id },
           data: { configVersion: { increment: 1 } },
         });
 

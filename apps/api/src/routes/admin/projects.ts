@@ -23,7 +23,7 @@ const projectUpdateBodySchema = z
   });
 
 const projectParamsSchema = z.object({
-  id: z.uuid(),
+  id: z.string().min(1).max(100),
 });
 
 export async function registerProjectRoutes(fastify: FastifyInstance) {
@@ -48,7 +48,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
     }
 
     const project = await prisma.project.findUnique({
-      where: { id: parsedParams.data.id },
+      where: { key: parsedParams.data.id },
     });
 
     if (!project) {
@@ -114,7 +114,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
     try {
       const project = await prisma.project.update({
-        where: { id: parsedParams.data.id },
+        where: { key: parsedParams.data.id },
         data: parsedBody.data,
       });
 
@@ -160,7 +160,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
     try {
       const project = await prisma.project.findUnique({
-        where: { id: parsedParams.data.id },
+        where: { key: parsedParams.data.id },
       });
 
       if (!project) {
@@ -169,7 +169,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
       }
 
       await prisma.project.delete({
-        where: { id: parsedParams.data.id },
+        where: { key: parsedParams.data.id },
       });
 
       try {

@@ -20,7 +20,7 @@ const envUpdateBodySchema = z
   });
 
 const projectParamsSchema = z.object({
-  projectId: z.uuid(),
+  projectId: z.string().min(1).max(100),
 });
 
 const envParamsSchema = z.object({
@@ -43,7 +43,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       }
 
       const project = await prisma.project.findUnique({
-        where: { id: parsedParams.data.projectId },
+        where: { key: parsedParams.data.projectId },
       });
 
       if (!project) {
@@ -53,14 +53,14 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
 
       const [environments, totalFlags] = await Promise.all([
         prisma.environment.findMany({
-          where: { projectId: parsedParams.data.projectId },
+          where: { projectId: project.id },
           orderBy: { createdAt: 'asc' },
           include: {
             flagConfigs: { where: { enabled: true }, select: { flagId: true } },
           },
         }),
         prisma.featureFlag.count({
-          where: { projectId: parsedParams.data.projectId },
+          where: { projectId: project.id },
         }),
       ]);
 
@@ -98,7 +98,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       }
 
       const project = await prisma.project.findUnique({
-        where: { id: parsedParams.data.projectId },
+        where: { key: parsedParams.data.projectId },
       });
 
       if (!project) {
@@ -109,7 +109,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       try {
         const environment = await prisma.environment.create({
           data: {
-            projectId: parsedParams.data.projectId,
+            projectId: project.id,
             key: parsedBody.data.key,
             name: parsedBody.data.name,
           },
