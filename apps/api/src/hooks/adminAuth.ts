@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 
 /**
  * Fastify preHandler hook for the Admin API (`/api/v1/*`).

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { listAuditLog, type AuditFilters, type AuditPage as AuditPageData } from '@/lib/api/audit';
-import type { ProjectSummary } from '@pluma/types';
+import type { ProjectSummary } from '@pluma-flags/types';
 
 export interface Flag {
   id: string;

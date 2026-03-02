@@ -3,7 +3,7 @@ name: running-tests
 description: Canonical guide for running all test types in Pluma — unit, integration, and SDK
 ---
 
-This skill documents how to run every test suite in the Pluma monorepo. Tests use **Vitest 4**. All API tests mock `@pluma/db` via `vi.hoisted`/`vi.mock` and use `app.inject` — no live database is required to run them.
+This skill documents how to run every test suite in the Pluma monorepo. Tests use **Vitest 4**. All API tests mock `@pluma-flags/db` via `vi.hoisted`/`vi.mock` and use `app.inject` — no live database is required to run them.
 
 ## Test Inventory
 
@@ -27,9 +27,9 @@ This runs `test` scripts across all workspace packages that define one.
 ## Running Tests by Package
 
 ```bash
-pnpm --filter @pluma/api test
+pnpm --filter @pluma-flags/api test
 
-pnpm --filter @pluma/sdk test
+pnpm --filter @pluma-flags/sdk test
 ```
 
 ## Running a Single Test File

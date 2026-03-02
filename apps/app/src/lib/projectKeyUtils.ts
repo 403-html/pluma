@@ -1,5 +1,5 @@
 import slugifyLib from 'slugify';
-import { MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX } from '@pluma/types';
+import { MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
 
 /**
  * Slugify a string for use as a project key.
@@ -42,7 +42,7 @@ export function makeKeyUnique(baseKey: string, existingKeys: string[]): string {
 
 /**
  * Validate a project key: lowercase alphanumeric with hyphens, no leading/trailing hyphens.
- * Uses the shared PROJECT_KEY_REGEX from @pluma/types (same regex as API Zod schema).
+ * Uses the shared PROJECT_KEY_REGEX from @pluma-flags/types (same regex as API Zod schema).
  */
 export function isValidProjectKey(key: string): boolean {
   if (typeof key !== 'string' || key.length === 0 || key.length > MAX_PROJECT_KEY_LENGTH) {

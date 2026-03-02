@@ -48,7 +48,7 @@ COPY --link packages/sdk/package.json     ./packages/sdk/
 COPY --link packages/types/package.json   ./packages/types/
 COPY --link tooling/eslint/package.json   ./tooling/eslint/
 
-# @pluma/db postinstall runs `prisma generate`; copy the schema and script so it
+# @pluma-flags/db postinstall runs `prisma generate`; copy the schema and script so it
 # succeeds even without a real DATABASE_URL.
 COPY --link packages/db/scripts/             ./packages/db/scripts/
 COPY --link packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
@@ -69,14 +69,14 @@ COPY --link . .
 
 ENV DATABASE_URL=postgresql://placeholder
 
-RUN pnpm --filter @pluma/types build
-RUN pnpm --filter @pluma/db db:generate
-RUN pnpm --filter @pluma/db build
-RUN pnpm --filter @pluma/api build
+RUN pnpm --filter @pluma-flags/types build
+RUN pnpm --filter @pluma-flags/db db:generate
+RUN pnpm --filter @pluma-flags/db build
+RUN pnpm --filter @pluma-flags/api build
 
 # Produce the pruned production deployment directory (prod deps only).
 # --legacy is required in pnpm v10+ for workspaces without inject-workspace-packages=true.
-RUN pnpm --filter @pluma/api deploy --prod --legacy /app/deploy
+RUN pnpm --filter @pluma-flags/api deploy --prod --legacy /app/deploy
 
 # Copy Prisma schema, migrations, and config into the deploy directory so:
 # - `prisma generate` (run below) finds the schema.

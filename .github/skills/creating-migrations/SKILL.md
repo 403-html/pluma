@@ -23,13 +23,13 @@ Edit `packages/db/prisma/schema.prisma` to define your data model changes.
 
 ### Step 2: Generate Prisma Client
 ```bash
-pnpm --filter @pluma/db db:generate
+pnpm --filter @pluma-flags/db db:generate
 ```
 This regenerates the Prisma Client to match your schema changes.
 
 ### Step 3: Create the Migration
 ```bash
-pnpm --filter @pluma/db db:migrate --name <descriptive_name>
+pnpm --filter @pluma-flags/db db:migrate --name <descriptive_name>
 ```
 
 **Naming Convention**:
@@ -66,9 +66,9 @@ git commit -m "feat(db): <your change description>"
 ```bash
 vim packages/db/prisma/schema.prisma
 
-pnpm --filter @pluma/db db:generate
+pnpm --filter @pluma-flags/db db:generate
 
-pnpm --filter @pluma/db db:migrate --name add_user_avatar_url
+pnpm --filter @pluma-flags/db db:migrate --name add_user_avatar_url
 
 cat packages/db/prisma/migrations/20260222215035_add_user_avatar_url/migration.sql
 
@@ -102,6 +102,6 @@ Backend agents MUST invoke this skill whenever:
 - Any change to `schema.prisma` that affects the database structure
 
 ## Additional Commands Reference
-- `pnpm --filter @pluma/db db:studio` — Open Prisma Studio to inspect your database
-- `pnpm --filter @pluma/db db:migrate:deploy` — Apply pending migrations (CI/production)
-- `pnpm --filter @pluma/db db:seed` — Run seed script
+- `pnpm --filter @pluma-flags/db db:studio` — Open Prisma Studio to inspect your database
+- `pnpm --filter @pluma-flags/db db:migrate:deploy` — Apply pending migrations (CI/production)
+- `pnpm --filter @pluma-flags/db db:seed` — Run seed script

@@ -25,8 +25,8 @@ Expected output: no errors, no warnings. If failures appear, fix them and re-run
 For targeted lint (single package):
 
 ```bash
-pnpm --filter @pluma/api lint
-pnpm --filter @pluma/app lint
+pnpm --filter @pluma-flags/api lint
+pnpm --filter @pluma-flags/app lint
 ```
 
 ### 2. Build — All Packages Compile
@@ -40,9 +40,9 @@ This runs TypeScript type-checking and produces `dist/` output for every package
 For targeted build:
 
 ```bash
-pnpm --filter @pluma/api build    # API (includes type-check)
-pnpm --filter @pluma/app build    # Next.js UI
-pnpm --filter @pluma/sdk build    # SDK
+pnpm --filter @pluma-flags/api build    # API (includes type-check)
+pnpm --filter @pluma-flags/app build    # Next.js UI
+pnpm --filter @pluma-flags/sdk build    # SDK
 ```
 
 ### 3. Tests — All Suites Pass
@@ -50,12 +50,12 @@ pnpm --filter @pluma/sdk build    # SDK
 Invoke the `running-tests` skill for the full procedure. Minimum required:
 
 ```bash
-pnpm --filter @pluma/api test
+pnpm --filter @pluma-flags/api test
 
-pnpm --filter @pluma/sdk test
+pnpm --filter @pluma-flags/sdk test
 ```
 
-All API tests mock `@pluma/db` via `vi.hoisted`/`vi.mock` — no live database is needed to run them.
+All API tests mock `@pluma-flags/db` via `vi.hoisted`/`vi.mock` — no live database is needed to run them.
 
 All tests must exit with code `0`. No skipped tests should be introduced without explicit justification.
 
@@ -86,10 +86,10 @@ Confirm the PR targets `main`. Feature branches should never target other featur
 
 | Scope changed | Minimum checks |
 |---|---|
-| API only (`apps/api/`) | `pnpm --filter @pluma/api lint && pnpm --filter @pluma/api build && pnpm --filter @pluma/api test` |
-| UI only (`apps/app/`) | `pnpm --filter @pluma/app lint && pnpm --filter @pluma/app build` |
-| SDK only (`packages/sdk/`) | `pnpm --filter @pluma/sdk lint && pnpm --filter @pluma/sdk build && pnpm --filter @pluma/sdk test` |
-| DB schema (`packages/db/`) | `pnpm --filter @pluma/db db:generate` then full build + test |
+| API only (`apps/api/`) | `pnpm --filter @pluma-flags/api lint && pnpm --filter @pluma-flags/api build && pnpm --filter @pluma-flags/api test` |
+| UI only (`apps/app/`) | `pnpm --filter @pluma-flags/app lint && pnpm --filter @pluma-flags/app build` |
+| SDK only (`packages/sdk/`) | `pnpm --filter @pluma-flags/sdk lint && pnpm --filter @pluma-flags/sdk build && pnpm --filter @pluma-flags/sdk test` |
+| DB schema (`packages/db/`) | `pnpm --filter @pluma-flags/db db:generate` then full build + test |
 | Shared types (`packages/types/`) | `pnpm -r build` (all dependents must still compile) |
 | Workflows (`.github/workflows/`) | Invoke `testing-workflows-locally` skill; run `act push -j <job>` locally |
 | Multiple packages | Run full `pnpm lint && pnpm -r build && pnpm -r test` |
@@ -100,7 +100,7 @@ Confirm the PR targets `main`. Feature branches should never target other featur
 |---|---|---|
 | Lint: `Parsing error` | TypeScript syntax error | Fix the syntax; check imports |
 | Lint: `no-unused-vars` | Declared but unused variable | Remove or use the variable |
-| Build: `Type error` | Type mismatch or missing import | Fix types; run `pnpm --filter @pluma/db db:generate` if schema changed |
+| Build: `Type error` | Type mismatch or missing import | Fix types; run `pnpm --filter @pluma-flags/db db:generate` if schema changed |
 | Build: `Cannot find module` | Missing dependency or workspace link | Run `pnpm install` at root |
 | Test: `Cannot connect to database` | PostgreSQL not running | Start DB: `cd packages/db && docker-compose up -d` |
 | Test: auth returns 401 | Session mock not set | Add `prismaMock.session.findUnique.mockResolvedValue(mockSession)` to `beforeEach` |

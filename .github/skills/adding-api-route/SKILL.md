@@ -25,7 +25,7 @@ Create `apps/api/src/routes/admin/<resource>.ts`. Use this exact skeleton:
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 
@@ -117,7 +117,7 @@ Call `writeAuditLog` after every successful create/update/delete. Wrap in its ow
 try {
   await writeAuditLog({
     action: 'create',          // 'create' | 'update' | 'delete' | 'enable' | 'disable'
-    entityType: 'flag',        // see AuditEntityType in @pluma/types
+    entityType: 'flag',        // see AuditEntityType in @pluma-flags/types
     entityId: resource.id,
     entityKey: resource.key,
     projectId: resource.projectId,
@@ -204,7 +204,7 @@ const { prismaMock } = vi.hoisted(() => {
   return { prismaMock };
 });
 
-vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
+vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
 
 describe('<Resource> routes', () => {
   let app: FastifyInstance;
@@ -276,9 +276,9 @@ describe('<Resource> routes', () => {
 Before handing off, run the `pre-review-checklist` skill. Minimum for API-only changes:
 
 ```bash
-pnpm --filter @pluma/api lint
-pnpm --filter @pluma/api build
-pnpm --filter @pluma/api test
+pnpm --filter @pluma-flags/api lint
+pnpm --filter @pluma-flags/api build
+pnpm --filter @pluma-flags/api test
 ```
 
 All three must exit with code `0`.
@@ -289,7 +289,7 @@ All three must exit with code `0`.
 |---|---|---|
 | `prismaMock.$transaction is not a function` | `vi.hoisted` not used | Wrap mock in `vi.hoisted(() => { ... })` |
 | Auth returns 401 on every test | `session.findUnique` not mocked | Add `prismaMock.session.findUnique.mockResolvedValue(mockSession)` to `beforeEach` |
-| `Cannot find module '@pluma/db'` | `vi.mock` not at top level | Move `vi.mock` outside `describe` |
+| `Cannot find module '@pluma-flags/db'` | `vi.mock` not at top level | Move `vi.mock` outside `describe` |
 | Route returns 404 on every call | Route not registered in `app.ts` | Add `await registerResourceRoutes(adminApi)` |
 | Audit log error throws 500 | `writeAuditLog` not wrapped in try/catch | Wrap audit call — audit failure must never break the response |
 | TypeScript error on `request.sessionUserId` | Missing `adminAuthHook` in `preHandler` | Add `{ preHandler: [adminAuthHook] }` to the route |

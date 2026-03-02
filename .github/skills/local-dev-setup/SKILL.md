@@ -67,12 +67,12 @@ Do not commit `.env` files. Only `.env.example` files are tracked in git.
 ## Step 4: Initialise the Database
 
 ```bash
-pnpm --filter @pluma/db db:generate
+pnpm --filter @pluma-flags/db db:generate
 
-pnpm --filter @pluma/db db:migrate
+pnpm --filter @pluma-flags/db db:migrate
 
 # optional
-pnpm --filter @pluma/db db:seed
+pnpm --filter @pluma-flags/db db:seed
 ```
 
 ## Step 5: Start the Development Servers
@@ -81,8 +81,8 @@ pnpm --filter @pluma/db db:seed
 # recommended: all apps together
 pnpm --filter './apps/*' -r dev
 
-pnpm --filter @pluma/app dev   # Next.js UI  → http://localhost:3000
-pnpm --filter @pluma/api dev   # Fastify API → http://localhost:2137
+pnpm --filter @pluma-flags/app dev   # Next.js UI  → http://localhost:3000
+pnpm --filter @pluma-flags/api dev   # Fastify API → http://localhost:2137
 ```
 
 ## Step 6: Verify the Stack
@@ -91,17 +91,17 @@ pnpm --filter @pluma/api dev   # Fastify API → http://localhost:2137
 |---|---|---|
 | API health | `curl http://localhost:2137/health` | `{"status":"ok"}` or HTTP 200 |
 | UI | `http://localhost:3000` | Login / dashboard renders |
-| DB Studio | `pnpm --filter @pluma/db db:studio` | Opens at `http://localhost:5555` |
+| DB Studio | `pnpm --filter @pluma-flags/db db:studio` | Opens at `http://localhost:5555` |
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
 | `Cannot connect to database` | Ensure Docker container is running: `docker-compose ps` in `packages/db/` |
-| `Prisma Client not found` | Run `pnpm --filter @pluma/db db:generate` |
+| `Prisma Client not found` | Run `pnpm --filter @pluma-flags/db db:generate` |
 | `Port already in use` | Check `.env` `PORT` value; kill the conflicting process |
 | `Module not found` errors | Run `pnpm install` at repo root; check `workspace:*` deps are resolved |
-| Stale types after schema change | Run `pnpm --filter @pluma/db db:generate` then restart the API |
+| Stale types after schema change | Run `pnpm --filter @pluma-flags/db db:generate` then restart the API |
 
 ## When to Invoke This Skill
 

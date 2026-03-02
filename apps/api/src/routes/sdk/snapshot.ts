@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 import { sdkAuthHook } from '../../hooks/sdkAuth';
 
 export async function registerSdkRoutes(fastify: FastifyInstance) {

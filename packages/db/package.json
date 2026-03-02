@@ -1,5 +1,5 @@
 {
-  "name": "@pluma/db",
+  "name": "@pluma-flags/db",
   "license": "Apache-2.0",
   "private": true,
   "version": "0.1.0",
@@ -34,7 +34,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@pluma/types": "workspace:*",
+    "@pluma-flags/types": "workspace:*",
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "bcryptjs": "3.0.3",

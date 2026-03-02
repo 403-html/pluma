@@ -57,12 +57,12 @@ jobs:
             echo "Invalid version extracted from tag: '$VERSION'" >&2
             exit 1
           fi
-          pnpm --filter @pluma/types pkg set version="$VERSION"
+          pnpm --filter @pluma-flags/types pkg set version="$VERSION"
 
       - name: Build types
-        run: pnpm --filter @pluma/types build
+        run: pnpm --filter @pluma-flags/types build
 
       - name: Publish to npm
-        run: pnpm --filter @pluma/types publish --no-git-checks --access public
+        run: pnpm --filter @pluma-flags/types publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

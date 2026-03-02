@@ -25,7 +25,7 @@ const { prismaMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
+vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
 
 // Fixed "now" so date arithmetic in tests is deterministic
 const FIXED_NOW = new Date('2025-06-15T12:00:00.000Z').getTime();

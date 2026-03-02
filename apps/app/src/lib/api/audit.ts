@@ -1,4 +1,4 @@
-import type { AuditLogEntry } from '@pluma/types';
+import type { AuditLogEntry } from '@pluma-flags/types';
 import { parseErrorMessage } from './utils';
 
 export interface AuditFilters {

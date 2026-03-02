@@ -72,9 +72,9 @@ docker compose up -d
 ### Install
 
 ```bash
-npm install @pluma/sdk
+npm install @pluma-flags/sdk
 # or
-pnpm add @pluma/sdk
+pnpm add @pluma-flags/sdk
 ```
 
 ### Usage
@@ -82,7 +82,7 @@ pnpm add @pluma/sdk
 SDK tokens are created in the Pluma UI under **Settings**. Each token is scoped to a project and environment.
 
 ```ts
-import { PlumaSnapshotCache } from "@pluma/sdk";
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const client = PlumaSnapshotCache.create({
   baseUrl: "http://localhost:2137",
@@ -104,4 +104,4 @@ if (evaluator.isEnabled("my-feature-flag")) {
 - Full development setup (Node.js, pnpm, Prisma, local DB) is documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 - The stack is a pnpm monorepo: `apps/api` (Fastify), `apps/app` (Next.js), `packages/sdk`, `packages/db`, `packages/types`.
 - Lint, test, and build must pass before opening a PR.
-- Keep cross-package contracts in `@pluma/types`; commit migration files when the schema changes.
+- Keep cross-package contracts in `@pluma-flags/types`; commit migration files when the schema changes.

@@ -1,4 +1,4 @@
-# @pluma/app
+# @pluma-flags/app
 
 Next.js 16 UI for Pluma feature flag management.
 

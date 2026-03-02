@@ -1,5 +1,5 @@
-import type { AuthUser } from '@pluma/types';
-import { MIN_PASSWORD_LENGTH } from '@pluma/types';
+import type { AuthUser } from '@pluma-flags/types';
+import { MIN_PASSWORD_LENGTH } from '@pluma-flags/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
 import { validateEmail, validatePassword } from '@/lib/validation';

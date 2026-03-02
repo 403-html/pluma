@@ -65,9 +65,9 @@ jobs:
           fi
 
       - name: Build SDK
-        run: pnpm --filter @pluma/sdk build
+        run: pnpm --filter @pluma-flags/sdk build
 
       - name: Publish to npm
-        run: pnpm --filter @pluma/sdk publish --no-git-checks --access public --provenance
+        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

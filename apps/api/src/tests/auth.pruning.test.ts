@@ -30,7 +30,7 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@pluma/db', () => ({ prisma: prismaMock }));
+vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
 vi.mock('bcryptjs', () => ({
   compare: bcryptMock.compare,
   hash: bcryptMock.hash,

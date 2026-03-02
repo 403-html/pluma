@@ -1,4 +1,4 @@
-import type { ProjectSummary } from '@pluma/types';
+import type { ProjectSummary } from '@pluma-flags/types';
 
 export type { ProjectSummary };
 

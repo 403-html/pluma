@@ -158,7 +158,7 @@ RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm --filter=@pluma/api build
+RUN pnpm --filter=@pluma-flags/api build
 
 FROM node:22-alpine AS runner
 RUN corepack enable

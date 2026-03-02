@@ -166,7 +166,7 @@ jobs:
 
   # ─────────────────────────────────────────────
   # Job 4 — Pack test  (requires build ✓)
-  # Packs @pluma/types and @pluma/sdk into tarballs
+  # Packs @pluma-flags/types and @pluma-flags/sdk into tarballs
   # and installs them in an isolated directory to
   # verify they work as external npm consumers would.
   # ─────────────────────────────────────────────
@@ -211,11 +211,11 @@ jobs:
         with:
           name: build-artifacts
 
-      - name: Pack @pluma/types and @pluma/sdk
+      - name: Pack @pluma-flags/types and @pluma-flags/sdk
         run: |
           mkdir -p /tmp/packs
-          pnpm --filter @pluma/types pack --pack-destination /tmp/packs
-          pnpm --filter @pluma/sdk pack --pack-destination /tmp/packs
+          pnpm --filter @pluma-flags/types pack --pack-destination /tmp/packs
+          pnpm --filter @pluma-flags/sdk pack --pack-destination /tmp/packs
 
       - name: Run pack smoke test
         run: |
@@ -224,8 +224,8 @@ jobs:
 
           mkdir /tmp/smoke-test
           cat > /tmp/smoke-test/smoke.mjs << 'EOF'
-          import { PlumaSnapshotCache } from '@pluma/sdk';
-          import { MAX_EMAIL_LENGTH } from '@pluma/types';
+          import { PlumaSnapshotCache } from '@pluma-flags/sdk';
+          import { MAX_EMAIL_LENGTH } from '@pluma-flags/types';
           if (typeof PlumaSnapshotCache.create !== 'function') {
             throw new Error('PlumaSnapshotCache.create is not a function');
           }

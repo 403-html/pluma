@@ -44,7 +44,7 @@ COPY packages/db/package.json        ./packages/db/package.json
 COPY packages/sdk/package.json       ./packages/sdk/package.json
 COPY packages/types/package.json     ./packages/types/package.json
 
-# @pluma/db postinstall runs `prisma generate`; copy the schema and
+# @pluma-flags/db postinstall runs `prisma generate`; copy the schema and
 # helper script so it succeeds even without a real DATABASE_URL.
 COPY packages/db/prisma/             ./packages/db/prisma/
 COPY packages/db/scripts/            ./packages/db/scripts/
@@ -79,11 +79,11 @@ COPY . .
 ARG PLACEHOLDER_API_URL=http://placeholder.invalid
 ENV API_URL=${PLACEHOLDER_API_URL}
 
-# Build @pluma/types first — its package.json exports point to dist/index.js,
+# Build @pluma-flags/types first — its package.json exports point to dist/index.js,
 # which does not exist in the Docker context (dist/ is excluded by .dockerignore).
 # Turbopack resolves exports.default at build time, so the compiled output
 # must exist before next build runs.
-RUN pnpm --filter @pluma/types build && pnpm --filter @pluma/app build
+RUN pnpm --filter @pluma-flags/types build && pnpm --filter @pluma-flags/app build
 
 
 # ─────────────────────────────────────────
@@ -121,7 +121,7 @@ COPY --from=builder --chown=nextuser:nodejs /app/apps/app/node_modules    ./apps
 
 # ── Next.js build output ─────────────────────────────────────────────
 # .next/ contains the pre-built server chunks and client bundles.
-# @pluma/types is already bundled inside via transpilePackages — the
+# @pluma-flags/types is already bundled inside via transpilePackages — the
 # packages/types/ source tree is NOT needed at runtime.
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next           ./apps/app/.next
 

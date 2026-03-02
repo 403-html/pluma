@@ -2,7 +2,7 @@
 #
 # Runs the full Pluma stack: PostgreSQL, API, and Next.js frontend.
 # Build context is the monorepo root so that workspace packages
-# (@pluma/types) are reachable during the build.
+# (@pluma-flags/types) are reachable during the build.
 #
 # Usage:
 #   docker compose up --build          # first run (builds images)

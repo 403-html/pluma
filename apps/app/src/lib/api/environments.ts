@@ -1,4 +1,4 @@
-import type { EnvironmentSummary } from '@pluma/types';
+import type { EnvironmentSummary } from '@pluma-flags/types';
 
 export type { EnvironmentSummary };
 

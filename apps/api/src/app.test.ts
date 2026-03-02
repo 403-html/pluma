@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildApp } from './app';
 import type { FastifyInstance } from 'fastify';
 
-vi.mock('@pluma/db', () => ({
+vi.mock('@pluma-flags/db', () => ({
   prisma: {
     project: {
       findMany: vi.fn(),

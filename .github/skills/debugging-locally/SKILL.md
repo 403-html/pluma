@@ -12,13 +12,13 @@ This skill covers the two primary debugging approaches in Pluma: structured log 
 The Fastify API emits structured JSON logs to stdout. To read them in a human-friendly format, pipe through `pino-pretty` (install globally if needed: `npm install -g pino-pretty`) or `jq`:
 
 ```bash
-pnpm --filter @pluma/api dev | pino-pretty
+pnpm --filter @pluma-flags/api dev | pino-pretty
 ```
 
 Or parse with `jq`:
 
 ```bash
-pnpm --filter @pluma/api dev 2>&1 | jq .
+pnpm --filter @pluma-flags/api dev 2>&1 | jq .
 ```
 
 ### Inspecting a Specific Request
@@ -26,7 +26,7 @@ pnpm --filter @pluma/api dev 2>&1 | jq .
 Each request gets a `reqId`. Filter with `jq`:
 
 ```bash
-pnpm --filter @pluma/api dev 2>&1 | jq 'select(.reqId == "req-3")'
+pnpm --filter @pluma-flags/api dev 2>&1 | jq 'select(.reqId == "req-3")'
 ```
 
 ## Breakpoint Debugging (Node.js Inspector)
@@ -43,7 +43,7 @@ node --inspect --loader tsx/esm src/index.ts
 Or set the flag via the environment to avoid modifying scripts:
 
 ```bash
-NODE_OPTIONS="--inspect" pnpm --filter @pluma/api dev
+NODE_OPTIONS="--inspect" pnpm --filter @pluma-flags/api dev
 ```
 
 The inspector binds to `127.0.0.1:9229` by default. Output confirms:
@@ -110,7 +110,7 @@ Attach VS Code using the same launch config above (port `9229`).
 ### Enable Prisma Query Logging
 
 ```bash
-DEBUG="prisma:query" NODE_ENV=development pnpm --filter @pluma/api dev
+DEBUG="prisma:query" NODE_ENV=development pnpm --filter @pluma-flags/api dev
 ```
 
 Every SQL statement is printed to stderr with parameters and duration.

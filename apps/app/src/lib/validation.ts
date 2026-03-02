@@ -5,7 +5,7 @@ import {
   MAX_PASSWORD_LENGTH,
   MAX_PROJECT_KEY_LENGTH,
   MAX_PROJECT_NAME_LENGTH,
-} from '@pluma/types';
+} from '@pluma-flags/types';
 
 export type ValidationError = { ok: false; message: string };
 export type ValidationResult = ValidationError | null;

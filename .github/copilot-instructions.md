@@ -93,13 +93,13 @@ cd packages/sdk && pnpm test
 ### Workspace Dependencies
 
 - Use `workspace:*` for internal package dependencies
-- All packages use `@pluma/*` naming convention
-- Import from workspace packages: `import { prisma } from '@pluma/db'`
+- All packages use `@pluma-flags/*` naming convention
+- Import from workspace packages: `import { prisma } from '@pluma-flags/db'`
 
 ### TypeScript
 
 - Use strict TypeScript configuration
-- Export types from `@pluma/types` package
+- Export types from `@pluma-flags/types` package
 - Avoid `any` types; prefer proper typing
 - Use `.ts` extension for all TypeScript files (ES modules)
 
@@ -189,7 +189,7 @@ These rules are mandatory for all new code.
   2. Run `pnpm db:generate` (regenerate types)
   3. Run `pnpm db:migrate` (create migration)
 - Quick dev: Use `pnpm db:push` (no migration files)
-- Always import from `@pluma/db`: `import { prisma } from '@pluma/db'`
+- Always import from `@pluma-flags/db`: `import { prisma } from '@pluma-flags/db'`
 - Use Prisma Client for all database operations
 
 ### API Development (Fastify)
@@ -197,7 +197,7 @@ These rules are mandatory for all new code.
 - Use Fastify plugins for route organization
 - Apply middleware: CORS, Helmet, Sensible
 - Use Zod for request/response validation
-- Import types from `@pluma/types`
+- Import types from `@pluma-flags/types`
 - Use async/await for async operations
 
 ### UI Development (Next.js)
@@ -205,7 +205,7 @@ These rules are mandatory for all new code.
 - Use Next.js App Router (not Pages Router)
 - React Server Components by default
 - Client components: Add `'use client'` directive
-- Import types from `@pluma/types`
+- Import types from `@pluma-flags/types`
 - Follow React 19 best practices
 
 ### SDK Development
@@ -256,7 +256,7 @@ pnpm db:seed      # Seed database with initial data
 ### Adding a New Workspace Package
 
 1. Create directory in `apps/` or `packages/`
-2. Add `package.json` with `@pluma/*` name
+2. Add `package.json` with `@pluma-flags/*` name
 3. Add to `pnpm-workspace.yaml` if needed (usually automatic)
 4. Run `pnpm install` at root
 
@@ -270,7 +270,7 @@ pnpm add -D <package> -w
 cd apps/api && pnpm add <package>
 
 # Workspace dependency
-pnpm add @pluma/types --filter @pluma/api
+pnpm add @pluma-flags/types --filter @pluma-flags/api
 ```
 
 ### Working with Prisma
@@ -283,7 +283,7 @@ pnpm add @pluma/types --filter @pluma/api
 ## Best Practices
 
 1. **Monorepo**: Respect package boundaries; avoid circular dependencies
-2. **Types**: Share types via `@pluma/types` package
+2. **Types**: Share types via `@pluma-flags/types` package
 3. **Database**: Always generate Prisma Client after schema changes
 4. **Testing**: Run tests before committing
 5. **Linting**: Fix ESLint errors before committing
@@ -316,7 +316,7 @@ CI runs on GitHub Actions. The pipeline executes on every push and PR.
 4. `pnpm -r test` — run all Vitest suites (API + SDK); a PostgreSQL service container is provisioned automatically
 
 **Deployment:**
-- Migrations are applied in CI/CD via `pnpm --filter @pluma/db db:migrate:deploy` (never `db:migrate` in production — it prompts interactively).
+- Migrations are applied in CI/CD via `pnpm --filter @pluma-flags/db db:migrate:deploy` (never `db:migrate` in production — it prompts interactively).
 - Environment variables in CI mirror `.env.example` defaults; override via GitHub Actions secrets/environment variables.
 
 **Local parity:**
@@ -330,14 +330,14 @@ For full debugging workflows see the `debugging-locally` skill. Quick reference:
 
 **Structured logs (first resort):**
 ```bash
-pnpm --filter @pluma/api dev | pino-pretty   # pretty-print JSON logs
-pnpm --filter @pluma/api dev 2>&1 | jq .     # parse with jq
-DEBUG="prisma:query" pnpm --filter @pluma/api dev   # log every SQL statement
+pnpm --filter @pluma-flags/api dev | pino-pretty   # pretty-print JSON logs
+pnpm --filter @pluma-flags/api dev 2>&1 | jq .     # parse with jq
+DEBUG="prisma:query" pnpm --filter @pluma-flags/api dev   # log every SQL statement
 ```
 
 **Breakpoint debugging (Node.js inspector):**
 ```bash
-NODE_OPTIONS="--inspect" pnpm --filter @pluma/api dev  # binds inspector to 127.0.0.1:9229
+NODE_OPTIONS="--inspect" pnpm --filter @pluma-flags/api dev  # binds inspector to 127.0.0.1:9229
 ```
 Attach VS Code via `.vscode/launch.json` with `"request": "attach"` on port `9229`. Source maps are active; breakpoints hit `.ts` lines directly.
 

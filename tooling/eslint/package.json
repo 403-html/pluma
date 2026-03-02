@@ -1,5 +1,5 @@
 {
-  "name": "@pluma/eslint-config",
+  "name": "@pluma-flags/eslint-config",
   "license": "Apache-2.0",
   "private": true,
   "version": "0.1.0",

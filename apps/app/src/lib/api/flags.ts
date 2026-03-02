@@ -1,4 +1,4 @@
-import type { FeatureFlag } from '@pluma/types';
+import type { FeatureFlag } from '@pluma-flags/types';
 import { validateKey, validateName } from '@/lib/validation';
 import { parseErrorMessage } from './utils';
 

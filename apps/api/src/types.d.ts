@@ -1,4 +1,4 @@
-import type { AuthUser } from '@pluma/types';
+import type { AuthUser } from '@pluma-flags/types';
 
 declare module 'fastify' {
   interface FastifyRequest {

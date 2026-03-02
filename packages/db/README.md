@@ -1,4 +1,4 @@
-# @pluma/db
+# @pluma-flags/db
 
 Database package with Prisma ORM and PostgreSQL.
 
@@ -102,7 +102,7 @@ pnpm db:seed            # (Optional) Reseed data
 ## Usage in Code
 
 ```typescript
-import { prisma } from '@pluma/db';
+import { prisma } from '@pluma-flags/db';
 
 // Query projects
 const projects = await prisma.project.findMany();

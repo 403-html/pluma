@@ -1,4 +1,4 @@
-import type { AuditAction } from '@pluma/types';
+import type { AuditAction } from '@pluma-flags/types';
 
 const ACTION_BADGE_CLASSES: Record<AuditAction, string> = {
   // Creation-like / enabling actions → secondary-style badge
