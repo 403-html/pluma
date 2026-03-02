@@ -20,11 +20,12 @@ const PAGE_SIZE = 20;
 export default function FlagsPage() {
   const { t, locale } = useLocale();
   const params = useParams();
-  const projectId = params.projectId as string;
-  const envId = params.envId as string;
+  const projectKey = params.projectKey as string;
+  const envKey = params.envKey as string;
 
   const {
     flags,
+    resolvedEnvId,
     isLoading,
     error,
     modalState,
@@ -42,7 +43,7 @@ export default function FlagsPage() {
     handleModalSuccess,
     setDeletingId,
     setError,
-  } = useFlags(envId, projectId);
+  } = useFlags(envKey, projectKey);
 
   const existingKeys = useMemo(() => flags.map((flag) => flag.key), [flags]);
   const orderedFlags = useMemo(() => buildOrderedFlags(flags), [flags]);
@@ -54,7 +55,7 @@ export default function FlagsPage() {
         <PageHeader
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
-            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` },
+            { label: projectName ?? '…', href: `/${locale}/projects/${projectKey}/environments` },
           ]}
           title={envName ?? '…'}
         />
@@ -69,7 +70,7 @@ export default function FlagsPage() {
         <PageHeader
           breadcrumbs={[
             { label: t.projects.title, href: `/${locale}/projects` },
-            { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` },
+            { label: projectName ?? '…', href: `/${locale}/projects/${projectKey}/environments` },
           ]}
           title={envName ?? '…'}
         />
@@ -83,7 +84,7 @@ export default function FlagsPage() {
       <PageHeader
         breadcrumbs={[
           { label: t.projects.title, href: `/${locale}/projects` },
-          { label: projectName ?? '…', href: `/${locale}/projects/${projectId}/environments` },
+          { label: projectName ?? '…', href: `/${locale}/projects/${projectKey}/environments` },
         ]}
         title={envName ?? '…'}
         actions={
@@ -147,7 +148,7 @@ export default function FlagsPage() {
 
       {modalState.type === 'add' && (
         <AddFlagModal
-          projectId={projectId}
+          projectId={projectKey}
           existingKeys={existingKeys}
           onClose={closeModal}
           onSuccess={handleModalSuccess}
@@ -157,7 +158,7 @@ export default function FlagsPage() {
 
       {modalState.type === 'addSub' && (
         <AddFlagModal
-          projectId={projectId}
+          projectId={projectKey}
           existingKeys={existingKeys}
           parentFlag={modalState.parentFlag}
           onClose={closeModal}
@@ -169,7 +170,7 @@ export default function FlagsPage() {
       {modalState.type === 'edit' && (
         <EditFlagModal
           flag={modalState.flag}
-          envId={envId}
+          envId={resolvedEnvId ?? ''}
           onClose={closeModal}
           onSuccess={handleModalSuccess}
           onError={setError}

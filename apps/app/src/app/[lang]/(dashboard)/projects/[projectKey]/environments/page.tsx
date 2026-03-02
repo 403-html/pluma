@@ -18,7 +18,6 @@ import { EditEnvironmentModal } from './EditEnvironmentModal';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
-import { CopyPill } from '@/components/CopyPill';
 import { usePagination } from '@/hooks/usePagination';
 
 type ModalState =
@@ -32,7 +31,7 @@ export default function EnvironmentsPage() {
   const { t, locale } = useLocale();
   const router = useRouter();
   const params = useParams();
-  const projectId = params.projectId as string;
+  const projectKey = params.projectKey as string;
   const [environments, setEnvironments] = useState<EnvironmentSummary[]>([]);
   const [projectName, setProjectName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,8 +46,8 @@ export default function EnvironmentsPage() {
     setIsLoading(true);
     setError(null);
     const [envsResult, projectResult] = await Promise.all([
-      listEnvironments(projectId),
-      getProject(projectId),
+      listEnvironments(projectKey),
+      getProject(projectKey),
     ]);
     if (envsResult.ok) {
       setEnvironments(envsResult.environments);
@@ -59,7 +58,7 @@ export default function EnvironmentsPage() {
       setProjectName(projectResult.project.name);
     }
     setIsLoading(false);
-  }, [projectId]);
+  }, [projectKey]);
 
   useEffect(() => {
     loadEnvironments();
@@ -132,7 +131,6 @@ export default function EnvironmentsPage() {
             <TableHeader>
               <TableHeadRow>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colName}</TableHead>
-                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colKey}</TableHead>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colFlags}</TableHead>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.environments.colActions}</TableHead>
               </TableHeadRow>
@@ -141,9 +139,6 @@ export default function EnvironmentsPage() {
               {paginatedEnvironments.map((env) => (
                 <TableRow key={env.id}>
                   <TableCell className="px-3 py-3">{env.name}</TableCell>
-                  <TableCell className="px-3 py-3">
-                    <CopyPill value={env.key} />
-                  </TableCell>
                   <TableCell className="px-3 py-3">
                     {env.flagStats.enabled}/{env.flagStats.total} on
                   </TableCell>
@@ -174,7 +169,7 @@ export default function EnvironmentsPage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/${locale}/projects/${projectId}/environments/${env.id}/flags`)}
+                          onClick={() => router.push(`/${locale}/projects/${projectKey}/environments/${env.key}/flags`)}
                         >
                           {t.environments.flagsBtn}
                         </Button>
@@ -219,7 +214,7 @@ export default function EnvironmentsPage() {
 
       {modalState.type === 'add' && (
         <AddEnvironmentModal
-          projectId={projectId}
+          projectId={projectKey}
           existingKeys={existingKeys}
           onClose={() => setModalState({ type: 'none' })}
           onSuccess={() => {

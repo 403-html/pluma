@@ -10,7 +10,6 @@ import { EditProjectModal } from './EditProjectModal';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { PageHeader } from '@/components/PageHeader';
-import { CopyPill } from '@/components/CopyPill';
 import { usePagination } from '@/hooks/usePagination';
 import { useProjects } from './useProjects';
 
@@ -76,7 +75,6 @@ export default function ProjectsPage() {
             <TableHeader>
               <TableHeadRow>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colName}</TableHead>
-                <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colKey}</TableHead>
                 <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{t.projects.colActions}</TableHead>
               </TableHeadRow>
             </TableHeader>
@@ -84,9 +82,6 @@ export default function ProjectsPage() {
               {paginatedProjects.map((project) => (
                 <TableRow key={project.id}>
                   <TableCell className="px-3 py-3">{project.name}</TableCell>
-                  <TableCell className="px-3 py-3">
-                    <CopyPill value={project.key} />
-                  </TableCell>
                   <TableCell className="px-3 py-3">
                     {deletingId === project.id ? (
                       <div className="flex gap-2 items-center">
@@ -114,7 +109,7 @@ export default function ProjectsPage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/${locale}/projects/${project.id}/environments`)}
+                          onClick={() => router.push(`/${locale}/projects/${project.key}/environments`)}
                         >
                           {t.projects.environmentsBtn}
                         </Button>
