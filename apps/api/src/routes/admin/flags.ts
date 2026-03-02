@@ -2,12 +2,12 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
-import { MAX_PARENT_DEPTH } from '@pluma-flags/types';
+import { MAX_PARENT_DEPTH, MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 
 const flagBodySchema = z.object({
-  key: z.string().min(1).max(100),
+  key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).regex(PROJECT_KEY_REGEX, 'Invalid flag key format'),
   name: z.string().min(1).max(200),
   description: z.string().max(500).optional(),
   parentFlagId: z.uuid().optional(),
@@ -15,7 +15,7 @@ const flagBodySchema = z.object({
 
 const flagUpdateBodySchema = z
   .object({
-    key: z.string().min(1).max(100).optional(),
+    key: z.string().min(1).max(MAX_PROJECT_KEY_LENGTH).regex(PROJECT_KEY_REGEX, 'Invalid flag key format').optional(),
     name: z.string().min(1).max(200).optional(),
     description: z.string().max(500).optional().nullable(),
   })
@@ -136,12 +136,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
 
       composedKey = `${parentFlag.key}.${parsedBody.data.key}`;
 
-      if (composedKey.length > 100) {
+      if (composedKey.length > MAX_PROJECT_KEY_LENGTH) {
         request.log.warn(
           { composedKey, length: composedKey.length },
-          'POST /projects/:projectId/flags rejected: composed key exceeds maximum length of 100',
+          `POST /projects/:projectId/flags rejected: composed key exceeds maximum length of ${MAX_PROJECT_KEY_LENGTH}`,
         );
-        return reply.badRequest('Composed flag key exceeds the maximum length of 100 characters.');
+        return reply.badRequest(`Composed flag key exceeds the maximum length of ${MAX_PROJECT_KEY_LENGTH} characters.`);
       }
     }
 

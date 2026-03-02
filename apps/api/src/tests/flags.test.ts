@@ -186,7 +186,7 @@ describe('Feature Flag routes', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/api/v1/projects/${mockProject.key}/flags`,
-        payload: { key: 'toolongkey', name: 'Too Long', parentFlagId: FLAG_ID }, // 95 + 1 + 10 = 106 > 100
+        payload: { key: 'toolongkey', name: 'Too Long', parentFlagId: FLAG_ID }, // 95 + 1 + 9 = 105 > 100
         headers: { cookie: AUTH_COOKIE },
       });
 
