@@ -20,6 +20,7 @@ jobs:
   publish-sdk:
     name: Publish SDK to npm
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref_name, '-') }}
 
     steps:
       - name: Checkout repository
@@ -67,6 +68,6 @@ jobs:
         run: pnpm --filter @pluma/sdk build
 
       - name: Publish to npm
-        run: pnpm --filter @pluma/sdk publish --no-git-checks --access public
+        run: pnpm --filter @pluma/sdk publish --no-git-checks --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
