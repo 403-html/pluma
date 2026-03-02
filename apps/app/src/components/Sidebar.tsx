@@ -93,7 +93,7 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
         </div>
 
         {/* Main navigation */}
-        <nav className="py-2 px-2">
+        <nav className="py-2 px-2 flex flex-col gap-2">
           <SidebarButton icon={<LayoutDashboard size={20} />} label={t.sidebar.dashboard} onClick={() => navigate(`/${locale}/`)} active={isActive('')} />
           <SidebarButton icon={<Flag size={20} />} label={t.sidebar.projects} onClick={() => navigate(`/${locale}/projects`)} active={isActive('projects')} />
           <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => navigate(`/${locale}/audit`)} active={isActive('audit')} />
