@@ -258,8 +258,9 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         try {
           await writeAuditLog({
             action: config.enabled ? 'enable' : 'disable',
-            entityType: 'flagConfig',
-            entityId: `${config.envId}:${config.flagId}`,
+            entityType: 'flag',
+            entityId: validated.flagId,
+            entityKey: validated.flagKey,
             projectId: validated.projectId,
             envId: config.envId,
             envKey: validated.envKey,
