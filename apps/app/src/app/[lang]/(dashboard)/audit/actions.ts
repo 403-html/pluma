@@ -16,9 +16,9 @@ const CSV_COLUMNS = [
 // Matches the server-side EXPORT_LIMIT — prevents unbounded memory allocation.
 const MAX_CSV_ROWS = 1_000;
 
-function entriesToCsv(entries: AuditLogEntry[]): string {
-  if (!Array.isArray(entries)) return '';
-  if (entries.length > MAX_CSV_ROWS) return '';
+function entriesToCsv(entries: AuditLogEntry[]): { ok: true; csv: string } | { ok: false; message: string } {
+  if (!Array.isArray(entries)) return { ok: false, message: 'Unexpected response format' };
+  if (entries.length > MAX_CSV_ROWS) return { ok: false, message: `Export exceeds maximum of ${MAX_CSV_ROWS} rows` };
   const records = entries.map((e) => ({
     timestamp: e.createdAt,
     actorEmail: e.actorEmail,
@@ -33,7 +33,7 @@ function entriesToCsv(entries: AuditLogEntry[]): string {
     requestId: e.requestId ?? '',
     details: formatDetails(e.details),
   }));
-  return stringify(records, { header: true, columns: CSV_COLUMNS });
+  return { ok: true, csv: stringify(records, { header: true, columns: CSV_COLUMNS }) };
 }
 
 export interface ExportAuditCsvFilters {
@@ -52,5 +52,5 @@ export async function exportAuditCsv(
   if (!result.ok) {
     return result;
   }
-  return { ok: true, csv: entriesToCsv(result.data.entries) };
+  return entriesToCsv(result.data.entries);
 }

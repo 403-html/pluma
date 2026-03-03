@@ -1,6 +1,18 @@
+import { z } from 'zod';
 import { prisma, type Prisma } from '@pluma-flags/db';
-import { auditDetailsSchema } from '@pluma-flags/types';
-import type { AuditAction, AuditDetails, AuditEntityType, AuditMeta } from '@pluma-flags/types';
+import type { AuditAction, AuditEntityType, AuditMeta } from '@pluma-flags/types';
+
+const auditDetailsSchema = z.object({
+  before: z.record(z.string(), z.unknown()).optional(),
+  after: z.record(z.string(), z.unknown()).optional(),
+  diff: z.record(z.string(), z.unknown()).optional(),
+  reason: z.string().max(500).optional(),
+}).refine(
+  (d) => d.before !== undefined || d.after !== undefined || d.diff !== undefined || d.reason !== undefined,
+  { message: 'details must contain at least one of: before, after, diff, reason' },
+).optional();
+
+export type AuditDetails = z.input<typeof auditDetailsSchema>;
 
 export interface AuditParams {
   action: AuditAction;

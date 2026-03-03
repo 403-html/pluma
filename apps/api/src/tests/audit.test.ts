@@ -338,5 +338,14 @@ describe('Audit routes', () => {
       });
       expect(response.statusCode).toBe(401);
     });
+
+    it('should return 400 for invalid query parameters', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/audit/export?projectId=not-a-uuid',
+        headers: { cookie: AUTH_COOKIE },
+      });
+      expect(response.statusCode).toBe(400);
+    });
   });
 });

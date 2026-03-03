@@ -38,22 +38,30 @@ function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
   async function handleExport() {
     setIsExporting(true);
     setExportError(null);
-    const result = await exportAuditCsv(filters);
-    setIsExporting(false);
-    if (!result.ok) {
-      setExportError(result.message ?? errorLabel);
+    try {
+      const result = await exportAuditCsv(filters);
+      if (!result.ok) {
+        setExportError(result.message ?? errorLabel);
+        setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
+        return;
+      }
+      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message ? error.message : errorLabel;
+      setExportError(message);
       setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
-      return;
+    } finally {
+      setIsExporting(false);
     }
-    const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
   }
 
   return (

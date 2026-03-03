@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 // Auth
 export type AuthUser = {
   id: string;
@@ -124,18 +122,6 @@ export type AuditEntityType = typeof AUDIT_ENTITY_TYPES[number];
 
 export const AUDIT_ACTOR_TYPES = ['user', 'system', 'sdk-token'] as const;
 export type AuditActorType = typeof AUDIT_ACTOR_TYPES[number];
-
-export const auditDetailsSchema = z.object({
-  before: z.record(z.string(), z.unknown()).optional(),
-  after: z.record(z.string(), z.unknown()).optional(),
-  diff: z.record(z.string(), z.unknown()).optional(),
-  reason: z.string().max(500).optional(),
-}).refine(
-  (d) => d.before !== undefined || d.after !== undefined || d.diff !== undefined || d.reason !== undefined,
-  { message: 'details must contain at least one of: before, after, diff, reason' },
-).optional();
-
-export type AuditDetails = z.input<typeof auditDetailsSchema>;
 
 export interface AuditMeta {
   ip?: string;
