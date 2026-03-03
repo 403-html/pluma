@@ -213,7 +213,9 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         return;
       }
 
-      const config = await prisma.$transaction(async (tx) => {
+      const changedKeys = Object.keys(parsedBody.data);
+
+      const { config, before } = await prisma.$transaction(async (tx) => {
         const { enabled, allowList, denyList, rolloutPercentage } = parsedBody.data;
         const updates: { enabled?: boolean; allowList?: string[]; denyList?: string[]; rolloutPercentage?: number | null } = {};
 
@@ -221,6 +223,14 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         if (allowList !== undefined) updates.allowList = allowList;
         if (denyList !== undefined) updates.denyList = denyList;
         if (rolloutPercentage !== undefined) updates.rolloutPercentage = rolloutPercentage;
+
+        const existingConfig = await tx.flagConfig.findUnique({
+          where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
+        });
+
+        const beforeSnapshot = existingConfig
+          ? Object.fromEntries(changedKeys.map(k => [k, (existingConfig as Record<string, unknown>)[k]]))
+          : null;
 
         const upserted = await tx.flagConfig.upsert({
           where: { envId_flagId: { envId: validated.envId, flagId: validated.flagId } },
@@ -240,7 +250,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
           data: { configVersion: { increment: 1 } },
         });
 
-        return upserted;
+        return { config: upserted, before: beforeSnapshot };
       });
 
       // Log enable/disable actions separately when enabled field is changed
@@ -257,7 +267,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             flagKey: validated.flagKey,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
-            details: parsedBody.data,
+            details: { ...(before ? { before } : {}), after: parsedBody.data as Record<string, unknown> },
             meta: {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,

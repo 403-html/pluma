@@ -107,7 +107,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
           projectId: sdkToken.projectId,
           actorId: request.sessionUserId!,
           actorEmail: request.sessionUser!.email,
-          details: { name: sdkToken.name },
+          details: { after: { name: sdkToken.name } },
           meta: {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,

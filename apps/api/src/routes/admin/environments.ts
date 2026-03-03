@@ -171,6 +171,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       }
 
       try {
+        const changedKeys = Object.keys(parsedBody.data);
+        const existing = await prisma.environment.findUniqueOrThrow({
+          where: { id: parsedParams.data.envId },
+        });
+        const before = Object.fromEntries(changedKeys.map(k => [k, (existing as Record<string, unknown>)[k]]));
+
         const environment = await prisma.environment.update({
           where: { id: parsedParams.data.envId },
           data: { ...parsedBody.data, configVersion: { increment: 1 } },
@@ -187,7 +193,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             envKey: environment.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
-            details: parsedBody.data,
+            details: { before, after: parsedBody.data as Record<string, unknown> },
             meta: {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,

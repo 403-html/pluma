@@ -108,7 +108,7 @@ export async function registerEnvTokenRoutes(fastify: FastifyInstance) {
           envId: sdkToken.envId ?? undefined,
           actorId: request.sessionUserId!,
           actorEmail: request.sessionUser!.email,
-          details: { name: sdkToken.name },
+          details: { after: { name: sdkToken.name } },
           meta: {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,

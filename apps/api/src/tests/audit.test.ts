@@ -82,6 +82,90 @@ describe('writeAuditLog', () => {
     expect(txMock.auditLog.create).toHaveBeenCalled();
     expect(prismaMock.auditLog.create).not.toHaveBeenCalled();
   });
+
+  it('stores valid structured details with after field', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog({
+      action: 'update',
+      entityType: 'flag',
+      entityId: 'flag-1',
+      actorId: 'user-1',
+      actorEmail: 'test@example.com',
+      details: { after: { name: 'new-name', description: 'updated' } },
+    });
+    expect(prismaMock.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        details: { after: { name: 'new-name', description: 'updated' } },
+      }),
+    });
+  });
+
+  it('stores valid structured details with before and after fields', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog({
+      action: 'update',
+      entityType: 'project',
+      entityId: 'proj-1',
+      actorId: 'user-1',
+      actorEmail: 'test@example.com',
+      details: {
+        before: { name: 'old-name' },
+        after: { name: 'new-name' },
+      },
+    });
+    expect(prismaMock.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        details: { before: { name: 'old-name' }, after: { name: 'new-name' } },
+      }),
+    });
+  });
+
+  it('omits details key when details fail validation (empty object)', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog({
+      action: 'update',
+      entityType: 'flag',
+      entityId: 'flag-1',
+      actorId: 'user-1',
+      actorEmail: 'test@example.com',
+      details: {} as Record<string, unknown>,
+    });
+    const callArg = prismaMock.auditLog.create.mock.calls[0]?.[0] as { data: Record<string, unknown> };
+    expect('details' in callArg.data).toBe(false);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('stores valid details with reason field only', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog({
+      action: 'delete',
+      entityType: 'token',
+      entityId: 'token-1',
+      actorId: 'user-1',
+      actorEmail: 'test@example.com',
+      details: { reason: 'Token compromised' },
+    });
+    expect(prismaMock.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        details: { reason: 'Token compromised' },
+      }),
+    });
+  });
+
+  it('does not include details key when details is undefined', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog({
+      action: 'create',
+      entityType: 'project',
+      entityId: 'proj-1',
+      actorId: 'user-1',
+      actorEmail: 'test@example.com',
+    });
+    const callArg = prismaMock.auditLog.create.mock.calls[0]?.[0] as { data: Record<string, unknown> };
+    expect('details' in callArg.data).toBe(false);
+  });
 });
 
 describe('Audit routes', () => {

@@ -101,7 +101,7 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
           </div>
         )}
       </TableCell>
-      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs truncate">
+      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs whitespace-pre-line">
         {formatDetails(entry.details)}
       </TableCell>
     </TableRow>

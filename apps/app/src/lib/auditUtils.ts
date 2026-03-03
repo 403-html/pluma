@@ -1,12 +1,16 @@
-/**
- * Formats an audit log `details` value into a human-readable string.
- *
- * Priority order for structured details:
- * 1. `reason` – free-text explanation surfaced directly
- * 2. `diff`   – lists the changed field keys ("changed: key1, key2")
- * 3. `after`  – lists the new-state field keys ("after: key1, key2")
- * 4. fallback – JSON.stringify for any other object shape
- */
+function fmtValue(v: unknown): string {
+  if (v === null || v === undefined) return 'null';
+  if (typeof v === 'boolean') return String(v);
+  if (typeof v === 'string' || typeof v === 'number') return String(v);
+  return JSON.stringify(v);
+}
+
+function fmtPairs(obj: Record<string, unknown>): string {
+  const entries = Object.entries(obj);
+  if (entries.length === 0) return '—';
+  return entries.map(([k, v]) => `${k} → ${fmtValue(v)}`).join(', ');
+}
+
 export function formatDetails(details: unknown): string {
   if (details === null || details === undefined) return '—';
   if (typeof details === 'string') return details || '—';
@@ -17,12 +21,15 @@ export function formatDetails(details: unknown): string {
   // Surface structured audit details fields
   if (d.reason && typeof d.reason === 'string') return d.reason;
   if (d.diff && typeof d.diff === 'object') {
-    const keys = Object.keys(d.diff as object);
-    return keys.length ? `changed: ${keys.join(', ')}` : '—';
+    return `changed: ${fmtPairs(d.diff as Record<string, unknown>)}`;
+  }
+  const parts: string[] = [];
+  if (d.before && typeof d.before === 'object') {
+    parts.push(`before: ${fmtPairs(d.before as Record<string, unknown>)}`);
   }
   if (d.after && typeof d.after === 'object') {
-    const keys = Object.keys(d.after as object);
-    return keys.length ? `after: ${keys.join(', ')}` : '—';
+    parts.push(`after: ${fmtPairs(d.after as Record<string, unknown>)}`);
   }
+  if (parts.length > 0) return parts.join('\n');
   return JSON.stringify(details);
 }

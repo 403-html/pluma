@@ -135,6 +135,8 @@ export const auditDetailsSchema = z.object({
   { message: 'details must contain at least one of: before, after, diff, reason' },
 ).optional();
 
+export type AuditDetails = z.input<typeof auditDetailsSchema>;
+
 export interface AuditMeta {
   ip?: string;
   ua?: string;
