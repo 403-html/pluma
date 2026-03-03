@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
-import { PROJECT_ID, AUTH_COOKIE, mockSession } from './fixtures';
+import { PROJECT_ID, AUTH_COOKIE, mockSession, mockProject } from './fixtures';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -145,7 +145,7 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/projects/${PROJECT_ID}`,
+      url: `/api/v1/projects/${mockProject.key}`,
       headers: { cookie: AUTH_COOKIE },
     });
 
@@ -158,7 +158,7 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/projects/${PROJECT_ID}`,
+      url: `/api/v1/projects/${mockProject.key}`,
       headers: { cookie: AUTH_COOKIE },
     });
 
@@ -174,14 +174,14 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'PATCH',
-      url: `/api/v1/projects/${PROJECT_ID}`,
+      url: `/api/v1/projects/${mockProject.key}`,
       payload: { name: 'Alpha Updated' },
       headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(200);
     expect(prismaMock.project.update).toHaveBeenCalledWith({
-      where: { id: PROJECT_ID },
+      where: { key: mockProject.key },
       data: { name: 'Alpha Updated' },
     });
   });
@@ -213,7 +213,7 @@ describe('API Projects', () => {
   it('should return 400 when updating a project with key too long', async () => {
     const response = await app.inject({
       method: 'PATCH',
-      url: `/api/v1/projects/${PROJECT_ID}`,
+      url: `/api/v1/projects/${mockProject.key}`,
       payload: { key: 'a'.repeat(101) },
       headers: { cookie: AUTH_COOKIE },
     });
@@ -225,7 +225,7 @@ describe('API Projects', () => {
   it('should return 400 when updating a project with no fields', async () => {
     const response = await app.inject({
       method: 'PATCH',
-      url: `/api/v1/projects/${PROJECT_ID}`,
+      url: `/api/v1/projects/${mockProject.key}`,
       payload: {},
       headers: { cookie: AUTH_COOKIE },
     });
@@ -248,16 +248,16 @@ describe('API Projects', () => {
 
     const response = await app.inject({
       method: 'DELETE',
-      url: `/api/v1/projects/${PROJECT_ID}`,
+      url: `/api/v1/projects/${mockProject.key}`,
       headers: { cookie: AUTH_COOKIE },
     });
 
     expect(response.statusCode).toBe(204);
     expect(prismaMock.project.findUnique).toHaveBeenCalledWith({
-      where: { id: PROJECT_ID },
+      where: { key: mockProject.key },
     });
     expect(prismaMock.project.delete).toHaveBeenCalledWith({
-      where: { id: PROJECT_ID },
+      where: { key: mockProject.key },
     });
   });
 });

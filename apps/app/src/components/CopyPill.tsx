@@ -9,6 +9,10 @@ const FEEDBACK_DURATION_MS = 1500;
 
 interface CopyPillProps {
   value: string;
+  /** Optional value to write to clipboard instead of `value`. Useful when
+   *  the displayed text differs from the full key (e.g. sub-flag suffix vs
+   *  full `parent.suffix` composed key). */
+  copyValue?: string;
   /** 'pill' (default): small inline pill for table cells.
    *  'inline': transparent, fills parent container, for use inside field wrappers. */
   variant?: 'pill' | 'inline';
@@ -17,7 +21,7 @@ interface CopyPillProps {
 
 type CopyState = 'idle' | 'success' | 'error';
 
-export function CopyPill({ value, variant = 'pill', className = '' }: CopyPillProps) {
+export function CopyPill({ value, copyValue, variant = 'pill', className = '' }: CopyPillProps) {
   const [state, setState] = useState<CopyState>('idle');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDisabled = value.trim() === '';
@@ -37,7 +41,7 @@ export function CopyPill({ value, variant = 'pill', className = '' }: CopyPillPr
     }
 
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(copyValue ?? value);
       setState('success');
     } catch (err) {
       console.warn('CopyPill: clipboard write failed', err);
@@ -65,7 +69,7 @@ export function CopyPill({ value, variant = 'pill', className = '' }: CopyPillPr
       ? 'Copied!'
       : state === 'error'
         ? 'Failed to copy'
-        : `Copy ${value} to clipboard`;
+        : `Copy ${copyValue ?? value} to clipboard`;
 
   const variantClasses =
     variant === 'inline'
