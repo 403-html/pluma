@@ -11,13 +11,28 @@ import EmptyState from '@/components/EmptyState';
 import { ScrollText } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { AuditActionBadge } from './AuditActionBadge';
+import { AuditActorTypeBadge } from './AuditActorTypeBadge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDetails(details: unknown): string {
   if (details === null || details === undefined) return '—';
-  if (typeof details === 'object' && Object.keys(details as object).length === 0) return '—';
+  if (typeof details === 'string') return details || '—';
+  if (typeof details === 'number' || typeof details === 'boolean') return String(details);
+  if (typeof details !== 'object') return '—';
+  const d = details as Record<string, unknown>;
+  if (Object.keys(d).length === 0) return '—';
+  // Surface structured audit details fields
+  if (d.reason && typeof d.reason === 'string') return d.reason;
+  if (d.diff && typeof d.diff === 'object') {
+    const keys = Object.keys(d.diff as object);
+    return keys.length ? `changed: ${keys.join(', ')}` : '—';
+  }
+  if (d.after && typeof d.after === 'object') {
+    const keys = Object.keys(d.after as object);
+    return keys.length ? `after: ${keys.join(', ')}` : '—';
+  }
   return JSON.stringify(details);
 }
 
@@ -34,7 +49,8 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
         {formatDateTime(entry.createdAt, locale)}
       </TableCell>
       <TableCell className="px-3 py-3 text-sm">
-        {entry.actorEmail}
+        <div>{entry.actorEmail}</div>
+        <AuditActorTypeBadge actorType={entry.actorType} />
       </TableCell>
       <TableCell className="px-3 py-3">
         <AuditActionBadge action={entry.action} />
@@ -43,6 +59,16 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
         <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground inline-block">
           {entityDisplay}
         </span>
+      </TableCell>
+      <TableCell className="px-3 py-3 text-xs text-muted-foreground">
+        {entry.ipAddress && (
+          <div className="font-mono">{entry.ipAddress}</div>
+        )}
+        {entry.requestId && (
+          <div className="font-mono text-muted-foreground/60" title={entry.requestId}>
+            #{entry.requestId.slice(0, 8)}
+          </div>
+        )}
       </TableCell>
       <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs truncate">
         {formatDetails(entry.details)}
@@ -116,7 +142,7 @@ function AuditFiltersBar({ state, labels }: AuditFiltersProps) {
 interface AuditTableProps {
   auditData: AuditPageData;
   locale: string;
-  headers: { timestamp: string; actor: string; action: string; entity: string; details: string };
+  headers: { timestamp: string; actor: string; action: string; entity: string; source: string; details: string };
 }
 
 function AuditTable({ auditData, locale, headers }: AuditTableProps) {
@@ -128,6 +154,7 @@ function AuditTable({ auditData, locale, headers }: AuditTableProps) {
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.actor}</TableHead>
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.action}</TableHead>
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.entity}</TableHead>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.source}</TableHead>
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.details}</TableHead>
         </TableHeadRow>
       </TableHeader>
@@ -207,6 +234,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
             actor: t.audit.colActor,
             action: t.audit.colAction,
             entity: t.audit.colEntity,
+            source: t.audit.colSource,
             details: t.audit.colDetails,
           }} />
           {(hasPrevPage || hasNextPage) && (

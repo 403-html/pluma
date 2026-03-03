@@ -184,6 +184,7 @@ export const en = {
     colActor: 'Actor',
     colAction: 'Action',
     colEntity: 'Entity',
+    colSource: 'Source',
     colDetails: 'Details',
     emptyState: 'No audit entries found.',
   },
