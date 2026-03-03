@@ -15,12 +15,15 @@ import { AuditActionBadge } from './AuditActionBadge';
 import { AuditActorTypeBadge } from './AuditActorTypeBadge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { formatDetails, auditEntriesToCsv } from '@/lib/auditUtils';
-import { exportAuditLog } from '@/lib/api/audit';
+import { formatDetails } from '@/lib/auditUtils';
+import { exportAuditCsv } from './actions';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+const ERROR_DISPLAY_MS = 5_000;
+const URL_REVOKE_DELAY_MS = 100;
 
 interface ExportCsvButtonProps {
   filters: { projectId?: string; envId?: string; flagId?: string };
@@ -35,15 +38,14 @@ function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
   async function handleExport() {
     setIsExporting(true);
     setExportError(null);
-    const result = await exportAuditLog(filters);
+    const result = await exportAuditCsv(filters);
     setIsExporting(false);
     if (!result.ok) {
       setExportError(result.message ?? errorLabel);
-      setTimeout(() => setExportError(null), 5000);
+      setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
       return;
     }
-    const csv = auditEntriesToCsv(result.data.entries);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -51,7 +53,7 @@ function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
   }
 
   return (

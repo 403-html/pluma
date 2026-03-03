@@ -1,6 +1,3 @@
-import { stringify } from 'csv/sync';
-import type { AuditLogEntry } from '@pluma-flags/types';
-
 /**
  * Formats an audit log `details` value into a human-readable string.
  *
@@ -28,29 +25,4 @@ export function formatDetails(details: unknown): string {
     return keys.length ? `after: ${keys.join(', ')}` : '—';
   }
   return JSON.stringify(details);
-}
-
-const CSV_COLUMNS = [
-  'timestamp', 'actorEmail', 'actorType', 'action',
-  'entityType', 'entityKey', 'projectKey', 'envKey', 'flagKey',
-  'ipAddress', 'requestId', 'details',
-];
-
-/** Serialises an array of audit log entries to RFC 4180 CSV. */
-export function auditEntriesToCsv(entries: AuditLogEntry[]): string {
-  const records = entries.map((e) => ({
-    timestamp: e.createdAt,
-    actorEmail: e.actorEmail,
-    actorType: e.actorType ?? '',
-    action: e.action,
-    entityType: e.entityType,
-    entityKey: e.entityKey ?? '',
-    projectKey: e.projectKey ?? '',
-    envKey: e.envKey ?? '',
-    flagKey: e.flagKey ?? '',
-    ipAddress: e.ipAddress ?? '',
-    requestId: e.requestId ?? '',
-    details: formatDetails(e.details),
-  }));
-  return stringify(records, { header: true, columns: CSV_COLUMNS });
 }
