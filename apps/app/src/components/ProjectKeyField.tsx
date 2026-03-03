@@ -17,6 +17,7 @@ export function ProjectKeyField({
   placeholder,
   editBtnLabel,
   hint,
+  copyValue,
   onEditStart,
   onChange,
   onBlur,
@@ -29,6 +30,8 @@ export function ProjectKeyField({
   placeholder: string;
   editBtnLabel: string;
   hint?: string;
+  /** Optional value to copy to clipboard instead of `value`. */
+  copyValue?: string;
   onEditStart: () => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur: () => void;
@@ -79,7 +82,7 @@ export function ProjectKeyField({
     <>
       <div className="flex items-center relative gap-2 px-3 py-2.5 bg-muted/30 border border-border rounded-md font-mono text-[0.95rem] min-h-[3rem] group">
         {value ? (
-          <CopyPill value={value} variant="inline" />
+          <CopyPill value={value} copyValue={copyValue} variant="inline" />
         ) : (
           <span className="flex-1 font-mono text-[0.95rem] text-foreground" aria-label="placeholder">
             {placeholder}

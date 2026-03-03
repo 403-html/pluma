@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  PROJECT_ID, OTHER_PROJECT_ID, FLAG_ID, AUTH_COOKIE,
+  OTHER_PROJECT_ID, FLAG_ID, AUTH_COOKIE,
   mockSession, mockProject, mockFlag,
 } from './fixtures';
 
@@ -87,7 +87,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -102,7 +102,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -117,7 +117,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         payload: { key: mockFlag.key, name: mockFlag.name },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -132,7 +132,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         payload: { key: 'dark-mode', name: 'Dark Mode' },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -146,7 +146,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         payload: { key: 'dark-mode', name: 'Dark Mode' },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -154,22 +154,43 @@ describe('Feature Flag routes', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should create a sub-flag with parentFlagId', async () => {
-      const subFlag = { ...mockFlag, id: 'flag-child', key: 'payments-v2', parentFlagId: FLAG_ID };
+    it('should create a sub-flag with parentFlagId and compose the key', async () => {
+      const parentFlag = { ...mockFlag, key: 'payments' };
+      const subFlag = { ...mockFlag, id: 'flag-child', key: 'payments.v2', parentFlagId: FLAG_ID };
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
-      prismaMock.featureFlag.findUnique.mockResolvedValue(mockFlag); // parent flag lookup
+      prismaMock.featureFlag.findUnique.mockResolvedValue(parentFlag); // parent flag lookup
       prismaMock.featureFlag.create.mockResolvedValue(subFlag);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
-        payload: { key: 'payments-v2', name: 'Payments V2', parentFlagId: FLAG_ID },
+        url: `/api/v1/projects/${mockProject.key}/flags`,
+        payload: { key: 'v2', name: 'Payments V2', parentFlagId: FLAG_ID },
         headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(201);
       const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('key', 'payments.v2');
       expect(payload).toHaveProperty('parentFlagId', FLAG_ID);
+      expect(prismaMock.featureFlag.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ key: 'payments.v2' }) }),
+      );
+    });
+
+    it('should return 400 when the composed sub-flag key exceeds 100 characters', async () => {
+      const longParentKey = 'a'.repeat(95); // 95 chars; suffix 'v2' → composed = 98 + dot = 99, fine; use 99 to force overflow
+      const parentFlag = { ...mockFlag, key: longParentKey };
+      prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.featureFlag.findUnique.mockResolvedValue({ ...parentFlag, parentFlagId: null }); // no depth issue
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mockProject.key}/flags`,
+        payload: { key: 'toolongkey', name: 'Too Long', parentFlagId: FLAG_ID }, // 95 + 1 + 9 = 105 > 100
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 404 when parentFlagId does not exist', async () => {
@@ -178,7 +199,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         payload: { key: 'payments-v2', name: 'Payments V2', parentFlagId: FLAG_ID },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -192,7 +213,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         payload: { key: 'payments-v2', name: 'Payments V2', parentFlagId: FLAG_ID },
         headers: { cookie: AUTH_COOKIE },
       });
@@ -211,7 +232,7 @@ describe('Feature Flag routes', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/projects/${PROJECT_ID}/flags`,
+        url: `/api/v1/projects/${mockProject.key}/flags`,
         payload: { key: 'too-deep', name: 'Too Deep', parentFlagId: FLAG_ID },
         headers: { cookie: AUTH_COOKIE },
       });

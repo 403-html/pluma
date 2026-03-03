@@ -161,6 +161,7 @@ export const en = {
     createError: 'Failed to create environment',
     updateError: 'Failed to update environment',
     deleteError: 'Failed to delete environment',
+    envNotFound: 'Environment not found. Check the URL and try again.',
     keyRequired: 'Key is required',
     nameRequired: 'Name is required',
     keyTooLong: 'Key must be 100 characters or fewer',

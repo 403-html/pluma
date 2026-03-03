@@ -48,15 +48,34 @@ export function AddFlagModal({
       return;
     }
     if (!isKeyCustomized) {
-      setKey(name ? makeKeyUnique(slugify(name), initialExistingKeysRef.current) : '');
+      if (!name) {
+        setKey('');
+        setKeyError(null);
+        setIsKeyEditing(false);
+        return;
+      }
+      const suffix = slugify(name);
+      if (parentFlag) {
+        // Check uniqueness among sibling keys (keys sharing same parent prefix)
+        const siblingKeys = initialExistingKeysRef.current
+          .filter((k) => k.startsWith(parentFlag.key + '.'))
+          .map((k) => k.slice(parentFlag.key.length + 1));
+        setKey(makeKeyUnique(suffix, siblingKeys));
+      } else {
+        setKey(makeKeyUnique(suffix, initialExistingKeysRef.current));
+      }
       setKeyError(null);
       setIsKeyEditing(false);
     }
-  }, [name, isKeyCustomized]);
+  }, [name, isKeyCustomized, parentFlag]);
 
   function handleEditKey() {
     setIsKeyEditing(true);
     setKeyError(null);
+  }
+
+  function buildComposedKey(suffix: string): string {
+    return parentFlag ? `${parentFlag.key}.${suffix}` : suffix;
   }
 
   function handleKeyBlur() {
@@ -74,7 +93,12 @@ export function AddFlagModal({
       setKeyError(t.flags.keyInvalid);
       return;
     }
-    if (existingKeys.includes(trimmedKey)) {
+    const composedKey = buildComposedKey(trimmedKey);
+    if (composedKey.length > MAX_PROJECT_KEY_LENGTH) {
+      setKeyError(t.flags.keyTooLong);
+      return;
+    }
+    if (existingKeys.includes(composedKey)) {
       setKeyError(t.flags.keyDuplicate);
       return;
     }
@@ -97,7 +121,8 @@ export function AddFlagModal({
       setKeyError(t.flags.keyInvalid);
       return;
     }
-    if (existingKeys.includes(key)) {
+    const composedKey = buildComposedKey(key);
+    if (existingKeys.includes(composedKey)) {
       setKeyError(t.flags.keyDuplicate);
       return;
     }
@@ -148,19 +173,47 @@ export function AddFlagModal({
             {t.flags.keyLabel}
           </label>
 
-          <ProjectKeyField
-            id="flag-key"
-            value={key}
-            isEditing={isKeyEditing}
-            error={keyError}
-            disabled={isSubmitting}
-            placeholder={t.flags.keyPlaceholder}
-            editBtnLabel={t.flags.keyEditBtnLabel}
-            hint={!isKeyCustomized && key ? t.flags.keyAutoHint : undefined}
-            onEditStart={handleEditKey}
-            onChange={handleKeyChange}
-            onBlur={handleKeyBlur}
-          />
+          {parentFlag ? (
+            <>
+              <div className="flex items-stretch">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 py-2 text-sm text-muted-foreground select-none shrink-0">
+                  {parentFlag.key}.
+                </span>
+                <div className="flex-1 min-w-0 [&_input]:rounded-l-none [&>div]:rounded-l-none">
+                  <ProjectKeyField
+                    id="flag-key"
+                    value={key}
+                    isEditing={isKeyEditing}
+                    error={keyError}
+                    disabled={isSubmitting}
+                    placeholder={t.flags.keyPlaceholder}
+                    editBtnLabel={t.flags.keyEditBtnLabel}
+                    copyValue={buildComposedKey(key)}
+                    onEditStart={handleEditKey}
+                    onChange={handleKeyChange}
+                    onBlur={handleKeyBlur}
+                  />
+                </div>
+              </div>
+              {!isKeyCustomized && key && !keyError && (
+                <p className="text-xs text-muted-foreground">{t.flags.keyAutoHint}</p>
+              )}
+            </>
+          ) : (
+            <ProjectKeyField
+              id="flag-key"
+              value={key}
+              isEditing={isKeyEditing}
+              error={keyError}
+              disabled={isSubmitting}
+              placeholder={t.flags.keyPlaceholder}
+              editBtnLabel={t.flags.keyEditBtnLabel}
+              hint={!isKeyCustomized && key ? t.flags.keyAutoHint : undefined}
+              onEditStart={handleEditKey}
+              onChange={handleKeyChange}
+              onBlur={handleKeyBlur}
+            />
+          )}
         </div>
 
         <div className="flex flex-col gap-1.5 mt-4">

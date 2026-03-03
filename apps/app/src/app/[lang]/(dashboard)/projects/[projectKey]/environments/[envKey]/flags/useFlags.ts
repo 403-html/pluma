@@ -19,6 +19,7 @@ export type FlagsModalState =
 
 export interface FlagsState {
   flags: FlagEntry[];
+  resolvedEnvId: string | null;
   isLoading: boolean;
   error: string | null;
   modalState: FlagsModalState;
@@ -39,10 +40,11 @@ export interface FlagsState {
   setError: (error: string | null) => void;
 }
 
-export function useFlags(envId: string, projectId: string): FlagsState {
+export function useFlags(envKey: string, projectKey: string): FlagsState {
   const { t } = useLocale();
 
   const [flags, setFlags] = useState<FlagEntry[]>([]);
+  const [resolvedEnvId, setResolvedEnvId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string | null>(null);
   const [envName, setEnvName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,25 +56,36 @@ export function useFlags(envId: string, projectId: string): FlagsState {
   const loadFlags = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const [flagsResult, projectResult, envsResult] = await Promise.all([
-      listFlagsForEnvironment(envId),
-      getProject(projectId),
-      listEnvironments(projectId),
+    const [projectResult, envsResult] = await Promise.all([
+      getProject(projectKey),
+      listEnvironments(projectKey),
     ]);
-    if (flagsResult.ok) {
-      setFlags(flagsResult.flags);
-    } else {
-      setError(flagsResult.message);
-    }
     if (projectResult.ok) {
       setProjectName(projectResult.project.name);
     }
+    let envIdForFlags: string | null = null;
     if (envsResult.ok) {
-      const env = envsResult.environments.find((e) => e.id === envId);
-      if (env) setEnvName(env.name);
+      const env = envsResult.environments.find((e) => e.key === envKey);
+      if (env) {
+        setEnvName(env.name);
+        setResolvedEnvId(env.id);
+        envIdForFlags = env.id;
+      } else {
+        setError(t.environments.envNotFound);
+      }
+    } else {
+      setError(envsResult.message);
+    }
+    if (envIdForFlags !== null) {
+      const flagsResult = await listFlagsForEnvironment(envIdForFlags);
+      if (flagsResult.ok) {
+        setFlags(flagsResult.flags);
+      } else {
+        setError(flagsResult.message);
+      }
     }
     setIsLoading(false);
-  }, [envId, projectId]);
+  }, [envKey, projectKey, t.environments]);
 
   useEffect(() => {
     void loadFlags();
@@ -83,11 +96,12 @@ export function useFlags(envId: string, projectId: string): FlagsState {
   // around the async call — wrapping in toast.promise would complicate that flow.
   const handleToggleFlag = useCallback(
     async (flagId: string, currentEnabled: boolean) => {
+      if (!resolvedEnvId) return;
       setTogglingIds((prev) => new Set(prev).add(flagId));
       setFlags((prev) =>
         prev.map((f) => (f.flagId === flagId ? { ...f, enabled: !currentEnabled } : f)),
       );
-      const result = await toggleFlagEnabled(envId, flagId, !currentEnabled);
+      const result = await toggleFlagEnabled(resolvedEnvId, flagId, !currentEnabled);
       if (!result.ok) {
         setFlags((prev) =>
           prev.map((f) => (f.flagId === flagId ? { ...f, enabled: currentEnabled } : f)),
@@ -103,7 +117,7 @@ export function useFlags(envId: string, projectId: string): FlagsState {
         return next;
       });
     },
-    [envId, t.flags],
+    [resolvedEnvId, t.flags],
   );
 
   const handleDeleteFlag = useCallback(
@@ -162,6 +176,7 @@ export function useFlags(envId: string, projectId: string): FlagsState {
 
   return {
     flags,
+    resolvedEnvId,
     isLoading,
     error,
     modalState,
