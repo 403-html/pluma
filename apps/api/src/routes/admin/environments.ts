@@ -127,6 +127,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             envKey: environment.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: environment.id }, 'POST /environments: failed to write audit log');
@@ -165,6 +171,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
       }
 
       try {
+        const changedKeys = Object.keys(parsedBody.data);
+        const existing = await prisma.environment.findUniqueOrThrow({
+          where: { id: parsedParams.data.envId },
+        });
+        const before = Object.fromEntries(changedKeys.map(k => [k, (existing as Record<string, unknown>)[k]]));
+
         const environment = await prisma.environment.update({
           where: { id: parsedParams.data.envId },
           data: { ...parsedBody.data, configVersion: { increment: 1 } },
@@ -181,7 +193,13 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             envKey: environment.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
-            details: parsedBody.data,
+            details: { before, after: parsedBody.data as Record<string, unknown> },
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: environment.id }, 'PATCH /environments/:envId: failed to write audit log');
@@ -243,6 +261,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             envKey: environment.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: environment.id }, 'DELETE /environments/:envId: failed to write audit log');

@@ -39,3 +39,52 @@ export async function listAuditLog(
     return { ok: false, message: 'Unable to reach the server. Check your connection.' };
   }
 }
+
+export interface AuditExportFilters {
+  projectId?: string;
+  flagId?: string;
+  envId?: string;
+  from?: string;
+  to?: string;
+}
+
+function buildAuditExportParams(filters: AuditExportFilters): string {
+  const params = new URLSearchParams();
+  if (filters.projectId) params.set('projectId', filters.projectId);
+  if (filters.flagId) params.set('flagId', filters.flagId);
+  if (filters.envId) params.set('envId', filters.envId);
+  if (filters.from) params.set('from', filters.from);
+  if (filters.to) params.set('to', filters.to);
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
+/**
+ * Server-side only: fetches an audit export CSV stream directly from the API server.
+ * Requires `API_URL` to be set. Pass the forwarded `Cookie` header from the
+ * incoming Next.js request so the Fastify session check passes.
+ */
+export async function fetchAuditExport(
+  filters: AuditExportFilters,
+  cookieHeader: string,
+): Promise<{ ok: true; csv: string } | { ok: false; message: string }> {
+  const apiUrl = process.env.API_URL;
+  if (!apiUrl) {
+    return { ok: false, message: 'API not configured' };
+  }
+  try {
+    const response = await fetch(`${apiUrl}/api/v1/audit/export${buildAuditExportParams(filters)}`, {
+      method: 'GET',
+      headers: { Cookie: cookieHeader },
+    });
+    if (!response.ok) {
+      const message = await parseErrorMessage(response, 'Failed to export audit log');
+      return { ok: false, message };
+    }
+    const csv = await response.text();
+    return { ok: true, csv };
+  } catch (err) {
+    console.error('[fetchAuditExport] upstream fetch failed', err);
+    return { ok: false, message: 'Unable to reach the server. Check your connection.' };
+  }
+}

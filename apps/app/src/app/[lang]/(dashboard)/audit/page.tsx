@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import type { AuditLogEntry } from '@pluma-flags/types';
 import type { ProjectSummary } from '@pluma-flags/types';
@@ -8,25 +9,113 @@ import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { formatDateTime } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
-import { ScrollText } from 'lucide-react';
+import { ScrollText, Download } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { AuditActionBadge } from './AuditActionBadge';
+import { AuditActorTypeBadge } from './AuditActorTypeBadge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { formatDetails } from '@/lib/auditUtils';
+import { exportAuditCsv } from './actions';
+import Modal from '@/components/Modal';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDetails(details: unknown): string {
-  if (details === null || details === undefined) return '—';
-  if (typeof details === 'object' && Object.keys(details as object).length === 0) return '—';
-  return JSON.stringify(details);
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+const ERROR_DISPLAY_MS = 5_000;
+const URL_REVOKE_DELAY_MS = 100;
+
+interface ExportCsvModalProps {
+  filters: { projectId?: string; envId?: string; flagId?: string };
+  total: number;
+  labels: {
+    triggerLabel: string;
+    modalTitle: string;
+    modalInfo: string;
+    downloadLabel: string;
+    cancelLabel: string;
+    errorLabel: string;
+  };
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+function ExportCsvModal({ filters, total, labels }: ExportCsvModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  async function handleDownload() {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const result = await exportAuditCsv(filters);
+      if (!result.ok) {
+        setExportError(result.message ?? labels.errorLabel);
+        setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
+        return;
+      }
+      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
+      setIsOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message ? error.message : labels.errorLabel;
+      setExportError(message);
+      setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  const info = useMemo(
+    () => labels.modalInfo.replace('{count}', total.toLocaleString()),
+    [labels.modalInfo, total],
+  );
+
+  function handleClose() {
+    if (!isExporting) setIsOpen(false);
+  }
+
+  return (
+    <>
+      <Button variant="outline" onClick={() => setIsOpen(true)}>
+        <Download className="size-3.5" />
+        {labels.triggerLabel}
+      </Button>
+      {isOpen && (
+        <Modal titleId="export-csv-modal-title" title={labels.modalTitle} onClose={handleClose}>
+          <p className="text-sm text-muted-foreground mb-5">{info}</p>
+          {exportError && (
+            <p className="text-xs text-destructive mb-3">{exportError}</p>
+          )}
+          <div className="flex gap-3 justify-end">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isExporting}>
+              {labels.cancelLabel}
+            </Button>
+            <Button type="button" onClick={handleDownload} disabled={isExporting}>
+              <Download className="size-3.5" />
+              {isExporting ? '…' : labels.downloadLabel}
+            </Button>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
 
 function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string }) {
   const entityDisplay = entry.entityKey
     ? `${entry.entityType}: ${entry.entityKey}`
     : entry.entityType;
+
+  const detailsText = formatDetails(entry.details);
 
   return (
     <TableRow>
@@ -34,7 +123,8 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
         {formatDateTime(entry.createdAt, locale)}
       </TableCell>
       <TableCell className="px-3 py-3 text-sm">
-        {entry.actorEmail}
+        <div>{entry.actorEmail}</div>
+        <AuditActorTypeBadge actorType={entry.actorType} />
       </TableCell>
       <TableCell className="px-3 py-3">
         <AuditActionBadge action={entry.action} />
@@ -44,8 +134,23 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
           {entityDisplay}
         </span>
       </TableCell>
-      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs truncate">
-        {formatDetails(entry.details)}
+      <TableCell className="px-3 py-3 text-xs text-muted-foreground">
+        {entry.ipAddress && (
+          <div className="font-mono">{entry.ipAddress}</div>
+        )}
+        {entry.requestId && (
+          <div className="font-mono text-muted-foreground/60" title={entry.requestId}>
+            #{entry.requestId.slice(0, 8)}
+          </div>
+        )}
+      </TableCell>
+      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs">
+        <div
+          className="line-clamp-3 break-words"
+          title={detailsText !== '—' ? detailsText : undefined}
+        >
+          {detailsText}
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -116,7 +221,7 @@ function AuditFiltersBar({ state, labels }: AuditFiltersProps) {
 interface AuditTableProps {
   auditData: AuditPageData;
   locale: string;
-  headers: { timestamp: string; actor: string; action: string; entity: string; details: string };
+  headers: { timestamp: string; actor: string; action: string; entity: string; source: string; details: string };
 }
 
 function AuditTable({ auditData, locale, headers }: AuditTableProps) {
@@ -128,6 +233,7 @@ function AuditTable({ auditData, locale, headers }: AuditTableProps) {
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.actor}</TableHead>
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.action}</TableHead>
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.entity}</TableHead>
+          <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.source}</TableHead>
           <TableHead className="px-3 py-2 text-xs font-semibold uppercase">{headers.details}</TableHead>
         </TableHeadRow>
       </TableHeader>
@@ -185,14 +291,32 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
       <PageHeader 
         title={t.audit.title}
         actions={
-          <AuditFiltersBar state={state} labels={{
-            filterProject: t.audit.filterProject,
-            allProjects: t.audit.allProjects,
-            filterEnvironment: t.audit.filterEnvironment,
-            allEnvironments: t.audit.allEnvironments,
-            filterFlag: t.audit.filterFlag,
-            allFlags: t.audit.allFlags,
-          }} />
+          <div className="flex flex-wrap items-end gap-4">
+            <AuditFiltersBar state={state} labels={{
+              filterProject: t.audit.filterProject,
+              allProjects: t.audit.allProjects,
+              filterEnvironment: t.audit.filterEnvironment,
+              allEnvironments: t.audit.allEnvironments,
+              filterFlag: t.audit.filterFlag,
+              allFlags: t.audit.allFlags,
+            }} />
+            <ExportCsvModal
+              filters={{
+                projectId: state.selectedProjectId || undefined,
+                envId: state.selectedEnvId || undefined,
+                flagId: state.selectedFlagId || undefined,
+              }}
+              total={auditData?.total ?? 0}
+              labels={{
+                triggerLabel: t.audit.exportCsv,
+                modalTitle: t.audit.exportModalTitle,
+                modalInfo: t.audit.exportModalInfo,
+                downloadLabel: t.audit.exportModalDownload,
+                cancelLabel: t.audit.exportModalCancel,
+                errorLabel: t.audit.exportError,
+              }}
+            />
+          </div>
         }
       />
 
@@ -207,6 +331,7 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
             actor: t.audit.colActor,
             action: t.audit.colAction,
             entity: t.audit.colEntity,
+            source: t.audit.colSource,
             details: t.audit.colDetails,
           }} />
           {(hasPrevPage || hasNextPage) && (

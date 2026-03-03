@@ -120,6 +120,20 @@ export type AuditAction = typeof AUDIT_ACTIONS[number];
 export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token'] as const;
 export type AuditEntityType = typeof AUDIT_ENTITY_TYPES[number];
 
+export const AUDIT_ACTOR_TYPES = ['user', 'system', 'sdk-token'] as const;
+export type AuditActorType = typeof AUDIT_ACTOR_TYPES[number];
+
+export interface AuditMeta {
+  ip?: string;
+  ua?: string;
+  requestId?: string;
+  sessionId?: string;
+  tokenId?: string;
+  actorType?: AuditActorType;
+  actorRole?: string;
+  isSystemAction?: boolean;
+}
+
 export interface AuditLogEntry {
   id: string;
   action: AuditAction;
@@ -135,5 +149,13 @@ export interface AuditLogEntry {
   actorId: string;
   actorEmail: string;
   details?: unknown;
+  actorType?: string | null;
+  actorRole?: string | null;
+  sessionId?: string | null;
+  tokenId?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  isSystemAction?: boolean | null;
   createdAt: string;
 }
