@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import type { AuditLogEntry } from '@pluma-flags/types';
 import type { ProjectSummary } from '@pluma-flags/types';
@@ -17,6 +17,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Button } from '@/components/ui/button';
 import { formatDetails } from '@/lib/auditUtils';
 import { exportAuditCsv } from './actions';
+import Modal from '@/components/Modal';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -25,23 +26,31 @@ import { exportAuditCsv } from './actions';
 const ERROR_DISPLAY_MS = 5_000;
 const URL_REVOKE_DELAY_MS = 100;
 
-interface ExportCsvButtonProps {
+interface ExportCsvModalProps {
   filters: { projectId?: string; envId?: string; flagId?: string };
-  label: string;
-  errorLabel: string;
+  total: number;
+  labels: {
+    triggerLabel: string;
+    modalTitle: string;
+    modalInfo: string;
+    downloadLabel: string;
+    cancelLabel: string;
+    errorLabel: string;
+  };
 }
 
-function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
+function ExportCsvModal({ filters, total, labels }: ExportCsvModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  async function handleExport() {
+  async function handleDownload() {
     setIsExporting(true);
     setExportError(null);
     try {
       const result = await exportAuditCsv(filters);
       if (!result.ok) {
-        setExportError(result.message ?? errorLabel);
+        setExportError(result.message ?? labels.errorLabel);
         setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
         return;
       }
@@ -54,9 +63,10 @@ function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
+      setIsOpen(false);
     } catch (error) {
       const message =
-        error instanceof Error && error.message ? error.message : errorLabel;
+        error instanceof Error && error.message ? error.message : labels.errorLabel;
       setExportError(message);
       setTimeout(() => setExportError(null), ERROR_DISPLAY_MS);
     } finally {
@@ -64,16 +74,39 @@ function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
     }
   }
 
+  const info = useMemo(
+    () => labels.modalInfo.replace('{count}', total.toLocaleString()),
+    [labels.modalInfo, total],
+  );
+
+  function handleClose() {
+    if (!isExporting) setIsOpen(false);
+  }
+
   return (
-    <div className="flex flex-col gap-1">
-      <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+    <>
+      <Button variant="outline" onClick={() => setIsOpen(true)}>
         <Download className="size-3.5" />
-        {isExporting ? '…' : label}
+        {labels.triggerLabel}
       </Button>
-      {exportError && (
-        <p className="text-xs text-destructive">{exportError}</p>
+      {isOpen && (
+        <Modal titleId="export-csv-modal-title" title={labels.modalTitle} onClose={handleClose}>
+          <p className="text-sm text-muted-foreground mb-5">{info}</p>
+          {exportError && (
+            <p className="text-xs text-destructive mb-3">{exportError}</p>
+          )}
+          <div className="flex gap-3 justify-end">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isExporting}>
+              {labels.cancelLabel}
+            </Button>
+            <Button type="button" onClick={handleDownload} disabled={isExporting}>
+              <Download className="size-3.5" />
+              {isExporting ? '…' : labels.downloadLabel}
+            </Button>
+          </div>
+        </Modal>
       )}
-    </div>
+    </>
   );
 }
 
@@ -260,14 +293,21 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
               filterFlag: t.audit.filterFlag,
               allFlags: t.audit.allFlags,
             }} />
-            <ExportCsvButton
+            <ExportCsvModal
               filters={{
                 projectId: state.selectedProjectId || undefined,
                 envId: state.selectedEnvId || undefined,
                 flagId: state.selectedFlagId || undefined,
               }}
-              label={t.audit.exportCsv}
-              errorLabel={t.audit.exportError}
+              total={auditData?.total ?? 0}
+              labels={{
+                triggerLabel: t.audit.exportCsv,
+                modalTitle: t.audit.exportModalTitle,
+                modalInfo: t.audit.exportModalInfo,
+                downloadLabel: t.audit.exportModalDownload,
+                cancelLabel: t.audit.exportModalCancel,
+                errorLabel: t.audit.exportError,
+              }}
             />
           </div>
         }

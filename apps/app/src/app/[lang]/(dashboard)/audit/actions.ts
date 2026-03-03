@@ -13,12 +13,8 @@ const CSV_COLUMNS = [
   'ipAddress', 'requestId', 'details',
 ];
 
-// Matches the server-side EXPORT_LIMIT — prevents unbounded memory allocation.
-const MAX_CSV_ROWS = 1_000;
-
 function entriesToCsv(entries: AuditLogEntry[]): { ok: true; csv: string } | { ok: false; message: string } {
   if (!Array.isArray(entries)) return { ok: false, message: 'Unexpected response format' };
-  if (entries.length > MAX_CSV_ROWS) return { ok: false, message: `Export exceeds maximum of ${MAX_CSV_ROWS} rows` };
   const records = entries.map((e) => ({
     timestamp: e.createdAt,
     actorEmail: e.actorEmail,

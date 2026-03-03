@@ -22,9 +22,6 @@ const auditExportQuerySchema = z.object({
 
 // Audit logs are retained indefinitely.
 // Operators should schedule periodic archival of old entries.
-// EXPORT_LIMIT caps single-request exports at 1000 entries — a safe upper bound
-// for in-memory serialisation while still covering typical compliance windows.
-const EXPORT_LIMIT = 1000;
 
 function buildCreatedAtFilter(from?: string, to?: string): Record<string, unknown> {
   if (!from && !to) return {};
@@ -111,7 +108,6 @@ export async function registerAuditRoutes(fastify: FastifyInstance) {
     const entries = await prisma.auditLog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take: EXPORT_LIMIT,
     });
 
     return { entries, count: entries.length };

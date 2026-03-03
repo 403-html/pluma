@@ -189,6 +189,10 @@ export const en = {
     emptyState: 'No audit entries found.',
     exportCsv: 'Export CSV',
     exportError: 'Failed to export audit log',
+    exportModalTitle: 'Export Audit Log',
+    exportModalInfo: '{count} records match your current filters.',
+    exportModalDownload: 'Download CSV',
+    exportModalCancel: 'Cancel',
   },
   organization: {
     title: 'Organization',
