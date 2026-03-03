@@ -13,28 +13,9 @@ import { PageHeader } from '@/components/PageHeader';
 import { AuditActionBadge } from './AuditActionBadge';
 import { AuditActorTypeBadge } from './AuditActorTypeBadge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { formatDetails } from '@/lib/auditUtils';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDetails(details: unknown): string {
-  if (details === null || details === undefined) return '—';
-  if (typeof details === 'string') return details || '—';
-  if (typeof details === 'number' || typeof details === 'boolean') return String(details);
-  if (typeof details !== 'object') return '—';
-  const d = details as Record<string, unknown>;
-  if (Object.keys(d).length === 0) return '—';
-  // Surface structured audit details fields
-  if (d.reason && typeof d.reason === 'string') return d.reason;
-  if (d.diff && typeof d.diff === 'object') {
-    const keys = Object.keys(d.diff as object);
-    return keys.length ? `changed: ${keys.join(', ')}` : '—';
-  }
-  if (d.after && typeof d.after === 'object') {
-    const keys = Object.keys(d.after as object);
-    return keys.length ? `after: ${keys.join(', ')}` : '—';
-  }
-  return JSON.stringify(details);
-}
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 

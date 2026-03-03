@@ -1,26 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { formatDetails } from '@/lib/auditUtils';
 
 // ── formatDetails ─────────────────────────────────────────────────────────────
-
-// Mirror the private formatDetails logic for isolated testing
-function formatDetails(details: unknown): string {
-  if (details === null || details === undefined) return '—';
-  if (typeof details === 'string') return details || '—';
-  if (typeof details === 'number' || typeof details === 'boolean') return String(details);
-  if (typeof details !== 'object') return '—';
-  const d = details as Record<string, unknown>;
-  if (Object.keys(d).length === 0) return '—';
-  if (d.reason && typeof d.reason === 'string') return d.reason;
-  if (d.diff && typeof d.diff === 'object') {
-    const keys = Object.keys(d.diff as object);
-    return keys.length ? `changed: ${keys.join(', ')}` : '—';
-  }
-  if (d.after && typeof d.after === 'object') {
-    const keys = Object.keys(d.after as object);
-    return keys.length ? `after: ${keys.join(', ')}` : '—';
-  }
-  return JSON.stringify(details);
-}
 
 describe('formatDetails', () => {
   it('returns — for null', () => {
