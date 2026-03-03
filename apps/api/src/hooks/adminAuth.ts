@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
-import type { UserRole } from '@pluma-flags/types';
+import { USER_ROLES, type UserRole } from '@pluma-flags/types';
 
 /**
  * Fastify preHandler hook for the Admin API (`/api/v1/*`).
@@ -56,11 +56,17 @@ export async function adminAuthHook(
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
+  const rawRole = session.user.role;
+  if (!USER_ROLES.includes(rawRole as UserRole)) {
+    request.log.error({ userId: session.userId, role: rawRole }, 'Admin auth rejected: unrecognised role in database');
+    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
+  }
+
   request.sessionUserId = session.user.id;
   request.sessionUser = {
     id: session.user.id,
     email: session.user.email,
-    role: session.user.role as UserRole,
+    role: rawRole as UserRole,
     disabled: session.user.disabled,
     createdAt: session.user.createdAt,
   };

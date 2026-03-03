@@ -18,10 +18,16 @@ export function CurrentUserProvider({ children }: { children: React.ReactNode })
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    void fetchCurrentUser().then((user) => {
-      setCurrentUser(user);
-      setIsLoading(false);
-    });
+    fetchCurrentUser()
+      .then((user) => {
+        setCurrentUser(user);
+      })
+      .catch((err: unknown) => {
+        console.error('[CurrentUserProvider] failed to fetch current user', err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   return (

@@ -2,10 +2,11 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
+import { USER_ROLES } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
-// Only admin and user can be assigned via PATCH; operator is set only on first registration.
-const ASSIGNABLE_ROLES = ['admin', 'user'] as const;
+// Roles that can be assigned via PATCH; 'operator' is only set during first registration.
+const ASSIGNABLE_ROLES = USER_ROLES.filter((r) => r !== 'operator') as ['admin', 'user'];
 
 const patchAccountBodySchema = z.object({
   disabled: z.boolean().optional(),

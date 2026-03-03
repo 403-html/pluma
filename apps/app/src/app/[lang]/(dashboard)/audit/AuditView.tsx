@@ -260,7 +260,7 @@ export interface AuditPageProps {
   initialProjects?: ProjectSummary[];
 }
 
-export default function AuditPage({ initialAuditData, initialProjects }: AuditPageProps = {}) {
+export default function AuditView({ initialAuditData, initialProjects }: AuditPageProps = {}) {
   const { t, locale } = useLocale();
   const state = useAuditFilters({ initialAuditData, initialProjects });
   const { auditData, isLoading, error, currentPage, handlePrevPage, handleNextPage } = state;
