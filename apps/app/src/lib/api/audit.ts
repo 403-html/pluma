@@ -93,22 +93,3 @@ export async function fetchAuditExport(
     return { ok: false, message: 'Unable to reach the server. Check your connection.' };
   }
 }
-
-export async function exportAuditLog(
-  filters: AuditExportFilters = {},
-): Promise<{ ok: true; data: AuditExport } | { ok: false; message: string }> {
-  try {
-    const response = await fetch(`/api/v1/audit/export${buildAuditExportParams(filters)}`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-    if (!response.ok) {
-      const message = await parseErrorMessage(response, 'Failed to export audit log');
-      return { ok: false, message };
-    }
-    const data: AuditExport = await response.json();
-    return { ok: true, data };
-  } catch {
-    return { ok: false, message: 'Unable to reach the server. Check your connection.' };
-  }
-}
