@@ -18,6 +18,20 @@ export interface AuditParams {
   meta?: AuditMeta;
 }
 
+function buildMetaFields(meta?: AuditMeta): Record<string, unknown> {
+  if (!meta) return {};
+  return {
+    actorType: meta.actorType,
+    actorRole: meta.actorRole,
+    sessionId: meta.sessionId,
+    tokenId: meta.tokenId,
+    ipAddress: meta.ip,
+    userAgent: meta.ua,
+    requestId: meta.requestId,
+    isSystemAction: meta.isSystemAction,
+  };
+}
+
 /**
  * Writes a single audit log entry to the database.
  *
@@ -36,18 +50,6 @@ export async function writeAuditLog(
   const db = client ?? prisma;
   const { meta, ...rest } = params;
   await db.auditLog.create({
-    data: {
-      ...rest,
-      ...(meta ? {
-        actorType: meta.actorType,
-        actorRole: meta.actorRole,
-        sessionId: meta.sessionId,
-        tokenId: meta.tokenId,
-        ipAddress: meta.ip,
-        userAgent: meta.ua,
-        requestId: meta.requestId,
-        isSystemAction: meta.isSystemAction,
-      } : {}),
-    },
+    data: { ...rest, ...buildMetaFields(meta) },
   });
 }

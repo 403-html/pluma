@@ -24,6 +24,16 @@ const auditExportQuerySchema = z.object({
 // Operators should schedule periodic archival of old entries.
 const EXPORT_LIMIT = 1000;
 
+function buildDateFilter(from?: string, to?: string): Record<string, unknown> {
+  if (!from && !to) return {};
+  return {
+    createdAt: {
+      ...(from ? { gte: new Date(from) } : {}),
+      ...(to ? { lte: new Date(to) } : {}),
+    },
+  };
+}
+
 /**
  * Registers read-only audit log routes on the given Fastify instance.
  *
@@ -93,14 +103,7 @@ export async function registerAuditRoutes(fastify: FastifyInstance) {
       ...(projectId ? { projectId } : {}),
       ...(flagId ? { flagId } : {}),
       ...(envId ? { envId } : {}),
-      ...(from || to
-        ? {
-            createdAt: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            },
-          }
-        : {}),
+      ...buildDateFilter(from, to),
     };
 
     const entries = await prisma.auditLog.findMany({
