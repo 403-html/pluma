@@ -131,7 +131,7 @@ export const auditDetailsSchema = z.object({
   diff: z.record(z.string(), z.unknown()).optional(),
   reason: z.string().max(500).optional(),
 }).refine(
-  (d) => !d || d.before !== undefined || d.after !== undefined || d.diff !== undefined || d.reason !== undefined,
+  (d) => d.before !== undefined || d.after !== undefined || d.diff !== undefined || d.reason !== undefined,
   { message: 'details must contain at least one of: before, after, diff, reason' },
 ).optional();
 
