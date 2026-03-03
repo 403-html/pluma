@@ -58,7 +58,7 @@ function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
 
   return (
     <div className="flex flex-col gap-1">
-      <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
+      <Button variant="outline" onClick={handleExport} disabled={isExporting}>
         <Download className="size-3.5" />
         {isExporting ? '…' : label}
       </Button>
