@@ -1,9 +1,12 @@
+import { Readable } from 'node:stream';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '@pluma-flags/db';
+import type { Prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
 const PAGE_SIZE = 50;
+const EXPORT_BATCH_SIZE = 500;
 
 const auditQuerySchema = z.object({
   projectId: z.string().uuid().optional(),
@@ -22,6 +25,62 @@ const auditExportQuerySchema = z.object({
 
 // Audit logs are retained indefinitely.
 // Operators should schedule periodic archival of old entries.
+
+const CSV_HEADER = 'timestamp,actorEmail,actorType,action,entityType,entityKey,projectKey,envKey,flagKey,ipAddress,requestId,details';
+
+function csvCell(val: unknown): string {
+  if (val === null || val === undefined) return '';
+  const s = typeof val === 'string' ? val : JSON.stringify(val);
+  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+type AuditLogRow = Awaited<ReturnType<typeof prisma.auditLog.findMany>>[number];
+
+function auditRowToCsvLine(entry: AuditLogRow): string {
+  return [
+    entry.createdAt.toISOString(),
+    entry.actorEmail,
+    entry.actorType,
+    entry.action,
+    entry.entityType,
+    entry.entityKey,
+    entry.projectKey,
+    entry.envKey,
+    entry.flagKey,
+    entry.ipAddress,
+    entry.requestId,
+    entry.details != null ? JSON.stringify(entry.details) : null,
+  ].map(csvCell).join(',');
+}
+
+async function* streamAuditCsvRows(
+  where: Prisma.AuditLogWhereInput,
+  log: FastifyInstance['log'],
+): AsyncGenerator<string> {
+  yield CSV_HEADER + '\n';
+  let cursor: string | undefined;
+  try {
+    while (true) {
+      const batch = await prisma.auditLog.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: EXPORT_BATCH_SIZE,
+        ...(cursor !== undefined ? { skip: 1, cursor: { id: cursor } } : {}),
+      });
+      for (const entry of batch) {
+        yield auditRowToCsvLine(entry) + '\n';
+      }
+      if (batch.length < EXPORT_BATCH_SIZE) break;
+      cursor = batch[batch.length - 1].id;
+    }
+  } catch (err) {
+    log.error({ err }, 'streamAuditCsvRows: database error during export, stream may be truncated');
+    throw err;
+  }
+}
 
 function buildCreatedAtFilter(from?: string, to?: string): Record<string, unknown> {
   if (!from && !to) return {};
@@ -50,7 +109,10 @@ function buildCreatedAtFilter(from?: string, to?: string): Record<string, unknow
  *     Response: { total, page, pageSize, entries: AuditLog[] }
  *
  *   GET /audit/export
- *     Returns all matching AuditLog entries in newest-first order for compliance/export use.
+ *     Streams all matching AuditLog entries as a CSV download (text/csv) in newest-first order.
+ *     Records are fetched from the database in batches of 500 using cursor pagination so that
+ *     the full result set is never materialised in memory at once.  Operators should use the
+ *     from/to date filters to scope large exports.
  *
  *     Query params:
  *       projectId  UUID — filter to a specific project
@@ -59,7 +121,7 @@ function buildCreatedAtFilter(from?: string, to?: string): Record<string, unknow
  *       from       ISO 8601 datetime — lower bound on createdAt
  *       to         ISO 8601 datetime — upper bound on createdAt
  *
- *     Response: { entries: AuditLog[], count: number }
+ *     Response: text/csv stream — header row + one data row per matching entry, newest-first
  */
 export async function registerAuditRoutes(fastify: FastifyInstance) {
   fastify.get('/audit', { preHandler: [adminAuthHook] }, async (request, reply) => {
@@ -98,18 +160,17 @@ export async function registerAuditRoutes(fastify: FastifyInstance) {
     }
     const { projectId, flagId, envId, from, to } = parsed.data;
 
-    const where = {
+    const where: Prisma.AuditLogWhereInput = {
       ...(projectId ? { projectId } : {}),
       ...(flagId ? { flagId } : {}),
       ...(envId ? { envId } : {}),
       ...buildCreatedAtFilter(from, to),
     };
 
-    const entries = await prisma.auditLog.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return { entries, count: entries.length };
+    const today = new Date().toISOString().slice(0, 10); // UTC date for filename
+    return reply
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="audit-${today}.csv"`)
+      .send(Readable.from(streamAuditCsvRows(where, request.log)));
   });
 }

@@ -48,11 +48,6 @@ export interface AuditExportFilters {
   to?: string;
 }
 
-export interface AuditExport {
-  entries: AuditLogEntry[];
-  count: number;
-}
-
 function buildAuditExportParams(filters: AuditExportFilters): string {
   const params = new URLSearchParams();
   if (filters.projectId) params.set('projectId', filters.projectId);
@@ -65,14 +60,14 @@ function buildAuditExportParams(filters: AuditExportFilters): string {
 }
 
 /**
- * Server-side only: fetches an audit export slice directly from the API server.
+ * Server-side only: fetches an audit export CSV stream directly from the API server.
  * Requires `API_URL` to be set. Pass the forwarded `Cookie` header from the
  * incoming Next.js request so the Fastify session check passes.
  */
 export async function fetchAuditExport(
   filters: AuditExportFilters,
   cookieHeader: string,
-): Promise<{ ok: true; data: AuditExport } | { ok: false; message: string }> {
+): Promise<{ ok: true; csv: string } | { ok: false; message: string }> {
   const apiUrl = process.env.API_URL;
   if (!apiUrl) {
     return { ok: false, message: 'API not configured' };
@@ -86,8 +81,8 @@ export async function fetchAuditExport(
       const message = await parseErrorMessage(response, 'Failed to export audit log');
       return { ok: false, message };
     }
-    const data: AuditExport = await response.json();
-    return { ok: true, data };
+    const csv = await response.text();
+    return { ok: true, csv };
   } catch (err) {
     console.error('[fetchAuditExport] upstream fetch failed', err);
     return { ok: false, message: 'Unable to reach the server. Check your connection.' };

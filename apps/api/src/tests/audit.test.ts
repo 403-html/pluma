@@ -318,7 +318,7 @@ describe('Audit routes', () => {
   });
 
   describe('GET /api/v1/audit/export', () => {
-    it('should return export entries', async () => {
+    it('should stream CSV export', async () => {
       prismaMock.auditLog.findMany.mockResolvedValue([]);
       const response = await app.inject({
         method: 'GET',
@@ -326,9 +326,8 @@ describe('Audit routes', () => {
         headers: { cookie: AUTH_COOKIE },
       });
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body).toHaveProperty('entries');
-      expect(body).toHaveProperty('count');
+      expect(response.headers['content-type']).toContain('text/csv');
+      expect(response.body).toContain('timestamp');
     });
 
     it('should return 401 when no session', async () => {
