@@ -1,3 +1,4 @@
+import { stringify } from 'csv/sync';
 import type { AuditLogEntry } from '@pluma-flags/types';
 
 /**
@@ -29,33 +30,27 @@ export function formatDetails(details: unknown): string {
   return JSON.stringify(details);
 }
 
-const CSV_HEADERS = [
+const CSV_COLUMNS = [
   'timestamp', 'actorEmail', 'actorType', 'action',
   'entityType', 'entityKey', 'projectKey', 'envKey', 'flagKey',
   'ipAddress', 'requestId', 'details',
 ];
 
-function csvCell(value: unknown): string {
-  const s = value == null ? '' : String(value);
-  if (/[,"\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-  return s;
-}
-
 /** Serialises an array of audit log entries to RFC 4180 CSV. */
 export function auditEntriesToCsv(entries: AuditLogEntry[]): string {
-  const rows = entries.map((e) => [
-    e.createdAt,
-    e.actorEmail,
-    e.actorType ?? '',
-    e.action,
-    e.entityType,
-    e.entityKey ?? '',
-    e.projectKey ?? '',
-    e.envKey ?? '',
-    e.flagKey ?? '',
-    e.ipAddress ?? '',
-    e.requestId ?? '',
-    formatDetails(e.details),
-  ].map(csvCell).join(','));
-  return [CSV_HEADERS.join(','), ...rows].join('\r\n') + '\r\n';
+  const records = entries.map((e) => ({
+    timestamp: e.createdAt,
+    actorEmail: e.actorEmail,
+    actorType: e.actorType ?? '',
+    action: e.action,
+    entityType: e.entityType,
+    entityKey: e.entityKey ?? '',
+    projectKey: e.projectKey ?? '',
+    envKey: e.envKey ?? '',
+    flagKey: e.flagKey ?? '',
+    ipAddress: e.ipAddress ?? '',
+    requestId: e.requestId ?? '',
+    details: formatDetails(e.details),
+  }));
+  return stringify(records, { header: true, columns: CSV_COLUMNS });
 }
