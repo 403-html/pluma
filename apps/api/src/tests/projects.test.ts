@@ -8,6 +8,7 @@ const { prismaMock } = vi.hoisted(() => ({
     project: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -166,6 +167,7 @@ describe('API Projects', () => {
   });
 
   it('should update a project', async () => {
+    prismaMock.project.findUniqueOrThrow.mockResolvedValue(mockProject);
     prismaMock.project.update.mockResolvedValue({
       id: PROJECT_ID,
       key: 'alpha',

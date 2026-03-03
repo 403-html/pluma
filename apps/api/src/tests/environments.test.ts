@@ -42,6 +42,7 @@ const { prismaMock } = vi.hoisted(() => ({
     environment: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -202,6 +203,7 @@ describe('Environment routes', () => {
 
   describe('PATCH /api/v1/environments/:envId', () => {
     it('should update an environment', async () => {
+      prismaMock.environment.findUniqueOrThrow.mockResolvedValue(mockEnvironment);
       prismaMock.environment.update.mockResolvedValue({ ...mockEnvironment, name: 'Staging Updated' });
 
       const response = await app.inject({
@@ -217,7 +219,7 @@ describe('Environment routes', () => {
     });
 
     it('should return 404 when environment not found', async () => {
-      prismaMock.environment.update.mockRejectedValue({ code: 'P2025' });
+      prismaMock.environment.findUniqueOrThrow.mockRejectedValue({ code: 'P2025' });
 
       const response = await app.inject({
         method: 'PATCH',
@@ -230,6 +232,7 @@ describe('Environment routes', () => {
     });
 
     it('should return 409 when env key already exists', async () => {
+      prismaMock.environment.findUniqueOrThrow.mockResolvedValue(mockEnvironment);
       prismaMock.environment.update.mockRejectedValue({ code: 'P2002' });
 
       const response = await app.inject({

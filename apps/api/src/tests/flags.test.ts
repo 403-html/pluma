@@ -34,6 +34,7 @@ const { prismaMock } = vi.hoisted(() => {
     featureFlag: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -243,6 +244,7 @@ describe('Feature Flag routes', () => {
 
   describe('PATCH /api/v1/flags/:flagId', () => {
     it('should update a flag', async () => {
+      prismaMock.featureFlag.findUniqueOrThrow.mockResolvedValue(mockFlag);
       prismaMock.featureFlag.update.mockResolvedValue({ ...mockFlag, name: 'Dark Mode Updated' });
 
       const response = await app.inject({
@@ -258,7 +260,7 @@ describe('Feature Flag routes', () => {
     });
 
     it('should return 404 when flag not found', async () => {
-      prismaMock.featureFlag.update.mockRejectedValue({ code: 'P2025' });
+      prismaMock.featureFlag.findUniqueOrThrow.mockRejectedValue({ code: 'P2025' });
 
       const response = await app.inject({
         method: 'PATCH',
@@ -271,6 +273,7 @@ describe('Feature Flag routes', () => {
     });
 
     it('should return 409 when flag key already exists', async () => {
+      prismaMock.featureFlag.findUniqueOrThrow.mockResolvedValue(mockFlag);
       prismaMock.featureFlag.update.mockRejectedValue({ code: 'P2002' });
 
       const response = await app.inject({

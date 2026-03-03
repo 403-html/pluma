@@ -115,6 +115,8 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
     ? `${entry.entityType}: ${entry.entityKey}`
     : entry.entityType;
 
+  const detailsText = formatDetails(entry.details);
+
   return (
     <TableRow>
       <TableCell className="px-3 py-3 text-sm text-muted-foreground whitespace-nowrap">
@@ -142,8 +144,13 @@ function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string
           </div>
         )}
       </TableCell>
-      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs whitespace-pre-line">
-        {formatDetails(entry.details)}
+      <TableCell className="px-3 py-3 text-xs text-muted-foreground max-w-xs">
+        <div
+          className="line-clamp-3 break-words"
+          title={detailsText !== '—' ? detailsText : undefined}
+        >
+          {detailsText}
+        </div>
       </TableCell>
     </TableRow>
   );
