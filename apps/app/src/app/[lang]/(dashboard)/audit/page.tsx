@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import type { AuditLogEntry } from '@pluma-flags/types';
 import type { ProjectSummary } from '@pluma-flags/types';
@@ -8,16 +9,63 @@ import { useAuditFilters, type AuditFilterState } from './useAuditFilters';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableHeadRow, TablePagination } from '@/components/ui/table';
 import { formatDateTime } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
-import { ScrollText } from 'lucide-react';
+import { ScrollText, Download } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { AuditActionBadge } from './AuditActionBadge';
 import { AuditActorTypeBadge } from './AuditActorTypeBadge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { formatDetails } from '@/lib/auditUtils';
+import { Button } from '@/components/ui/button';
+import { formatDetails, auditEntriesToCsv } from '@/lib/auditUtils';
+import { exportAuditLog } from '@/lib/api/audit';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+interface ExportCsvButtonProps {
+  filters: { projectId?: string; envId?: string; flagId?: string };
+  label: string;
+  errorLabel: string;
+}
+
+function ExportCsvButton({ filters, label, errorLabel }: ExportCsvButtonProps) {
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  async function handleExport() {
+    setIsExporting(true);
+    setExportError(null);
+    const result = await exportAuditLog(filters);
+    setIsExporting(false);
+    if (!result.ok) {
+      setExportError(result.message ?? errorLabel);
+      setTimeout(() => setExportError(null), 5000);
+      return;
+    }
+    const csv = auditEntriesToCsv(result.data.entries);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
+        <Download className="size-3.5" />
+        {isExporting ? '…' : label}
+      </Button>
+      {exportError && (
+        <p className="text-xs text-destructive">{exportError}</p>
+      )}
+    </div>
+  );
+}
 
 function AuditTableRow({ entry, locale }: { entry: AuditLogEntry; locale: string }) {
   const entityDisplay = entry.entityKey
@@ -193,14 +241,25 @@ export default function AuditPage({ initialAuditData, initialProjects }: AuditPa
       <PageHeader 
         title={t.audit.title}
         actions={
-          <AuditFiltersBar state={state} labels={{
-            filterProject: t.audit.filterProject,
-            allProjects: t.audit.allProjects,
-            filterEnvironment: t.audit.filterEnvironment,
-            allEnvironments: t.audit.allEnvironments,
-            filterFlag: t.audit.filterFlag,
-            allFlags: t.audit.allFlags,
-          }} />
+          <div className="flex flex-wrap items-end gap-4">
+            <AuditFiltersBar state={state} labels={{
+              filterProject: t.audit.filterProject,
+              allProjects: t.audit.allProjects,
+              filterEnvironment: t.audit.filterEnvironment,
+              allEnvironments: t.audit.allEnvironments,
+              filterFlag: t.audit.filterFlag,
+              allFlags: t.audit.allFlags,
+            }} />
+            <ExportCsvButton
+              filters={{
+                projectId: state.selectedProjectId || undefined,
+                envId: state.selectedEnvId || undefined,
+                flagId: state.selectedFlagId || undefined,
+              }}
+              label={t.audit.exportCsv}
+              errorLabel={t.audit.exportError}
+            />
+          </div>
         }
       />
 

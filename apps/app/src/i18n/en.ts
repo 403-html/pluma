@@ -187,6 +187,8 @@ export const en = {
     colSource: 'Source',
     colDetails: 'Details',
     emptyState: 'No audit entries found.',
+    exportCsv: 'Export CSV',
+    exportError: 'Failed to export audit log',
   },
   organization: {
     title: 'Organization',

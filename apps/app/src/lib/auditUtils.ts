@@ -1,3 +1,5 @@
+import type { AuditLogEntry } from '@pluma-flags/types';
+
 /**
  * Formats an audit log `details` value into a human-readable string.
  *
@@ -25,4 +27,35 @@ export function formatDetails(details: unknown): string {
     return keys.length ? `after: ${keys.join(', ')}` : '—';
   }
   return JSON.stringify(details);
+}
+
+const CSV_HEADERS = [
+  'timestamp', 'actorEmail', 'actorType', 'action',
+  'entityType', 'entityKey', 'projectKey', 'envKey', 'flagKey',
+  'ipAddress', 'requestId', 'details',
+];
+
+function csvCell(value: unknown): string {
+  const s = value == null ? '' : String(value);
+  if (/[,"\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+/** Serialises an array of audit log entries to RFC 4180 CSV. */
+export function auditEntriesToCsv(entries: AuditLogEntry[]): string {
+  const rows = entries.map((e) => [
+    e.createdAt,
+    e.actorEmail,
+    e.actorType ?? '',
+    e.action,
+    e.entityType,
+    e.entityKey ?? '',
+    e.projectKey ?? '',
+    e.envKey ?? '',
+    e.flagKey ?? '',
+    e.ipAddress ?? '',
+    e.requestId ?? '',
+    formatDetails(e.details),
+  ].map(csvCell).join(','));
+  return [CSV_HEADERS.join(','), ...rows].join('\r\n') + '\r\n';
 }
