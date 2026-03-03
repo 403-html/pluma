@@ -20,7 +20,7 @@ export interface AuditParams {
 
 function buildMetaFields(meta?: AuditMeta): Record<string, unknown> {
   if (!meta) return {};
-  return {
+  const raw: Record<string, unknown> = {
     actorType: meta.actorType,
     actorRole: meta.actorRole,
     sessionId: meta.sessionId,
@@ -30,6 +30,7 @@ function buildMetaFields(meta?: AuditMeta): Record<string, unknown> {
     requestId: meta.requestId,
     isSystemAction: meta.isSystemAction,
   };
+  return Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined));
 }
 
 /**
