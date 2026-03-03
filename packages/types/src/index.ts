@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 // Auth
 export type AuthUser = {
   id: string;
@@ -120,6 +122,30 @@ export type AuditAction = typeof AUDIT_ACTIONS[number];
 export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token'] as const;
 export type AuditEntityType = typeof AUDIT_ENTITY_TYPES[number];
 
+export const AUDIT_ACTOR_TYPES = ['user', 'system', 'sdk-token'] as const;
+export type AuditActorType = typeof AUDIT_ACTOR_TYPES[number];
+
+export const auditDetailsSchema = z.object({
+  before: z.record(z.string(), z.unknown()).optional(),
+  after: z.record(z.string(), z.unknown()).optional(),
+  diff: z.record(z.string(), z.unknown()).optional(),
+  reason: z.string().max(500).optional(),
+}).refine(
+  (d) => d.before !== undefined || d.after !== undefined || d.diff !== undefined || d.reason !== undefined,
+  { message: 'details must contain at least one of: before, after, diff, reason' },
+).optional();
+
+export interface AuditMeta {
+  ip?: string;
+  ua?: string;
+  requestId?: string;
+  sessionId?: string;
+  tokenId?: string;
+  actorType?: AuditActorType;
+  actorRole?: string;
+  isSystemAction?: boolean;
+}
+
 export interface AuditLogEntry {
   id: string;
   action: AuditAction;
@@ -135,5 +161,13 @@ export interface AuditLogEntry {
   actorId: string;
   actorEmail: string;
   details?: unknown;
+  actorType?: string | null;
+  actorRole?: string | null;
+  sessionId?: string | null;
+  tokenId?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
+  isSystemAction?: boolean | null;
   createdAt: string;
 }

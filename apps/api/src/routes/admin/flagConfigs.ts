@@ -258,6 +258,12 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
             details: parsedBody.data,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: config.envId, flagId: config.flagId }, 'PATCH /flagConfigs: failed to write audit log');

@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
+import type { Prisma } from '@pluma-flags/db';
 import { AUTH_COOKIE, mockSession, PROJECT_ID, FLAG_ID, ENV_ID } from './fixtures';
+import { writeAuditLog } from '../lib/audit';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -11,11 +13,76 @@ const { prismaMock } = vi.hoisted(() => ({
     auditLog: {
       count: vi.fn(),
       findMany: vi.fn(),
+      create: vi.fn(),
     },
   },
 }));
 
 vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
+
+describe('writeAuditLog', () => {
+  it('stores meta fields in audit record', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog(
+      {
+        action: 'create',
+        entityType: 'project',
+        entityId: 'proj-1',
+        actorId: 'user-1',
+        actorEmail: 'test@example.com',
+        meta: {
+          ip: '127.0.0.1',
+          ua: 'Mozilla/5.0',
+          requestId: 'req-abc',
+          actorType: 'user',
+        },
+      },
+    );
+    expect(prismaMock.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        ipAddress: '127.0.0.1',
+        userAgent: 'Mozilla/5.0',
+        requestId: 'req-abc',
+        actorType: 'user',
+      }),
+    });
+  });
+
+  it('works without meta fields', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    await writeAuditLog({
+      action: 'delete',
+      entityType: 'flag',
+      entityId: 'flag-1',
+      actorId: 'user-2',
+      actorEmail: 'user@example.com',
+    });
+    expect(prismaMock.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'delete',
+        entityType: 'flag',
+        entityId: 'flag-1',
+      }),
+    });
+  });
+
+  it('uses provided TransactionClient when given', async () => {
+    prismaMock.auditLog.create = vi.fn().mockResolvedValue({});
+    const txMock = { auditLog: { create: vi.fn().mockResolvedValue({}) } } as unknown as Prisma.TransactionClient;
+    await writeAuditLog(
+      {
+        action: 'update',
+        entityType: 'environment',
+        entityId: 'env-1',
+        actorId: 'user-1',
+        actorEmail: 'test@example.com',
+      },
+      txMock,
+    );
+    expect(txMock.auditLog.create).toHaveBeenCalled();
+    expect(prismaMock.auditLog.create).not.toHaveBeenCalled();
+  });
+});
 
 describe('Audit routes', () => {
   let app: FastifyInstance;
@@ -162,6 +229,29 @@ describe('Audit routes', () => {
         url: '/api/v1/audit',
       });
 
+      expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe('GET /api/v1/audit/export', () => {
+    it('should return export entries', async () => {
+      prismaMock.auditLog.findMany.mockResolvedValue([]);
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/audit/export',
+        headers: { cookie: AUTH_COOKIE },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body).toHaveProperty('entries');
+      expect(body).toHaveProperty('count');
+    });
+
+    it('should return 401 when no session', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/audit/export',
+      });
       expect(response.statusCode).toBe(401);
     });
   });

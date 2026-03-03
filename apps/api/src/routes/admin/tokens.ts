@@ -108,6 +108,12 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
           actorId: request.sessionUserId!,
           actorEmail: request.sessionUser!.email,
           details: { name: sdkToken.name },
+          meta: {
+            ip: request.ip,
+            ua: request.headers['user-agent'] as string | undefined,
+            requestId: request.id,
+            actorType: 'user',
+          },
         });
       } catch (auditError) {
         request.log.error({ err: auditError, tokenId: sdkToken.id }, 'POST /projects/:id/tokens: failed to write audit log');
@@ -150,6 +156,12 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
             projectId: parsedParams.data.id,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, tokenId: parsedParams.data.tokenId }, 'DELETE /projects/:id/tokens/:tokenId: failed to write audit log');

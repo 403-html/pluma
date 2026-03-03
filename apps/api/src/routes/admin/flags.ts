@@ -176,6 +176,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
           flagKey: flag.key,
           actorId: request.sessionUserId!,
           actorEmail: request.sessionUser!.email,
+          meta: {
+            ip: request.ip,
+            ua: request.headers['user-agent'] as string | undefined,
+            requestId: request.id,
+            actorType: 'user',
+          },
         });
       } catch (auditError) {
         request.log.error({ err: auditError, flagId: flag.id }, 'POST /flags: failed to write audit log');
@@ -239,6 +245,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
             details: parsedBody.data,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, flagId: flag.id }, 'PATCH /flags/:flagId: failed to write audit log');
@@ -300,6 +312,12 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
             flagKey: deletedFlag.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, flagId: deletedFlag.id }, 'DELETE /flags/:flagId: failed to write audit log');

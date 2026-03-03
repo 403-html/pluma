@@ -1,5 +1,5 @@
 import { prisma, type Prisma } from '@pluma-flags/db';
-import type { AuditAction, AuditEntityType } from '@pluma-flags/types';
+import type { AuditAction, AuditEntityType, AuditMeta } from '@pluma-flags/types';
 
 export interface AuditParams {
   action: AuditAction;
@@ -15,6 +15,7 @@ export interface AuditParams {
   actorId: string;
   actorEmail: string;
   details?: Prisma.InputJsonValue;
+  meta?: AuditMeta;
 }
 
 /**
@@ -33,5 +34,20 @@ export async function writeAuditLog(
   client?: Prisma.TransactionClient,
 ): Promise<void> {
   const db = client ?? prisma;
-  await db.auditLog.create({ data: params });
+  const { meta, ...rest } = params;
+  await db.auditLog.create({
+    data: {
+      ...rest,
+      ...(meta ? {
+        actorType: meta.actorType,
+        actorRole: meta.actorRole,
+        sessionId: meta.sessionId,
+        tokenId: meta.tokenId,
+        ipAddress: meta.ip,
+        userAgent: meta.ua,
+        requestId: meta.requestId,
+        isSystemAction: meta.isSystemAction,
+      } : {}),
+    },
+  });
 }

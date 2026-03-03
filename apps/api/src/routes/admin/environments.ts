@@ -127,6 +127,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             envKey: environment.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: environment.id }, 'POST /environments: failed to write audit log');
@@ -182,6 +188,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
             details: parsedBody.data,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: environment.id }, 'PATCH /environments/:envId: failed to write audit log');
@@ -243,6 +255,12 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
             envKey: environment.key,
             actorId: request.sessionUserId!,
             actorEmail: request.sessionUser!.email,
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
           });
         } catch (auditError) {
           request.log.error({ err: auditError, envId: environment.id }, 'DELETE /environments/:envId: failed to write audit log');
