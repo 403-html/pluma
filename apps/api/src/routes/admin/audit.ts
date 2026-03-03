@@ -50,7 +50,7 @@ function buildCreatedAtFilter(from?: string, to?: string): Record<string, unknow
  *     Response: { total, page, pageSize, entries: AuditLog[] }
  *
  *   GET /audit/export
- *     Returns a compliance slice of AuditLog entries (max 1000) in newest-first order.
+ *     Returns all matching AuditLog entries in newest-first order for compliance/export use.
  *
  *     Query params:
  *       projectId  UUID — filter to a specific project
