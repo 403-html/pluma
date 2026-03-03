@@ -43,8 +43,8 @@ function CheckboxField({ label, description, id, disabled, ...props }: CheckboxF
   const hasLabelContent = label !== undefined || description !== undefined
 
   return (
-    <div className="flex items-start gap-2">
-      <Checkbox id={checkboxId} disabled={disabled} className="mt-0.5" {...props} />
+    <div className="flex items-center gap-2">
+      <Checkbox id={checkboxId} disabled={disabled} {...props} />
       {hasLabelContent && (
         <label
           htmlFor={checkboxId}
