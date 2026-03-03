@@ -11,9 +11,8 @@ export interface CheckboxProps extends Omit<React.ComponentPropsWithoutRef<'inpu
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, onCheckedChange, onChange, ...props }, ref) => {
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-      if (!e || !e.target) return;
       onChange?.(e);
-      onCheckedChange?.(e.target.checked);
+      onCheckedChange?.(e.currentTarget.checked);
     }
 
     return (
