@@ -24,6 +24,8 @@ export const mockUser = {
   id: USER_ID,
   email: 'admin@example.com',
   passwordHash: 'hash',
+  role: 'operator',
+  disabled: false,
   createdAt: FIXED_DATE,
 };
 

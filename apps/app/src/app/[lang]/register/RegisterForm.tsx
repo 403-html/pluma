@@ -4,7 +4,6 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { register } from '@/lib/api/auth';
-import { StatusCodes } from 'http-status-codes';
 import { useLocale } from '@/i18n/LocaleContext';
 import FormField from '@/components/FormField';
 import { Button } from '@/components/ui/button';
@@ -24,10 +23,6 @@ export default function RegisterForm() {
     try {
       const result = await register(email, password, locale);
       if (!result.ok) {
-        if (result.status === StatusCodes.CONFLICT) {
-          router.push(`/${locale}/login?msg=already-configured`);
-          return;
-        }
         setError(result.message);
         return;
       }

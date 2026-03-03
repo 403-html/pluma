@@ -1,7 +1,12 @@
 // Auth
+export const USER_ROLES = ['operator', 'admin', 'user'] as const;
+export type UserRole = typeof USER_ROLES[number];
+
 export type AuthUser = {
   id: string;
   email: string;
+  role: UserRole;
+  disabled: boolean;
   createdAt: Date;
 };
 

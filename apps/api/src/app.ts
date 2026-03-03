@@ -5,6 +5,7 @@ import sensible from '@fastify/sensible';
 import cookie from '@fastify/cookie';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { registerAuthRoutes } from './routes/admin/auth';
+import { registerAccountRoutes } from './routes/admin/accounts';
 import { registerProjectRoutes } from './routes/admin/projects';
 import { registerTokenRoutes } from './routes/admin/tokens';
 import { registerEnvTokenRoutes } from './routes/admin/envTokens';
@@ -57,6 +58,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
         { prefix: '/auth' },
       );
       await registerProjectRoutes(adminApi);
+      await registerAccountRoutes(adminApi);
       await registerTokenRoutes(adminApi);
       await registerEnvTokenRoutes(adminApi);
       await registerOrgTokenRoutes(adminApi);

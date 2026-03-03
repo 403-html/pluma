@@ -1,4 +1,4 @@
-import type { AuthUser } from '@pluma-flags/types';
+import type { AuthUser, UserRole } from '@pluma-flags/types';
 import { MIN_PASSWORD_LENGTH } from '@pluma-flags/types';
 import type { Locale } from '@/i18n';
 import { getDictionary } from '@/i18n';
@@ -125,6 +125,24 @@ export async function changePassword(
 }
 
 /**
+ * Client-side: fetches the current authenticated user from GET /api/v1/auth/me.
+ * Returns the user or null if not authenticated / request fails.
+ */
+export async function fetchCurrentUser(): Promise<AuthUserResponse | null> {
+  try {
+    const response = await fetch('/api/v1/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (!response.ok) return null;
+    const user: AuthUserResponse = await response.json();
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Server-side only: verifies the current session by calling GET /api/v1/auth/me
  * with a forwarded Cookie header. Requires API_URL to be set.
  */
@@ -143,5 +161,30 @@ export async function checkSession(cookieHeader: string): Promise<boolean> {
   } catch (error) {
     console.error('[checkSession] failed', error);
     return false;
+  }
+}
+
+/**
+ * Server-side only: fetches the current user's role from GET /api/v1/auth/me
+ * with a forwarded Cookie header. Returns the role or null if not authenticated.
+ * Requires API_URL to be set.
+ */
+export async function fetchUserRole(cookieHeader: string): Promise<UserRole | null> {
+  const apiUrl = process.env.API_URL;
+  if (!apiUrl) {
+    console.error('[fetchUserRole] API_URL is not set');
+    return null;
+  }
+  try {
+    const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
+      method: 'GET',
+      headers: { Cookie: cookieHeader },
+    });
+    if (!response.ok) return null;
+    const user: AuthUserResponse = await response.json();
+    return user.role;
+  } catch (error) {
+    console.error('[fetchUserRole] failed', error);
+    return null;
   }
 }

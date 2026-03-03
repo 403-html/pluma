@@ -49,7 +49,8 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/v1/auth/register
-   * Creates the first admin user. Returns 409 if any user already exists.
+   * Creates a new user. The first user to register receives the "operator" role;
+   * all subsequent users receive the "user" role.
    */
   fastify.post('/register', async (request, reply) => {
     const parsedBody = registerBodySchema.safeParse(request.body);
@@ -60,19 +61,21 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     }
 
     const existingCount = await prisma.user.count();
-
-    if (existingCount > 0) {
-      request.log.warn('Register rejected: admin user already exists');
-      return reply.conflict(ReasonPhrases.CONFLICT);
-    }
+    const role = existingCount === 0 ? 'operator' : 'user';
 
     const passwordHash = await hash(parsedBody.data.password, BCRYPT_ROUNDS);
 
     const user = await prisma.user.create({
-      data: { email: parsedBody.data.email, passwordHash },
+      data: { email: parsedBody.data.email, passwordHash, role },
     });
 
-    return reply.code(StatusCodes.CREATED).send({ id: user.id, email: user.email, createdAt: user.createdAt });
+    return reply.code(StatusCodes.CREATED).send({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      disabled: user.disabled,
+      createdAt: user.createdAt,
+    });
   });
 
   /**
@@ -102,6 +105,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
+    if (user.disabled) {
+      request.log.warn({ userId: user.id }, 'Login rejected: account disabled');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
     // Invalidate all existing sessions for this user before creating a new one.
     await prisma.session.deleteMany({
       where: { userId: user.id },
@@ -122,7 +130,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       expires: expiresAt,
     });
 
-    return reply.code(StatusCodes.OK).send({ id: user.id, email: user.email, createdAt: user.createdAt });
+    return reply.code(StatusCodes.OK).send({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      disabled: user.disabled,
+      createdAt: user.createdAt,
+    });
   });
 
   /**

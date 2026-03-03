@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
+import type { UserRole } from '@pluma-flags/types';
 
 /**
  * Fastify preHandler hook for the Admin API (`/api/v1/*`).
@@ -18,10 +19,11 @@ import { prisma } from '@pluma-flags/db';
  * - Missing `pluma_session` cookie
  * - Session not found in the database
  * - Session that has expired (`expiresAt` is in the past)
+ * - Account that has been disabled (`user.disabled === true`)
  *
  * ## What it populates on success
  * - `request.sessionUserId` — the authenticated user's ID
- * - `request.sessionUser`   — `{ id, email, createdAt }` (no password hash)
+ * - `request.sessionUser`   — `{ id, email, role, disabled, createdAt }` (no password hash)
  */
 export async function adminAuthHook(
   request: FastifyRequest,
@@ -49,6 +51,17 @@ export async function adminAuthHook(
     return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
   }
 
+  if (session.user.disabled) {
+    request.log.warn({ userId: session.userId }, 'Admin auth rejected: account disabled');
+    return reply.code(StatusCodes.UNAUTHORIZED).send({ error: ReasonPhrases.UNAUTHORIZED });
+  }
+
   request.sessionUserId = session.user.id;
-  request.sessionUser = { id: session.user.id, email: session.user.email, createdAt: session.user.createdAt };
+  request.sessionUser = {
+    id: session.user.id,
+    email: session.user.email,
+    role: session.user.role as UserRole,
+    disabled: session.user.disabled,
+    createdAt: session.user.createdAt,
+  };
 }

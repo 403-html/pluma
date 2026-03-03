@@ -13,6 +13,8 @@ model User {
   id              String            @id @default(uuid())
   email           String            @unique
   passwordHash    String
+  role            String            @default("user")
+  disabled        Boolean           @default(false)
   createdAt       DateTime          @default(now())
   sessions        Session[]
   passwordHistory PasswordHistory[]
