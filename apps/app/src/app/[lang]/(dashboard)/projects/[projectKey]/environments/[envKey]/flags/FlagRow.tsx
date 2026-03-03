@@ -4,7 +4,7 @@ import React from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import type { FlagEntry } from '@/lib/api/flags';
 import { Button } from '@/components/ui/button';
-import { SwitchField } from '@/components/ui/switch';
+import { CheckboxField } from '@/components/ui/checkbox';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { CopyPill } from '@/components/CopyPill';
 import { TruncatedText } from '@/components/TruncatedText';
@@ -66,8 +66,7 @@ export const FlagRow = React.memo(function FlagRow({
         )}
       </TableCell>
       <TableCell className="px-3 py-3">
-        <SwitchField
-          size="sm"
+        <CheckboxField
           checked={flag.enabled}
           disabled={isToggling}
           onCheckedChange={() => onToggle(flag.flagId, flag.enabled)}
