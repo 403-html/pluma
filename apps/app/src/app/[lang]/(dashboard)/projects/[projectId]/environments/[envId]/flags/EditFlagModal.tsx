@@ -7,7 +7,7 @@ import Modal from '@/components/Modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ProjectKeyField } from '@/components/ProjectKeyField';
-import { SwitchField } from '@/components/ui/switch';
+import { CheckboxField } from '@/components/ui/checkbox';
 import { TargetingInput } from '@/components/TargetingInput';
 import { TargetingNotice } from '@/components/TargetingNotice';
 import { updateFlag, updateFlagConfig, type FlagEntry } from '@/lib/api/flags';
@@ -255,7 +255,7 @@ export function EditFlagModal({
             {/* ── Rollout percentage ──────────────────────────────── */}
             <div className="flex flex-col gap-2 mt-4">
               <h3 className="text-sm font-semibold">{t.flags.rolloutLabel}</h3>
-              <SwitchField
+              <CheckboxField
                 id="flag-rollout-enabled"
                 checked={rolloutEnabled}
                 onCheckedChange={(checked) => {
