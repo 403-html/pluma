@@ -66,6 +66,8 @@ After (or in parallel with) updating the asset, delegate the code fix to the res
 
 **Hard rule — PR title and description scope:** Before delegating, capture the current PR title and the full `prDescription` checklist. Pass both verbatim in the delegation payload. The sub-agent MUST use the same title and MUST preserve the full checklist in every `report_progress` call.
 
+**Hard rule — no `<pr_title>` / `<pr_description>` tags in text responses:** Never end a response with `<pr_title>` or `<pr_description>` XML/HTML tags. GitHub Copilot's system intercepts those tags and uses them to overwrite the PR description, silently discarding the checklist that `report_progress` already set. Use `report_progress` exclusively to control the PR title and description.
+
 ## Step 4: Validate the Fix
 
 Run the `pre-review-checklist` skill after every code change from review feedback, regardless of how small the change is.
