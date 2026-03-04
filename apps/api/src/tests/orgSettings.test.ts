@@ -123,6 +123,7 @@ describe('OrgSettings routes', () => {
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload.allowedDomains).toEqual(['example.com', 'acme.org']);
+      expect(payload).toHaveProperty('id', 'default');
     });
 
     it('returns 200 for admin role', async () => {
@@ -369,6 +370,86 @@ describe('OrgSettings routes', () => {
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload.sendWelcomeEmail).toBe(true);
+    });
+
+    it('returns 400 for domain with invalid characters', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { allowedDomains: ['example!.com'] },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 for domain with leading dot', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { allowedDomains: ['.example.com'] },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 for domain with consecutive dots', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { allowedDomains: ['example..com'] },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 when smtpFrom has no @ sign', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpFrom: 'notanemail' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('returns 400 when smtpFrom contains CRLF injection', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpFrom: 'evil@example.com\r\nBcc:victim@other.com' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('accepts empty string smtpFrom (server-level fallback)', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.orgSettings.upsert.mockResolvedValue({ ...defaultOrgSettings, smtpFrom: '' });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpFrom: '' },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('returns 400 when smtpFrom exceeds 320 chars', async () => {

@@ -5,9 +5,8 @@ import {
   USER_ID, SESSION_TOKEN, AUTH_COOKIE, FIXED_DATE,
   mockUser, mockSession,
 } from './fixtures';
-import { sendWelcomeEmail } from '../lib/mailer';
 
-const { prismaMock, bcryptMock } = vi.hoisted(() => ({
+const { prismaMock, bcryptMock, sendWelcomeEmailMock } = vi.hoisted(() => ({
   prismaMock: {
     project: {
       findMany: vi.fn(),
@@ -68,6 +67,7 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
     compare: vi.fn(),
     hash: vi.fn(),
   },
+  sendWelcomeEmailMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
@@ -77,7 +77,7 @@ vi.mock('bcryptjs', () => ({
 }));
 // Mailer is fire-and-forget — mock it to prevent real SMTP connections in tests
 vi.mock('../lib/mailer', () => ({
-  sendWelcomeEmail: vi.fn().mockResolvedValue(undefined),
+  sendWelcomeEmail: sendWelcomeEmailMock,
   initMailer: vi.fn(),
   closeMailer: vi.fn().mockResolvedValue(undefined),
 }));
@@ -152,8 +152,8 @@ describe('Auth routes', () => {
         expect.objectContaining({ data: expect.objectContaining({ role: 'operator' }) }),
       );
       // Welcome email must be dispatched (fire-and-forget) when sendWelcomeEmail is true
-      expect(sendWelcomeEmail).toHaveBeenCalledTimes(1);
-      expect(sendWelcomeEmail).toHaveBeenCalledWith(mockUser.email, undefined);
+      expect(sendWelcomeEmailMock).toHaveBeenCalledTimes(1);
+      expect(sendWelcomeEmailMock).toHaveBeenCalledWith(mockUser.email, undefined);
     });
 
     it('should create subsequent users as user role (not 409)', async () => {
@@ -185,8 +185,8 @@ describe('Auth routes', () => {
         expect.objectContaining({ data: expect.objectContaining({ role: 'user' }) }),
       );
       // Welcome email must be dispatched for every successful registration when enabled
-      expect(sendWelcomeEmail).toHaveBeenCalledTimes(1);
-      expect(sendWelcomeEmail).toHaveBeenCalledWith('other@example.com', undefined);
+      expect(sendWelcomeEmailMock).toHaveBeenCalledTimes(1);
+      expect(sendWelcomeEmailMock).toHaveBeenCalledWith('other@example.com', undefined);
     });
 
     it('should NOT send welcome email when sendWelcomeEmail is false', async () => {
@@ -206,7 +206,7 @@ describe('Auth routes', () => {
       });
 
       expect(response.statusCode).toBe(201);
-      expect(sendWelcomeEmail).not.toHaveBeenCalled();
+      expect(sendWelcomeEmailMock).not.toHaveBeenCalled();
     });
 
     it('should NOT send welcome email when no OrgSettings row exists', async () => {
@@ -224,7 +224,7 @@ describe('Auth routes', () => {
       });
 
       expect(response.statusCode).toBe(201);
-      expect(sendWelcomeEmail).not.toHaveBeenCalled();
+      expect(sendWelcomeEmailMock).not.toHaveBeenCalled();
     });
 
     it('should use smtpFrom from OrgSettings as the From address', async () => {
@@ -243,7 +243,7 @@ describe('Auth routes', () => {
         payload: { email: 'user@company.com', password: 'securepassword' },
       });
 
-      expect(sendWelcomeEmail).toHaveBeenCalledWith('user@company.com', 'noreply@company.com');
+      expect(sendWelcomeEmailMock).toHaveBeenCalledWith('user@company.com', 'noreply@company.com');
     });
 
     it('should return 409 when email already exists (role user)', async () => {

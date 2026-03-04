@@ -11,14 +11,64 @@ const ORG_SETTINGS_ID = 'default';
 const patchOrgSettingsBodySchema = z.object({
   allowedDomains: z
     .array(
-      // RFC 1035: maximum DNS label length is 63 chars; full FQDN max is 253 chars.
-      z.string().min(1).max(253),
+      z
+        .string()
+        .min(1)
+        .max(253)
+        .transform((value) => value.trim().toLowerCase())
+        .refine(
+          (value) => {
+            if (value.length === 0) {
+              return false;
+            }
+            // Only allow letters, digits, dots and hyphens.
+            if (!/^[a-z0-9.-]+$/.test(value)) {
+              return false;
+            }
+            // Disallow leading/trailing dot or hyphen.
+            if (value.startsWith('.') || value.endsWith('.') || value.startsWith('-') || value.endsWith('-')) {
+              return false;
+            }
+            // Disallow empty labels (e.g. "example..com").
+            if (value.includes('..')) {
+              return false;
+            }
+            return true;
+          },
+          { message: 'allowedDomains must contain valid domain names' },
+        ),
     )
     // Practical upper bound — prevents unbounded growth in the DB array column.
     .max(100)
     .optional(),
   // Configurable From address; empty string means use the server-level SMTP_FROM env var.
-  smtpFrom: z.string().max(320).optional(),
+  smtpFrom: z
+    .string()
+    .max(320)
+    .transform((value) => value.trim())
+    .refine(
+      (value) => !value.includes('\r') && !value.includes('\n'),
+      { message: 'smtpFrom must not contain CR or LF characters' },
+    )
+    .refine(
+      (value) => {
+        // Empty string is allowed: use server-level SMTP_FROM env var.
+        if (value === '') {
+          return true;
+        }
+        // Lightweight email shape check: non-empty local and domain parts.
+        const atIndex = value.indexOf('@');
+        if (atIndex <= 0 || atIndex === value.length - 1) {
+          return false;
+        }
+        if (/\s/.test(value)) {
+          return false;
+        }
+        return true;
+      },
+      { message: 'smtpFrom must be a valid email address or an empty string' },
+    )
+    .optional(),
   // When true, a welcome email is sent to newly registered users.
   sendWelcomeEmail: z.boolean().optional(),
 }).refine(
@@ -33,12 +83,14 @@ type OrgSettingsUpdateData = {
 };
 
 function buildOrgSettingsResponse(settings: {
+  id: string;
   allowedDomains: string[];
   smtpFrom: string;
   sendWelcomeEmail: boolean;
   updatedAt: Date;
 }) {
   return {
+    id: settings.id,
     allowedDomains: settings.allowedDomains,
     smtpFrom: settings.smtpFrom,
     sendWelcomeEmail: settings.sendWelcomeEmail,
