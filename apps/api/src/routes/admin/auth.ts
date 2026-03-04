@@ -127,10 +127,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       }
     }
 
-    // Fire-and-forget welcome email — never blocks the response or throws.
-    sendWelcomeEmail(user.email).catch((err: unknown) => {
-      request.log.error({ err, userId: user.id }, 'Register: failed to send welcome email');
-    });
+    // Fire-and-forget welcome email — only when explicitly enabled in org settings.
+    if (orgSettings?.sendWelcomeEmail === true) {
+      const from = orgSettings.smtpFrom || undefined;
+      sendWelcomeEmail(user.email, from).catch((err: unknown) => {
+        request.log.error({ err, userId: user.id }, 'Register: failed to send welcome email');
+      });
+    }
 
     return reply.code(StatusCodes.CREATED).send({
       id: user.id,

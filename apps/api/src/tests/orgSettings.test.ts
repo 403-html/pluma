@@ -29,6 +29,8 @@ const mockUserSession = {
 const defaultOrgSettings = {
   id: 'default',
   allowedDomains: [] as string[],
+  smtpFrom: '',
+  sendWelcomeEmail: false,
   updatedAt: FIXED_DATE,
 };
 
@@ -99,7 +101,7 @@ describe('OrgSettings routes', () => {
       expect(prismaMock.orgSettings.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'default' },
-          create: { id: 'default', allowedDomains: [] },
+          create: { id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false },
         }),
       );
     });
@@ -295,7 +297,7 @@ describe('OrgSettings routes', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('returns 400 when allowedDomains field is missing', async () => {
+    it('returns 400 when no fields are provided', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession);
 
       const response = await app.inject({
@@ -333,6 +335,54 @@ describe('OrgSettings routes', () => {
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload.allowedDomains).toEqual([]);
+    });
+
+    it('operator can update smtpFrom', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.orgSettings.upsert.mockResolvedValue({ ...defaultOrgSettings, smtpFrom: 'hello@company.com' });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpFrom: 'hello@company.com' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.smtpFrom).toBe('hello@company.com');
+    });
+
+    it('operator can enable sendWelcomeEmail', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.orgSettings.upsert.mockResolvedValue({ ...defaultOrgSettings, sendWelcomeEmail: true });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { sendWelcomeEmail: true },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.sendWelcomeEmail).toBe(true);
+    });
+
+    it('returns 400 when smtpFrom exceeds 320 chars', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      const longFrom = 'a'.repeat(321);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpFrom: longFrom },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 });

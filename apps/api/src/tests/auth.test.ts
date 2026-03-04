@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  USER_ID, SESSION_TOKEN, AUTH_COOKIE,
+  USER_ID, SESSION_TOKEN, AUTH_COOKIE, FIXED_DATE,
   mockUser, mockSession,
 } from './fixtures';
 import { sendWelcomeEmail } from '../lib/mailer';
@@ -128,6 +128,9 @@ describe('Auth routes', () => {
       prismaMock.user.count.mockResolvedValue(0);
       bcryptMock.hash.mockResolvedValue('hashed_pw');
       prismaMock.user.create.mockResolvedValue({ ...mockUser, role: 'operator', passwordHash: 'hashed_pw' });
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
+      });
 
       const response = await app.inject({
         method: 'POST',
@@ -146,9 +149,9 @@ describe('Auth routes', () => {
       expect(prismaMock.user.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ role: 'operator' }) }),
       );
-      // Welcome email must be dispatched (fire-and-forget)
+      // Welcome email must be dispatched (fire-and-forget) when sendWelcomeEmail is true
       expect(sendWelcomeEmail).toHaveBeenCalledTimes(1);
-      expect(sendWelcomeEmail).toHaveBeenCalledWith(mockUser.email);
+      expect(sendWelcomeEmail).toHaveBeenCalledWith(mockUser.email, undefined);
     });
 
     it('should create subsequent users as user role (not 409)', async () => {
@@ -160,6 +163,9 @@ describe('Auth routes', () => {
         email: 'other@example.com',
         role: 'user',
         passwordHash: 'hashed_pw2',
+      });
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
       });
 
       const response = await app.inject({
@@ -176,9 +182,66 @@ describe('Auth routes', () => {
       expect(prismaMock.user.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ role: 'user' }) }),
       );
-      // Welcome email must be dispatched for every successful registration
+      // Welcome email must be dispatched for every successful registration when enabled
       expect(sendWelcomeEmail).toHaveBeenCalledTimes(1);
-      expect(sendWelcomeEmail).toHaveBeenCalledWith('other@example.com');
+      expect(sendWelcomeEmail).toHaveBeenCalledWith('other@example.com', undefined);
+    });
+
+    it('should NOT send welcome email when sendWelcomeEmail is false', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser, id: 'new-id', email: 'user@example.com', role: 'user', passwordHash: 'hashed_pw',
+      });
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false, updatedAt: FIXED_DATE,
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'user@example.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(sendWelcomeEmail).not.toHaveBeenCalled();
+    });
+
+    it('should NOT send welcome email when no OrgSettings row exists', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser, id: 'new-id', email: 'user@example.com', role: 'user', passwordHash: 'hashed_pw',
+      });
+      prismaMock.orgSettings.findUnique.mockResolvedValue(null);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'user@example.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(sendWelcomeEmail).not.toHaveBeenCalled();
+    });
+
+    it('should use smtpFrom from OrgSettings as the From address', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser, id: 'new-id', email: 'user@company.com', role: 'user', passwordHash: 'hashed_pw',
+      });
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default', allowedDomains: [], smtpFrom: 'noreply@company.com', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
+      });
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'user@company.com', password: 'securepassword' },
+      });
+
+      expect(sendWelcomeEmail).toHaveBeenCalledWith('user@company.com', 'noreply@company.com');
     });
 
     it('should return 409 when email already exists (role user)', async () => {

@@ -166,6 +166,8 @@ export const AuditActorTypes = {
 export type OrgSettings = {
   id: string;
   allowedDomains: string[];
+  smtpFrom: string;
+  sendWelcomeEmail: boolean;
   updatedAt: string;
 };
 

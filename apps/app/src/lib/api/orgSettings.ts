@@ -5,6 +5,12 @@ export type OrgSettingsResult =
   | { ok: true; settings: OrgSettings }
   | { ok: false; message: string };
 
+export type PatchOrgSettingsData = {
+  allowedDomains?: string[];
+  smtpFrom?: string;
+  sendWelcomeEmail?: boolean;
+};
+
 const ORG_SETTINGS_URL = '/api/v1/org/settings';
 
 export async function getOrgSettings(): Promise<OrgSettingsResult> {
@@ -14,7 +20,7 @@ export async function getOrgSettings(): Promise<OrgSettingsResult> {
       credentials: 'include',
     });
     if (!response.ok) {
-      const message = await parseErrorMessage(response, 'Failed to load domain settings');
+      const message = await parseErrorMessage(response, 'Failed to load settings');
       return { ok: false, message };
     }
     const settings: OrgSettings = await response.json();
@@ -24,16 +30,16 @@ export async function getOrgSettings(): Promise<OrgSettingsResult> {
   }
 }
 
-export async function patchOrgSettings(allowedDomains: string[]): Promise<OrgSettingsResult> {
+export async function patchOrgSettings(data: PatchOrgSettingsData): Promise<OrgSettingsResult> {
   try {
     const response = await fetch(ORG_SETTINGS_URL, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ allowedDomains }),
+      body: JSON.stringify(data),
       credentials: 'include',
     });
     if (!response.ok) {
-      const message = await parseErrorMessage(response, 'Failed to save domain settings');
+      const message = await parseErrorMessage(response, 'Failed to save settings');
       return { ok: false, message };
     }
     const settings: OrgSettings = await response.json();

@@ -110,9 +110,11 @@ model FlagConfig {
 }
 
 model OrgSettings {
-  id             String   @id @default("default")
-  allowedDomains String[]
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default("default")
+  allowedDomains   String[]
+  smtpFrom         String   @default("")
+  sendWelcomeEmail Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
 }
 
 model AuditLog {

@@ -15,8 +15,30 @@ const patchOrgSettingsBodySchema = z.object({
       z.string().min(1).max(253),
     )
     // Practical upper bound — prevents unbounded growth in the DB array column.
-    .max(100),
-});
+    .max(100)
+    .optional(),
+  // Configurable From address; empty string means use the server-level SMTP_FROM env var.
+  smtpFrom: z.string().max(320).optional(),
+  // When true, a welcome email is sent to newly registered users.
+  sendWelcomeEmail: z.boolean().optional(),
+}).refine(
+  (d) => d.allowedDomains !== undefined || d.smtpFrom !== undefined || d.sendWelcomeEmail !== undefined,
+  { message: 'At least one field must be provided' },
+);
+
+function buildOrgSettingsResponse(settings: {
+  allowedDomains: string[];
+  smtpFrom: string;
+  sendWelcomeEmail: boolean;
+  updatedAt: Date;
+}) {
+  return {
+    allowedDomains: settings.allowedDomains,
+    smtpFrom: settings.smtpFrom,
+    sendWelcomeEmail: settings.sendWelcomeEmail,
+    updatedAt: settings.updatedAt.toISOString(),
+  };
+}
 
 export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
   /**
@@ -28,18 +50,15 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
     const settings = await prisma.orgSettings.upsert({
       where: { id: ORG_SETTINGS_ID },
       update: {},
-      create: { id: ORG_SETTINGS_ID, allowedDomains: [] },
+      create: { id: ORG_SETTINGS_ID, allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false },
     });
 
-    return reply.code(StatusCodes.OK).send({
-      allowedDomains: settings.allowedDomains,
-      updatedAt: settings.updatedAt.toISOString(),
-    });
+    return reply.code(StatusCodes.OK).send(buildOrgSettingsResponse(settings));
   });
 
   /**
    * PATCH /api/v1/org/settings
-   * Updates the org allowedDomains list.
+   * Updates org settings (partial — at least one field required).
    * Requires operator or admin role (403 for user role).
    */
   fastify.patch('/settings', { preHandler: [adminAuthHook] }, async (request, reply) => {
@@ -56,12 +75,17 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
       return reply.badRequest('Invalid request body');
     }
 
-    const { allowedDomains } = parsedBody.data;
+    const { allowedDomains, smtpFrom, sendWelcomeEmail } = parsedBody.data;
+
+    const updateData: { allowedDomains?: string[]; smtpFrom?: string; sendWelcomeEmail?: boolean } = {};
+    if (allowedDomains !== undefined) updateData.allowedDomains = allowedDomains;
+    if (smtpFrom !== undefined) updateData.smtpFrom = smtpFrom;
+    if (sendWelcomeEmail !== undefined) updateData.sendWelcomeEmail = sendWelcomeEmail;
 
     const updated = await prisma.orgSettings.upsert({
       where: { id: ORG_SETTINGS_ID },
-      update: { allowedDomains },
-      create: { id: ORG_SETTINGS_ID, allowedDomains },
+      update: updateData,
+      create: { id: ORG_SETTINGS_ID, allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false, ...updateData },
     });
 
     try {
@@ -72,7 +96,7 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
         entityKey: 'org-settings',
         actorId: actor.id,
         actorEmail: actor.email,
-        details: { after: { allowedDomains } },
+        details: { after: updateData },
         meta: {
           ip: request.ip,
           ua: request.headers['user-agent'] as string | undefined,
@@ -86,9 +110,6 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
 
     request.log.info({ actorId: actor.id }, 'Org settings updated');
 
-    return reply.code(StatusCodes.OK).send({
-      allowedDomains: updated.allowedDomains,
-      updatedAt: updated.updatedAt.toISOString(),
-    });
+    return reply.code(StatusCodes.OK).send(buildOrgSettingsResponse(updated));
   });
 }

@@ -1,18 +1,24 @@
 # docker-compose.yml — monorepo root
 #
-# Runs the full Pluma stack: PostgreSQL, API, and Next.js frontend.
+# Runs the full Pluma stack: PostgreSQL, Redis, Postfix relay, API, and Next.js frontend.
 # Build context is the monorepo root so that workspace packages
 # (@pluma-flags/types) are reachable during the build.
 #
 # Usage:
 #   docker compose up --build          # first run (builds images)
 #   docker compose up                  # subsequent runs
-#   docker compose up api              # API + its postgres dependency only
+#   docker compose up api              # API + its dependencies only
 #
 # Override defaults with env vars:
 #   DB_PASSWORD=secret docker compose up
 #   API_URL=https://api.example.com docker compose up
-#   Mailpit web UI: http://localhost:8025  (captured emails)
+#
+# Outbound mail:
+#   Postfix relay sends to real recipients. For direct delivery no extra config
+#   is needed. To route through a smarthost (Gmail, SendGrid, etc.) set:
+#     RELAYHOST=[smtp.gmail.com]:587
+#     RELAYHOST_USERNAME=you@gmail.com
+#     RELAYHOST_PASSWORD=your-app-password
 
 services:
 
@@ -35,17 +41,36 @@ services:
       timeout: 5s
       retries: 5
 
-  # mailpit — local SMTP mail catcher for development
-  # SMTP: port 1025  |  Web UI: http://localhost:8025
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: pluma-mailpit
+  # redis — lightweight in-memory store used for the BullMQ email job queue
+  redis:
+    image: redis:7-alpine
+    container_name: pluma-redis
     restart: unless-stopped
     ports:
-      - '1025:1025'
-      - '8025:8025'
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # api — Pluma Fastify API server; waits for postgres to be healthy
+  # postfix — outbound SMTP relay; delivers mail to real recipients.
+  # Override RELAYHOST* env vars to route through an external smarthost.
+  # See: https://github.com/boky/docker-postfix
+  postfix:
+    image: boky/postfix:latest
+    container_name: pluma-postfix
+    restart: unless-stopped
+    ports:
+      - '1587:587'
+    environment:
+      HOSTNAME: ${SMTP_HOSTNAME:-pluma.local}
+      ALLOWED_SENDER_DOMAINS: ${SMTP_ALLOWED_DOMAINS:-pluma.local}
+      RELAYHOST: ${RELAYHOST:-}
+      RELAYHOST_USERNAME: ${RELAYHOST_USERNAME:-}
+      RELAYHOST_PASSWORD: ${RELAYHOST_PASSWORD:-}
+
+  # api — Pluma Fastify API server
   api:
     build:
       context: .
@@ -56,18 +81,22 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      mailpit:
+      redis:
+        condition: service_healthy
+      postfix:
         condition: service_started
     ports:
       - '2137:2137'
     environment:
-      # "postgres" resolves to the postgres service on the shared compose network.
+      # "postgres" / "redis" / "postfix" resolve via the shared compose network.
       DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@postgres:5432/${DB_NAME:-pluma}?schema=public
       PORT: 2137
       NODE_ENV: production
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
+      REDIS_URL: redis://redis:6379
+      SMTP_HOST: postfix
+      SMTP_PORT: 587
       SMTP_SECURE: 'false'
+      SMTP_FROM: ${SMTP_FROM:-noreply@pluma.local}
 
   # app — Pluma Next.js frontend
   app:
