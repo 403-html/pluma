@@ -54,9 +54,15 @@ After (or in parallel with) updating the asset, delegate the code fix to the res
   "context": "Review feedback on PR #<N> — <brief description>",
   "objective": "<exact code change required>",
   "acceptance_criteria": ["<measurable outcome>"],
-  "constraints": ["Follow the updated `<skill-name>` skill — it was corrected in this PR"]
+  "constraints": [
+    "Follow the updated `<skill-name>` skill — it was corrected in this PR",
+    "PR title: '<exact title>' — do NOT change it",
+    "PR description: include every existing checklist item in every report_progress call; only mark items [x] or append new ones"
+  ]
 }
 ```
+
+**Hard rule — PR title and description scope:** Before delegating, capture the current PR title and the full `prDescription` checklist. Pass both verbatim in the delegation payload. The sub-agent MUST use the same title and MUST preserve the full checklist in every `report_progress` call.
 
 ## Step 4: Validate the Fix
 

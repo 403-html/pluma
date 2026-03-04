@@ -172,6 +172,8 @@ These rules are mandatory for all new code.
 - Add tests for new logic
 - Never silently violate invariants
 - Do not invent endpoints outside this contract
+- **PR title is immutable once set by the lead agent.** No sub-agent may change it.
+- **PR description scope only grows — never shrinks.** Every `report_progress` call must include all previously reported checklist items (marking completed ones `[x]`). When delegating to a sub-agent, pass the full accumulated `prDescription` and require the sub-agent to preserve it.
 
 ## Coding Conventions
 

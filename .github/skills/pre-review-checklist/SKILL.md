@@ -115,7 +115,8 @@ A PR is ready for review when:
 - [ ] All relevant test suites exit `0`
 - [ ] No `.env`, `dist/`, `node_modules/`, `.next/` in the diff
 - [ ] PR targets `main`
-- [ ] PR description summarises what changed and why
+- [ ] PR title is set and unchanged from the lead agent's original title
+- [ ] PR description covers the full scope of all work done — all completed items are documented and nothing has been dropped
 
 ## When to Invoke This Skill
 
