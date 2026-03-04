@@ -5,6 +5,7 @@ import {
   USER_ID, SESSION_TOKEN, AUTH_COOKIE,
   mockUser, mockSession,
 } from './fixtures';
+import { sendWelcomeEmail } from '../lib/mailer';
 
 const { prismaMock, bcryptMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -145,6 +146,9 @@ describe('Auth routes', () => {
       expect(prismaMock.user.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ role: 'operator' }) }),
       );
+      // Welcome email must be dispatched (fire-and-forget)
+      expect(sendWelcomeEmail).toHaveBeenCalledTimes(1);
+      expect(sendWelcomeEmail).toHaveBeenCalledWith(mockUser.email);
     });
 
     it('should create subsequent users as user role (not 409)', async () => {
@@ -172,6 +176,9 @@ describe('Auth routes', () => {
       expect(prismaMock.user.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ role: 'user' }) }),
       );
+      // Welcome email must be dispatched for every successful registration
+      expect(sendWelcomeEmail).toHaveBeenCalledTimes(1);
+      expect(sendWelcomeEmail).toHaveBeenCalledWith('other@example.com');
     });
 
     it('should return 409 when email already exists (role user)', async () => {
