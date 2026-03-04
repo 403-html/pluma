@@ -91,6 +91,13 @@ export async function proxy(request: NextRequest) {
   const localePath = ('/' + pathParts.join('/')).replace(/\/+$/, '') || '/';
 
   if (isPublicPath(localePath)) {
+    // Authenticated users should not see the login or register pages.
+    if (localePath === '/login' || localePath === '/register') {
+      const isAuthenticated = await checkAuth(request);
+      if (isAuthenticated) {
+        return NextResponse.redirect(new URL(`/${locale}`, request.url));
+      }
+    }
     return NextResponse.next();
   }
 
