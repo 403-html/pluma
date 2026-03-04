@@ -167,6 +167,64 @@ describe('Auth routes', () => {
       );
     });
 
+    it('should return 409 when email already exists (role user)', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.user.create.mockRejectedValue({ code: 'P2002' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: mockUser.email, password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('error');
+    });
+
+    it('should fall back to user role when concurrent operator registration fires P2002', async () => {
+      // Simulate: count()=0 → role='operator', but another request already inserted operator
+      prismaMock.user.count.mockResolvedValue(0);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      const p2002 = { code: 'P2002' };
+      const retryUser = { ...mockUser, role: 'user', passwordHash: 'hashed_pw' };
+      prismaMock.user.create
+        .mockRejectedValueOnce(p2002)   // first attempt (role: 'operator') → unique index fires
+        .mockResolvedValueOnce(retryUser); // retry (role: 'user') → succeeds
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: mockUser.email, password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('role', 'user');
+      expect(prismaMock.user.create).toHaveBeenCalledTimes(2);
+      expect(prismaMock.user.create).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ role: 'user' }) }),
+      );
+    });
+
+    it('should return 409 when email is also taken on the retry (concurrent race)', async () => {
+      prismaMock.user.count.mockResolvedValue(0);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      const p2002 = { code: 'P2002' };
+      prismaMock.user.create
+        .mockRejectedValueOnce(p2002)  // first attempt (role: 'operator')
+        .mockRejectedValueOnce(p2002); // retry (role: 'user') → email conflict
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: mockUser.email, password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
     it('should return 400 for invalid payload', async () => {
       const response = await app.inject({
         method: 'POST',

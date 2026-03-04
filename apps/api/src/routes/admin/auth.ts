@@ -51,6 +51,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
    * POST /api/v1/auth/register
    * Creates a new user. The first user to register receives the "operator" role;
    * all subsequent users receive the "user" role.
+   *
+   * A partial unique index ("User_single_operator") on role='operator' enforces the
+   * single-operator invariant at the DB level. If two concurrent registrations both
+   * observe count=0, the second create will throw P2002 — caught here and retried as
+   * role='user'. A P2002 on the email field returns 409 Conflict.
    */
   fastify.post('/register', async (request, reply) => {
     const parsedBody = registerBodySchema.safeParse(request.body);
@@ -65,9 +70,40 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     const passwordHash = await hash(parsedBody.data.password, BCRYPT_ROUNDS);
 
-    const user = await prisma.user.create({
-      data: { email: parsedBody.data.email, passwordHash, role },
-    });
+    const isP2002 = (e: unknown): boolean =>
+      typeof e === 'object' && e !== null && 'code' in e && (e as { code: unknown }).code === 'P2002';
+
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: { email: parsedBody.data.email, passwordHash, role },
+      });
+    } catch (error) {
+      if (!isP2002(error)) {
+        request.log.error({ err: error, role }, 'Register: unexpected error during user.create');
+        throw error;
+      }
+
+      // If we tried to create the first operator and the index fired (concurrent
+      // registration beat us), retry as 'user'. Otherwise it's a duplicate email.
+      if (role !== 'operator') {
+        request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email already exists');
+        return reply.code(StatusCodes.CONFLICT).send({ error: 'Email already registered' });
+      }
+
+      try {
+        user = await prisma.user.create({
+          data: { email: parsedBody.data.email, passwordHash, role: 'user' },
+        });
+      } catch (retryError) {
+        if (isP2002(retryError)) {
+          request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email already exists (retry)');
+          return reply.code(StatusCodes.CONFLICT).send({ error: 'Email already registered' });
+        }
+        request.log.error({ err: retryError }, 'Register: unexpected error during user.create retry');
+        throw retryError;
+      }
+    }
 
     return reply.code(StatusCodes.CREATED).send({
       id: user.id,
