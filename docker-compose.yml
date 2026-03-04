@@ -12,6 +12,7 @@
 # Override defaults with env vars:
 #   DB_PASSWORD=secret docker compose up
 #   API_URL=https://api.example.com docker compose up
+#   Mailpit web UI: http://localhost:8025  (captured emails)
 
 services:
 
@@ -34,6 +35,16 @@ services:
       timeout: 5s
       retries: 5
 
+  # mailpit — local SMTP mail catcher for development
+  # SMTP: port 1025  |  Web UI: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: pluma-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
   # api — Pluma Fastify API server; waits for postgres to be healthy
   api:
     build:
@@ -45,6 +56,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     ports:
       - '2137:2137'
     environment:
@@ -52,6 +65,9 @@ services:
       DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@postgres:5432/${DB_NAME:-pluma}?schema=public
       PORT: 2137
       NODE_ENV: production
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: 'false'
 
   # app — Pluma Next.js frontend
   app:
