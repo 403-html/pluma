@@ -325,11 +325,9 @@ describe('Accounts routes', () => {
       expect(payload).toHaveProperty('disabled', true);
     });
 
-    it('operator can disable own account (disabled only, not role change)', async () => {
+    it('should return 403 when trying to disable an operator account', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession); // operator = USER_ID
-      prismaMock.user.findUnique.mockResolvedValue(mockUser);
-      prismaMock.user.update.mockResolvedValue({ ...mockUser, disabled: true });
-      prismaMock.auditLog.create.mockResolvedValue({} as never);
+      prismaMock.user.findUnique.mockResolvedValue(mockUser); // target is operator
 
       const response = await app.inject({
         method: 'PATCH',
@@ -338,8 +336,26 @@ describe('Accounts routes', () => {
         payload: { disabled: true },
       });
 
-      // Disabling own account is allowed (only role change on self is forbidden)
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(403);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('error', 'Cannot disable an operator account');
+    });
+
+    it('admin cannot disable an operator account', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockAdminSession); // admin actor
+      prismaMock.user.findUnique.mockResolvedValue(mockUser); // target is operator
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/accounts/${USER_ID}`,
+        headers: { cookie: `pluma_session=admin-token` },
+        payload: { disabled: true },
+      });
+
+      // Operator accounts cannot be disabled by anyone — protected to prevent lockout
+      expect(response.statusCode).toBe(403);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('error', 'Cannot disable an operator account');
     });
   });
 });

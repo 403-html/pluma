@@ -96,6 +96,11 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.NOT_FOUND).send({ error: ReasonPhrases.NOT_FOUND });
     }
 
+    if (disabled !== undefined && target.role === 'operator') {
+      request.log.warn({ actorId: actor.id, targetId: id }, 'Account patch rejected: cannot disable operator account');
+      return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Cannot disable an operator account' });
+    }
+
     if (role !== undefined) {
       if (actor.id === id) {
         request.log.warn({ actorId: actor.id }, 'Account patch rejected: cannot change own role');
