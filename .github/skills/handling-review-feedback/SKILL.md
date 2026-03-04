@@ -47,6 +47,8 @@ Identify the asset that should encode the corrected behaviour:
 
 ## Step 3: Implement the Code Fix
 
+**Before anything else in this step:** call `pull_request_read` with `method: "get"` to fetch the current PR title and body. This is mandatory even when Copilot is invoked directly from a review-comment mention and there is no delegating lead agent. Store the fetched title and checklist — they are the source of truth for every `report_progress` call in this session.
+
 After (or in parallel with) updating the asset, delegate the code fix to the responsible subagent using the standard delegation payload. Reference the updated asset in the delegation so the subagent uses the corrected guidance:
 
 ```

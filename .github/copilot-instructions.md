@@ -174,6 +174,7 @@ These rules are mandatory for all new code.
 - Do not invent endpoints outside this contract
 - **PR title is immutable once set by the lead agent.** No sub-agent may change it.
 - **PR description scope only grows — never shrinks.** Every `report_progress` call must include all previously reported checklist items (marking completed ones `[x]`). When delegating to a sub-agent, pass the full accumulated `prDescription` and require the sub-agent to preserve it.
+- **Before the first `report_progress` call in any session** (including sessions started directly from a `@copilot` review-comment mention), use `pull_request_read` with `method: "get"` to fetch the current PR title and body. Use the fetched title verbatim. Prepend every checklist item from the fetched body before adding new work items. This applies whether or not a lead agent delegated the session.
 
 ## Coding Conventions
 
