@@ -47,6 +47,8 @@ Identify the asset that should encode the corrected behaviour:
 
 ## Step 3: Implement the Code Fix
 
+**Before anything else in this step:** call `pull_request_read` with `method: "get"` to fetch the current PR title and body. This is mandatory even when Copilot is invoked directly from a review-comment mention and there is no delegating lead agent. Store the fetched title and checklist — they are the source of truth for every `report_progress` call in this session.
+
 After (or in parallel with) updating the asset, delegate the code fix to the responsible subagent using the standard delegation payload. Reference the updated asset in the delegation so the subagent uses the corrected guidance:
 
 ```
@@ -54,9 +56,17 @@ After (or in parallel with) updating the asset, delegate the code fix to the res
   "context": "Review feedback on PR #<N> — <brief description>",
   "objective": "<exact code change required>",
   "acceptance_criteria": ["<measurable outcome>"],
-  "constraints": ["Follow the updated `<skill-name>` skill — it was corrected in this PR"]
+  "constraints": [
+    "Follow the updated `<skill-name>` skill — it was corrected in this PR",
+    "PR title: '<exact title>' — do NOT change it",
+    "PR description: include every existing checklist item in every report_progress call; only mark items [x] or append new ones"
+  ]
 }
 ```
+
+**Hard rule — PR title and description scope:** Before delegating, capture the current PR title and the full `prDescription` checklist. Pass both verbatim in the delegation payload. The sub-agent MUST use the same title and MUST preserve the full checklist in every `report_progress` call.
+
+**Hard rule — no `<pr_title>` / `<pr_description>` tags in text responses:** Never end a response with `<pr_title>` or `<pr_description>` XML/HTML tags. GitHub Copilot's system intercepts those tags and uses them to overwrite the PR description, silently discarding the checklist that `report_progress` already set. Use `report_progress` exclusively to control the PR title and description.
 
 ## Step 4: Validate the Fix
 

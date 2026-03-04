@@ -1,7 +1,12 @@
 // Auth
+export const USER_ROLES = ['operator', 'admin', 'user'] as const;
+export type UserRole = typeof USER_ROLES[number];
+
 export type AuthUser = {
   id: string;
   email: string;
+  role: UserRole;
+  disabled: boolean;
   createdAt: Date;
 };
 
@@ -117,7 +122,7 @@ export type Snapshot = {
 export const AUDIT_ACTIONS = ['create', 'update', 'delete', 'enable', 'disable'] as const;
 export type AuditAction = typeof AUDIT_ACTIONS[number];
 
-export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token'] as const;
+export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token', 'account'] as const;
 export type AuditEntityType = typeof AUDIT_ENTITY_TYPES[number];
 
 export const AUDIT_ACTOR_TYPES = ['user', 'system', 'sdk-token'] as const;

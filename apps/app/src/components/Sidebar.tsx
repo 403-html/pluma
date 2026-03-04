@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Flag, ScrollText, Building2, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { logout } from '@/lib/api/auth';
+import { useCurrentUser } from '@/context/CurrentUserContext';
 import { cn } from '@/lib/utils';
 
 type SidebarButtonProps = {
@@ -46,6 +47,9 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { currentUser } = useCurrentUser();
+
+  const isAdminOrOperator = currentUser?.role === 'admin' || currentUser?.role === 'operator';
 
   const isActive = (segment: string): boolean => {
     if (!pathname) return false;
@@ -96,18 +100,22 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
         <nav className="py-2 px-2 flex flex-col gap-2">
           <SidebarButton icon={<LayoutDashboard size={20} />} label={t.sidebar.dashboard} onClick={() => navigate(`/${locale}/`)} active={isActive('')} />
           <SidebarButton icon={<Flag size={20} />} label={t.sidebar.projects} onClick={() => navigate(`/${locale}/projects`)} active={isActive('projects')} />
-          <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => navigate(`/${locale}/audit`)} active={isActive('audit')} />
+          {isAdminOrOperator && (
+            <SidebarButton icon={<ScrollText size={20} />} label={t.sidebar.audit} onClick={() => navigate(`/${locale}/audit`)} active={isActive('audit')} />
+          )}
         </nav>
       </div>
 
       {/* Bottom actions */}
       <div className="border-t border-white/10 py-4 px-2 flex flex-col gap-2">
-        <SidebarButton
-          icon={<Building2 size={20} />}
-          label={t.sidebar.organization}
-          onClick={() => navigate(`/${locale}/organization`)}
-          active={isActive('organization')}
-        />
+        {isAdminOrOperator && (
+          <SidebarButton
+            icon={<Building2 size={20} />}
+            label={t.sidebar.organization}
+            onClick={() => navigate(`/${locale}/organization`)}
+            active={isActive('organization')}
+          />
+        )}
         <SidebarButton icon={<Settings size={20} />} label={t.sidebar.settings} onClick={() => navigate(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
         <SidebarButton icon={<LogOut size={20} />} label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>

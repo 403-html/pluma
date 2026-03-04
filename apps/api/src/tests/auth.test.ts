@@ -116,10 +116,10 @@ describe('Auth routes', () => {
   });
 
   describe('POST /api/v1/auth/register', () => {
-    it('should create the first admin user', async () => {
+    it('should create the first user as operator', async () => {
       prismaMock.user.count.mockResolvedValue(0);
       bcryptMock.hash.mockResolvedValue('hashed_pw');
-      prismaMock.user.create.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw' });
+      prismaMock.user.create.mockResolvedValue({ ...mockUser, role: 'operator', passwordHash: 'hashed_pw' });
 
       const response = await app.inject({
         method: 'POST',
@@ -131,16 +131,95 @@ describe('Auth routes', () => {
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('id', USER_ID);
       expect(payload).toHaveProperty('email', mockUser.email);
+      expect(payload).toHaveProperty('role', 'operator');
+      expect(payload).toHaveProperty('disabled', false);
       expect(payload).not.toHaveProperty('passwordHash');
+      // First user must be created with role: 'operator'
+      expect(prismaMock.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ role: 'operator' }) }),
+      );
     });
 
-    it('should return 409 when an admin user already exists', async () => {
+    it('should create subsequent users as user role (not 409)', async () => {
       prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw2');
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 'another-user-id',
+        email: 'other@example.com',
+        role: 'user',
+        passwordHash: 'hashed_pw2',
+      });
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/register',
         payload: { email: 'other@example.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('role', 'user');
+      expect(payload).toHaveProperty('disabled', false);
+      // Subsequent user must be created with role: 'user'
+      expect(prismaMock.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ role: 'user' }) }),
+      );
+    });
+
+    it('should return 409 when email already exists (role user)', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.user.create.mockRejectedValue({ code: 'P2002' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: mockUser.email, password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('error');
+    });
+
+    it('should fall back to user role when concurrent operator registration fires P2002', async () => {
+      // Simulate: count()=0 → role='operator', but another request already inserted operator
+      prismaMock.user.count.mockResolvedValue(0);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      const p2002 = { code: 'P2002' };
+      const retryUser = { ...mockUser, role: 'user', passwordHash: 'hashed_pw' };
+      prismaMock.user.create
+        .mockRejectedValueOnce(p2002)   // first attempt (role: 'operator') → unique index fires
+        .mockResolvedValueOnce(retryUser); // retry (role: 'user') → succeeds
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: mockUser.email, password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('role', 'user');
+      expect(prismaMock.user.create).toHaveBeenCalledTimes(2);
+      expect(prismaMock.user.create).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ role: 'user' }) }),
+      );
+    });
+
+    it('should return 409 when email is also taken on the retry (concurrent race)', async () => {
+      prismaMock.user.count.mockResolvedValue(0);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      const p2002 = { code: 'P2002' };
+      prismaMock.user.create
+        .mockRejectedValueOnce(p2002)  // first attempt (role: 'operator')
+        .mockRejectedValueOnce(p2002); // retry (role: 'user') → email conflict
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: mockUser.email, password: 'securepassword' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -175,6 +254,8 @@ describe('Auth routes', () => {
       expect(response.headers['set-cookie']).not.toMatch(/;\s*Secure/i);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('email', mockUser.email);
+      expect(payload).toHaveProperty('role', mockUser.role);
+      expect(payload).toHaveProperty('disabled', false);
       // All existing sessions should be invalidated on login
       expect(prismaMock.session.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } });
     });
@@ -205,6 +286,21 @@ describe('Auth routes', () => {
       expect(response.statusCode).toBe(401);
       expect(bcryptMock.compare).toHaveBeenCalledTimes(1);
     });
+
+    it('should return 401 when user account is disabled', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ ...mockUser, passwordHash: 'hashed_pw', disabled: true });
+      bcryptMock.compare.mockResolvedValue(true);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email: mockUser.email, password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(401);
+      // Session must NOT be created for disabled accounts
+      expect(prismaMock.session.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('POST /api/v1/auth/logout', () => {
@@ -225,7 +321,7 @@ describe('Auth routes', () => {
   });
 
   describe('GET /api/v1/auth/me', () => {
-    it('should return the current user', async () => {
+    it('should return the current user with role and disabled fields', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession);
 
       const response = await app.inject({
@@ -237,12 +333,29 @@ describe('Auth routes', () => {
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
       expect(payload).toHaveProperty('email', mockUser.email);
+      expect(payload).toHaveProperty('role', mockUser.role);
+      expect(payload).toHaveProperty('disabled', mockUser.disabled);
     });
 
     it('should return 401 when not authenticated', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/api/v1/auth/me',
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return 401 when session belongs to a disabled user', async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...mockSession,
+        user: { ...mockUser, disabled: true },
+      });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/me',
+        headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(401);

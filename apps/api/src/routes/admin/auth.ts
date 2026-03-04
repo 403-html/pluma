@@ -49,7 +49,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/v1/auth/register
-   * Creates the first admin user. Returns 409 if any user already exists.
+   * Creates a new user. The first user to register receives the "operator" role;
+   * all subsequent users receive the "user" role.
+   *
+   * A partial unique index ("User_single_operator") on role='operator' enforces the
+   * single-operator invariant at the DB level. If two concurrent registrations both
+   * observe count=0, the second create will throw P2002 — caught here and retried as
+   * role='user'. A P2002 on the email field returns 409 Conflict.
    */
   fastify.post('/register', async (request, reply) => {
     const parsedBody = registerBodySchema.safeParse(request.body);
@@ -60,19 +66,52 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     }
 
     const existingCount = await prisma.user.count();
-
-    if (existingCount > 0) {
-      request.log.warn('Register rejected: admin user already exists');
-      return reply.conflict(ReasonPhrases.CONFLICT);
-    }
+    const role = existingCount === 0 ? 'operator' : 'user';
 
     const passwordHash = await hash(parsedBody.data.password, BCRYPT_ROUNDS);
 
-    const user = await prisma.user.create({
-      data: { email: parsedBody.data.email, passwordHash },
-    });
+    const isP2002 = (e: unknown): boolean =>
+      typeof e === 'object' && e !== null && 'code' in e && (e as { code: unknown }).code === 'P2002';
 
-    return reply.code(StatusCodes.CREATED).send({ id: user.id, email: user.email, createdAt: user.createdAt });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: { email: parsedBody.data.email, passwordHash, role },
+      });
+    } catch (error) {
+      if (!isP2002(error)) {
+        request.log.error({ err: error, role }, 'Register: unexpected error during user.create');
+        throw error;
+      }
+
+      // If we tried to create the first operator and the index fired (concurrent
+      // registration beat us), retry as 'user'. Otherwise it's a duplicate email.
+      if (role !== 'operator') {
+        request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email already exists');
+        return reply.code(StatusCodes.CONFLICT).send({ error: 'Email already registered' });
+      }
+
+      try {
+        user = await prisma.user.create({
+          data: { email: parsedBody.data.email, passwordHash, role: 'user' },
+        });
+      } catch (retryError) {
+        if (isP2002(retryError)) {
+          request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email already exists (retry)');
+          return reply.code(StatusCodes.CONFLICT).send({ error: 'Email already registered' });
+        }
+        request.log.error({ err: retryError }, 'Register: unexpected error during user.create retry');
+        throw retryError;
+      }
+    }
+
+    return reply.code(StatusCodes.CREATED).send({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      disabled: user.disabled,
+      createdAt: user.createdAt,
+    });
   });
 
   /**
@@ -102,6 +141,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
     }
 
+    if (user.disabled) {
+      request.log.warn({ userId: user.id }, 'Login rejected: account disabled');
+      return reply.unauthorized(ReasonPhrases.UNAUTHORIZED);
+    }
+
     // Invalidate all existing sessions for this user before creating a new one.
     await prisma.session.deleteMany({
       where: { userId: user.id },
@@ -122,7 +166,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       expires: expiresAt,
     });
 
-    return reply.code(StatusCodes.OK).send({ id: user.id, email: user.email, createdAt: user.createdAt });
+    return reply.code(StatusCodes.OK).send({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      disabled: user.disabled,
+      createdAt: user.createdAt,
+    });
   });
 
   /**

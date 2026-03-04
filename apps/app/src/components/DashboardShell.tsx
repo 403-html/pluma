@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { CurrentUserProvider } from '@/context/CurrentUserContext';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   }, [isSidebarOpen]);
 
   return (
+    <CurrentUserProvider>
     <div className="min-h-screen flex flex-col md:grid md:grid-cols-[var(--sidebar-width)_1fr]">
       {/* ── Mobile-only sticky top bar ───────────────────────────────────────── */}
       <header
@@ -67,5 +69,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       {/* ── Main content ─────────────────────────────────────────────────────── */}
       <div className="min-w-0">{children}</div>
     </div>
+    </CurrentUserProvider>
   );
 }
