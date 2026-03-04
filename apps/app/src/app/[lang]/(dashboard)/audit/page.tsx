@@ -15,7 +15,7 @@ export default async function AuditPage({
   const cookieHeader = serializeCookies(await cookies());
   const role = await fetchUserRole(cookieHeader);
 
-  if (role === 'user') {
+  if (role !== 'admin' && role !== 'operator') {
     redirect(`/${locale}/`);
   }
 
