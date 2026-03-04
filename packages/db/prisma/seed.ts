@@ -47,6 +47,7 @@ async function main() {
       create: {
         email: 'admin@pluma.dev',
         passwordHash: hashedPassword,
+        role: 'operator',
       },
     });
   
