@@ -48,18 +48,56 @@ function parseRedisUrl(url: string): { host: string; port: number; password?: st
       `[mailer] REDIS_URL is not a valid URL: "${url}". Expected format: redis://[password@]host:port`,
     );
   }
+
+  if (parsed.protocol !== 'redis:' && parsed.protocol !== 'rediss:') {
+    throw new Error(
+      `[mailer] REDIS_URL must use redis:// or rediss:// scheme, got "${parsed.protocol}" for "${url}"`,
+    );
+  }
+
+  const hostname = parsed.hostname.trim();
+  if (!hostname) {
+    throw new Error(`[mailer] REDIS_URL must include a hostname, got "${url}"`);
+  }
+
+  const portString = parsed.port;
+  const port = portString ? parseInt(portString, 10) : 6379;
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+    throw new Error(
+      `[mailer] REDIS_URL must include a valid port (1-65535), got "${portString || '6379'}" for "${url}"`,
+    );
+  }
+
   return {
-    host: parsed.hostname,
-    port: parseInt(parsed.port || '6379', 10),
+    host: hostname,
+    port,
     ...(parsed.password ? { password: decodeURIComponent(parsed.password) } : {}),
   };
 }
 
-// BullMQ queue + worker — only created when Redis is configured.
+// BullMQ queue + worker — lazily initialised via initMailer(); null until then.
 let emailQueue: Queue<MailJobData> | null = null;
 let emailWorker: Worker<MailJobData> | null = null;
 
-if (REDIS_URL) {
+/**
+ * Initialises the BullMQ queue and worker.
+ *
+ * Should be called once from `buildApp` after the Fastify instance is ready.
+ * When SMTP is not configured the queue is skipped (it would be useless without
+ * a transport). When Redis is not configured emails fall back to synchronous
+ * delivery. `closeMailer` must be registered separately on the shutdown hook.
+ */
+export function initMailer(): void {
+  if (!transport) {
+    // SMTP is not configured — no point creating a queue.
+    return;
+  }
+
+  if (!REDIS_URL) {
+    console.warn('[mailer] REDIS_URL is not set — emails will be sent synchronously without retry');
+    return;
+  }
+
   const connection = parseRedisUrl(REDIS_URL);
 
   emailQueue = new Queue<MailJobData>(QUEUE_NAME, { connection });
@@ -67,7 +105,6 @@ if (REDIS_URL) {
   emailWorker = new Worker<MailJobData>(
     QUEUE_NAME,
     async (job) => {
-      if (!transport) return;
       await transport.sendMail(job.data);
     },
     { connection, concurrency: 2 },
@@ -76,21 +113,23 @@ if (REDIS_URL) {
   emailWorker.on('failed', (job, err) => {
     console.error(`[mailer] email job ${job?.id} failed (attempt ${job?.attemptsMade}):`, err);
   });
-} else {
-  console.warn('[mailer] REDIS_URL is not set — emails will be sent synchronously without retry');
 }
 
 /**
  * Sends a welcome email to the given address.
  *
- * When Redis is configured the mail is enqueued (delivered asynchronously with
- * up to 3 retry attempts using exponential back-off). Without Redis it is sent
- * synchronously via nodemailer. When neither is configured this is a no-op.
+ * When Redis is configured (via `initMailer`) the mail is enqueued (delivered
+ * asynchronously with up to 3 retry attempts using exponential back-off).
+ * Without Redis it is sent synchronously via nodemailer. When SMTP is not
+ * configured this is always a no-op.
  *
  * @param email - recipient address
  * @param from  - optional From override; falls back to the SMTP_FROM env var
  */
 export async function sendWelcomeEmail(email: string, from?: string): Promise<void> {
+  // No SMTP configured — no-op regardless of queue state.
+  if (!transport) return;
+
   const mailData: MailJobData = {
     to: email,
     from: from || SMTP_FROM_ENV,
@@ -107,7 +146,6 @@ export async function sendWelcomeEmail(email: string, from?: string): Promise<vo
     return;
   }
 
-  if (!transport) return;
   await transport.sendMail(mailData);
 }
 

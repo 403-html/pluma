@@ -17,6 +17,7 @@ import { registerAuditRoutes } from './routes/admin/audit';
 import { registerDashboardRoutes } from './routes/admin/dashboard';
 import { registerOrgSettingsRoutes } from './routes/admin/orgSettings';
 import { registerSdkRoutes } from './routes/sdk/snapshot';
+import { initMailer, closeMailer } from './lib/mailer';
 
 type BuildAppOptions = {
   logger?: boolean;
@@ -85,6 +86,13 @@ export async function buildApp(options: BuildAppOptions = {}) {
     },
     { prefix: '/sdk/v1' },
   );
+
+  // Initialise the mailer (BullMQ queue + worker when Redis is configured) and
+  // register graceful shutdown so Redis connections are released on close.
+  initMailer();
+  fastify.addHook('onClose', async () => {
+    await closeMailer();
+  });
 
   return fastify;
 }

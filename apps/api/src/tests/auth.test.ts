@@ -78,6 +78,8 @@ vi.mock('bcryptjs', () => ({
 // Mailer is fire-and-forget — mock it to prevent real SMTP connections in tests
 vi.mock('../lib/mailer', () => ({
   sendWelcomeEmail: vi.fn().mockResolvedValue(undefined),
+  initMailer: vi.fn(),
+  closeMailer: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('Auth routes', () => {
