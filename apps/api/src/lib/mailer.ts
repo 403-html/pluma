@@ -35,9 +35,19 @@ if (!transport) {
  * Parses a redis:// URL into a BullMQ-compatible connection options object.
  * BullMQ sets `maxRetriesPerRequest: null` automatically when connection options
  * are provided as a plain object rather than an IORedis instance.
+ *
+ * Throws a descriptive error when the URL is malformed so misconfiguration is
+ * caught at startup rather than silently failing later.
  */
 function parseRedisUrl(url: string): { host: string; port: number; password?: string } {
-  const parsed = new URL(url);
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(
+      `[mailer] REDIS_URL is not a valid URL: "${url}". Expected format: redis://[password@]host:port`,
+    );
+  }
   return {
     host: parsed.hostname,
     port: parseInt(parsed.port || '6379', 10),

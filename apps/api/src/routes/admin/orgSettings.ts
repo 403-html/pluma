@@ -26,6 +26,12 @@ const patchOrgSettingsBodySchema = z.object({
   { message: 'At least one field must be provided' },
 );
 
+type OrgSettingsUpdateData = {
+  allowedDomains?: string[];
+  smtpFrom?: string;
+  sendWelcomeEmail?: boolean;
+};
+
 function buildOrgSettingsResponse(settings: {
   allowedDomains: string[];
   smtpFrom: string;
@@ -77,7 +83,7 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
 
     const { allowedDomains, smtpFrom, sendWelcomeEmail } = parsedBody.data;
 
-    const updateData: { allowedDomains?: string[]; smtpFrom?: string; sendWelcomeEmail?: boolean } = {};
+    const updateData: OrgSettingsUpdateData = {};
     if (allowedDomains !== undefined) updateData.allowedDomains = allowedDomains;
     if (smtpFrom !== undefined) updateData.smtpFrom = smtpFrom;
     if (sendWelcomeEmail !== undefined) updateData.sendWelcomeEmail = sendWelcomeEmail;
