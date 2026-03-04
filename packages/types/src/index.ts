@@ -153,7 +153,7 @@ export const AuditEntityTypes = {
   TOKEN: 'token',
   ACCOUNT: 'account',
   ORG_SETTINGS: 'orgSettings',
-} as const;
+} as const satisfies Record<string, AuditEntityType>;
 
 // Named audit actor type constants
 export const AuditActorTypes = {

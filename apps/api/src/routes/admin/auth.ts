@@ -75,6 +75,10 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const orgSettings = await prisma.orgSettings.findUnique({ where: { id: 'default' } });
     if (orgSettings && orgSettings.allowedDomains.length > 0) {
       const emailDomain = parsedBody.data.email.split('@')[1]?.toLowerCase() ?? '';
+      if (!emailDomain) {
+        // Should never happen given prior Zod email() validation, but guard defensively.
+        return reply.badRequest('Invalid email format');
+      }
       if (!orgSettings.allowedDomains.map((d) => d.toLowerCase()).includes(emailDomain)) {
         request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email domain not allowed');
         return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Email domain not allowed' });

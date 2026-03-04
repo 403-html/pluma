@@ -6,16 +6,22 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM ?? 'noreply@pluma.local';
 
-function createTransport() {
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth:
-      SMTP_USER && SMTP_PASS
-        ? { user: SMTP_USER, pass: SMTP_PASS }
-        : undefined,
-  });
+// Create transport once at module initialisation; null when SMTP is unconfigured.
+const transport = SMTP_HOST
+  ? nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465,
+      auth:
+        SMTP_USER && SMTP_PASS
+          ? { user: SMTP_USER, pass: SMTP_PASS }
+          : undefined,
+    })
+  : null;
+
+if (!transport) {
+  // Module-level warning emitted once on startup — no request context available.
+  console.warn('[mailer] SMTP_HOST is not set — welcome emails are disabled');
 }
 
 /**
@@ -25,12 +31,9 @@ function createTransport() {
  * always succeeds regardless of email delivery.
  */
 export async function sendWelcomeEmail(email: string): Promise<void> {
-  if (!SMTP_HOST) {
-    console.warn('[mailer] SMTP_HOST is not set — skipping welcome email');
+  if (!transport) {
     return;
   }
-
-  const transport = createTransport();
 
   await transport.sendMail({
     from: SMTP_FROM,
