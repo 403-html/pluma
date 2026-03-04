@@ -16,6 +16,7 @@ import {
   TableHead,
   TableCell,
   TableHeadRow,
+  TablePagination,
 } from '@/components/ui/table';
 import { useAccounts } from './useAccounts';
 
@@ -23,7 +24,10 @@ export default function AccountsTab() {
   const { t } = useLocale();
   const labels = t.organization.accounts;
   const { currentUser } = useCurrentUser();
-  const { accounts, isLoading, error, patchAccount } = useAccounts();
+  const { accounts, isLoading, error, page, total, pageSize, setPage, patchAccount } = useAccounts();
+
+  const hasPrev = page > 1;
+  const hasNext = page * pageSize < total;
 
   async function handleToggleDisabled(id: string, currentlyDisabled: boolean) {
     const result = await patchAccount(id, { disabled: !currentlyDisabled });
@@ -142,6 +146,20 @@ export default function AccountsTab() {
           </TableBody>
         </Table>
       </div>
+
+      {(hasPrev || hasNext) && (
+        <TablePagination
+          currentPage={page}
+          hasPrev={hasPrev}
+          hasNext={hasNext}
+          onPrev={() => setPage(page - 1)}
+          onNext={() => setPage(page + 1)}
+          prevLabel={t.common.prevPage}
+          nextLabel={t.common.nextPage}
+          pageInfoTemplate={t.common.pageInfo}
+          className="shrink-0"
+        />
+      )}
     </div>
   );
 }

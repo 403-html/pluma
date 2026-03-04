@@ -48,6 +48,7 @@ const { prismaMock } = vi.hoisted(() => ({
     featureFlag: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     environment: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     flagConfig: { findMany: vi.fn(), findUnique: vi.fn(), upsert: vi.fn() },
+    auditLog: { create: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -72,12 +73,14 @@ describe('Accounts routes', () => {
   // ─── GET /api/v1/accounts ────────────────────────────────────────────────────
 
   describe('GET /api/v1/accounts', () => {
-    it('should return user list for operator', async () => {
+    it('should return paginated user list for operator', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession); // operator
-      prismaMock.user.findMany.mockResolvedValue([
+      const userList = [
         { id: USER_ID, email: mockUser.email, role: 'operator', disabled: false, createdAt: FIXED_DATE },
         { id: ADMIN_USER_ID, email: mockAdminUser.email, role: 'admin', disabled: false, createdAt: FIXED_DATE },
-      ]);
+      ];
+      prismaMock.user.count.mockResolvedValue(2);
+      prismaMock.user.findMany.mockResolvedValue(userList);
 
       const response = await app.inject({
         method: 'GET',
@@ -87,14 +90,18 @@ describe('Accounts routes', () => {
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
-      expect(Array.isArray(payload)).toBe(true);
-      expect(payload).toHaveLength(2);
-      expect(payload[0]).toMatchObject({ id: USER_ID, role: 'operator', disabled: false });
-      expect(payload[0]).not.toHaveProperty('passwordHash');
+      expect(payload).toHaveProperty('total', 2);
+      expect(payload).toHaveProperty('page', 1);
+      expect(payload).toHaveProperty('pageSize', 50);
+      expect(Array.isArray(payload.accounts)).toBe(true);
+      expect(payload.accounts).toHaveLength(2);
+      expect(payload.accounts[0]).toMatchObject({ id: USER_ID, role: 'operator', disabled: false });
+      expect(payload.accounts[0]).not.toHaveProperty('passwordHash');
     });
 
-    it('should return user list for admin', async () => {
+    it('should return paginated user list for admin', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockAdminSession);
+      prismaMock.user.count.mockResolvedValue(1);
       prismaMock.user.findMany.mockResolvedValue([
         { id: USER_ID, email: mockUser.email, role: 'operator', disabled: false, createdAt: FIXED_DATE },
       ]);
@@ -106,6 +113,39 @@ describe('Accounts routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('accounts');
+    });
+
+    it('should accept a page query parameter', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.user.count.mockResolvedValue(60);
+      prismaMock.user.findMany.mockResolvedValue([]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/accounts?page=2',
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('page', 2);
+      expect(prismaMock.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 50, take: 50 }),
+      );
+    });
+
+    it('should return 400 for invalid page parameter', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/accounts?page=0',
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 403 for user role', async () => {
@@ -137,6 +177,7 @@ describe('Accounts routes', () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession); // operator
       prismaMock.user.findUnique.mockResolvedValue(mockRegularUser);
       prismaMock.user.update.mockResolvedValue({ ...mockRegularUser, disabled: true });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
 
       const response = await app.inject({
         method: 'PATCH',
@@ -151,12 +192,16 @@ describe('Accounts routes', () => {
       expect(prismaMock.user.update).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: REGULAR_USER_ID }, data: { disabled: true } }),
       );
+      expect(prismaMock.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ action: 'update', entityType: 'account' }) }),
+      );
     });
 
     it('operator can promote a user to admin', async () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession); // operator
       prismaMock.user.findUnique.mockResolvedValue(mockRegularUser);
       prismaMock.user.update.mockResolvedValue({ ...mockRegularUser, role: 'admin' });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
 
       const response = await app.inject({
         method: 'PATCH',
@@ -265,6 +310,7 @@ describe('Accounts routes', () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession); // operator
       prismaMock.user.findUnique.mockResolvedValue(mockRegularUser);
       prismaMock.user.update.mockResolvedValue({ ...mockRegularUser, role: 'admin', disabled: true });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
 
       const response = await app.inject({
         method: 'PATCH',
@@ -283,6 +329,7 @@ describe('Accounts routes', () => {
       prismaMock.session.findUnique.mockResolvedValue(mockSession); // operator = USER_ID
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
       prismaMock.user.update.mockResolvedValue({ ...mockUser, disabled: true });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
 
       const response = await app.inject({
         method: 'PATCH',

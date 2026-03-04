@@ -9,15 +9,22 @@ export type AccountUser = {
   createdAt: string;
 };
 
+export type AccountsPage = {
+  total: number;
+  page: number;
+  pageSize: number;
+  accounts: AccountUser[];
+};
+
 /**
- * Fetches all user accounts (operator/admin only).
- * Calls GET /api/v1/accounts with session credentials.
+ * Fetches a page of user accounts (operator/admin only).
+ * Calls GET /api/v1/accounts?page=N with session credentials.
  */
-export async function listAccounts(): Promise<
-  { ok: true; accounts: AccountUser[] } | { ok: false; message: string }
+export async function listAccounts(page = 1): Promise<
+  { ok: true } & AccountsPage | { ok: false; message: string }
 > {
   try {
-    const response = await fetch('/api/v1/accounts', {
+    const response = await fetch(`/api/v1/accounts?page=${page}`, {
       method: 'GET',
       credentials: 'include',
     });
@@ -25,8 +32,8 @@ export async function listAccounts(): Promise<
       const message = await parseErrorMessage(response, 'Failed to load accounts');
       return { ok: false, message };
     }
-    const accounts: AccountUser[] = await response.json();
-    return { ok: true, accounts };
+    const data: AccountsPage = await response.json();
+    return { ok: true, ...data };
   } catch {
     return { ok: false, message: 'Unable to reach the server. Check your connection.' };
   }

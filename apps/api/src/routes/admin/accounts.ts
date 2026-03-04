@@ -4,9 +4,17 @@ import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
 import { USER_ROLES } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { writeAuditLog } from '../../lib/audit';
 
 // Roles that can be assigned via PATCH; 'operator' is only set during first registration.
 const ASSIGNABLE_ROLES = USER_ROLES.filter((r) => r !== 'operator') as ['admin', 'user'];
+
+const PAGE_SIZE = 50;
+const MAX_PAGE = 1000;
+
+const listQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(MAX_PAGE).default(1),
+});
 
 const patchAccountBodySchema = z.object({
   disabled: z.boolean().optional(),
@@ -16,8 +24,10 @@ const patchAccountBodySchema = z.object({
 export async function registerAccountRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/v1/accounts
-   * Lists all users. Accessible only by operator or admin role.
-   * Returns: { id, email, role, disabled, createdAt }[]
+   * Lists all users with pagination. Accessible only by operator or admin role.
+   * Query params:
+   *   page  int ≥ 1 (default 1) — page number (50 entries per page)
+   * Returns: { total, page, pageSize, accounts: { id, email, role, disabled, createdAt }[] }
    */
   fastify.get('/accounts', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const actor = request.sessionUser!;
@@ -27,12 +37,26 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.FORBIDDEN).send({ error: ReasonPhrases.FORBIDDEN });
     }
 
-    const users = await prisma.user.findMany({
-      select: { id: true, email: true, role: true, disabled: true, createdAt: true },
-      orderBy: { createdAt: 'asc' },
-    });
+    const parsed = listQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      request.log.warn({ query: request.query }, 'GET /accounts rejected: invalid query parameters');
+      return reply.badRequest('Invalid query parameters');
+    }
 
-    return reply.code(StatusCodes.OK).send(users);
+    const { page } = parsed.data;
+    const skip = (page - 1) * PAGE_SIZE;
+
+    const [total, accounts] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.findMany({
+        select: { id: true, email: true, role: true, disabled: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: PAGE_SIZE,
+      }),
+    ]);
+
+    return reply.code(StatusCodes.OK).send({ total, page, pageSize: PAGE_SIZE, accounts });
   });
 
   /**
@@ -91,6 +115,30 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
       },
       select: { id: true, email: true, role: true, disabled: true, createdAt: true },
     });
+
+    try {
+      const before: Record<string, unknown> = {};
+      const after: Record<string, unknown> = {};
+      if (disabled !== undefined) { before.disabled = target.disabled; after.disabled = disabled; }
+      if (role !== undefined) { before.role = target.role; after.role = role; }
+      await writeAuditLog({
+        action: 'update',
+        entityType: 'account',
+        entityId: updated.id,
+        entityKey: updated.email,
+        actorId: actor.id,
+        actorEmail: actor.email,
+        details: { before, after },
+        meta: {
+          ip: request.ip,
+          ua: request.headers['user-agent'] as string | undefined,
+          requestId: request.id,
+          actorType: 'user',
+        },
+      });
+    } catch (auditError) {
+      request.log.error({ err: auditError, targetId: id }, 'PATCH /accounts/:id: failed to write audit log');
+    }
 
     request.log.info({ actorId: actor.id, targetId: id }, 'Account updated');
 

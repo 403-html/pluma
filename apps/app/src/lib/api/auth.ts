@@ -156,6 +156,7 @@ export async function checkSession(cookieHeader: string): Promise<boolean> {
     const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
       method: 'GET',
       headers: { Cookie: cookieHeader },
+      cache: 'no-store',
     });
     return response.ok;
   } catch (error) {
@@ -179,6 +180,7 @@ export async function fetchUserRole(cookieHeader: string): Promise<UserRole | nu
     const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
       method: 'GET',
       headers: { Cookie: cookieHeader },
+      cache: 'no-store',
     });
     if (!response.ok) return null;
     const user: AuthUserResponse = await response.json();
