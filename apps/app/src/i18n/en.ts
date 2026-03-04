@@ -237,6 +237,23 @@ export const en = {
     tabs: {
       apiKeys: 'API Keys',
       accounts: 'Accounts',
+      settings: 'Settings',
+    },
+    domainSettings: {
+      title: 'Registration Domain Allowlist',
+      desc: 'When configured, only email addresses with these domains can register. Leave empty to allow any domain.',
+      addLabel: 'Add Domain',
+      addPlaceholder: 'example.com',
+      addBtn: 'Add',
+      removeBtn: 'Remove',
+      emptyState: 'No domains configured — any email can register.',
+      saveBtn: 'Save',
+      saveLoading: 'Saving…',
+      toastSaveSuccess: 'Domain settings saved',
+      loadError: 'Failed to load domain settings',
+      saveError: 'Failed to save domain settings',
+      domainInvalid: 'Enter a valid domain (e.g. example.com)',
+      domainDuplicate: 'This domain is already in the list',
     },
     accounts: {
       title: 'Accounts',

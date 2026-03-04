@@ -32,6 +32,11 @@ const changePasswordBodySchema = z.object({
   newPassword: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH),
 });
 
+/** Extracts the lowercase domain part from a validated email address. */
+function emailDomain(email: string): string {
+  return email.split('@')[1]?.toLowerCase() ?? '';
+}
+
 export async function registerAuthRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/v1/auth/setup
@@ -74,13 +79,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     // the first operator.
     const orgSettings = await prisma.orgSettings.findUnique({ where: { id: 'default' } });
     if (orgSettings && orgSettings.allowedDomains.length > 0) {
-      const emailDomain = parsedBody.data.email.split('@')[1]?.toLowerCase() ?? '';
-      if (!emailDomain) {
+      const domain = emailDomain(parsedBody.data.email);
+      if (!domain) {
         // Should never happen given prior Zod email() validation, but guard defensively.
         return reply.badRequest('Invalid email format');
       }
-      if (!orgSettings.allowedDomains.map((d) => d.toLowerCase()).includes(emailDomain)) {
-        request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email domain not allowed');
+      if (!orgSettings.allowedDomains.map((d) => d.toLowerCase()).includes(domain)) {
+        request.log.warn({ domain }, 'Register rejected: email domain not allowed');
         return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Email domain not allowed' });
       }
     }
@@ -124,7 +129,7 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
     // Fire-and-forget welcome email — never blocks the response or throws.
     sendWelcomeEmail(user.email).catch((err: unknown) => {
-      request.log.error({ err, email: user.email }, 'Register: failed to send welcome email');
+      request.log.error({ err, userId: user.id }, 'Register: failed to send welcome email');
     });
 
     return reply.code(StatusCodes.CREATED).send({

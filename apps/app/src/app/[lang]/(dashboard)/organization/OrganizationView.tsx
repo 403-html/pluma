@@ -15,11 +15,12 @@ import type { CreatedToken } from '@/lib/api/tokens';
 import { usePagination } from '@/hooks/usePagination';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import AccountsTab from './_components/AccountsTab';
+import DomainSettingsTab from './_components/DomainSettingsTab';
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 20;
 
-type Tab = 'apiKeys' | 'accounts';
+type Tab = 'apiKeys' | 'accounts' | 'settings';
 
 export default function OrganizationView() {
   const { t, locale } = useLocale();
@@ -82,6 +83,22 @@ export default function OrganizationView() {
           )}
         >
           {org.tabs.accounts}
+        </button>
+        <button
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'settings'}
+          aria-controls="tab-panel-settings"
+          id="tab-settings"
+          onClick={() => setActiveTab('settings')}
+          className={cn(
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            activeTab === 'settings'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
+          )}
+        >
+          {org.tabs.settings}
         </button>
       </div>
 
@@ -163,6 +180,17 @@ export default function OrganizationView() {
         className="flex-1 min-h-0 flex flex-col"
       >
         <AccountsTab />
+      </section>
+
+      {/* Settings tab panel */}
+      <section
+        id="tab-panel-settings"
+        role="tabpanel"
+        aria-labelledby="tab-settings"
+        hidden={activeTab !== 'settings'}
+        className="flex-1 min-h-0 flex flex-col"
+      >
+        <DomainSettingsTab />
       </section>
 
       {isModalOpen && (

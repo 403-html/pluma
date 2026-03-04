@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = parseInt(process.env.SMTP_PORT ?? '587', 10);
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM ?? 'noreply@pluma.local';
@@ -11,7 +12,7 @@ const transport = SMTP_HOST
   ? nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
+      secure: SMTP_SECURE,
       auth:
         SMTP_USER && SMTP_PASS
           ? { user: SMTP_USER, pass: SMTP_PASS }

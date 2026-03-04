@@ -10,7 +10,11 @@ const ORG_SETTINGS_ID = 'default';
 
 const patchOrgSettingsBodySchema = z.object({
   allowedDomains: z
-    .array(z.string().min(1).max(253))
+    .array(
+      // RFC 1035: maximum DNS label length is 63 chars; full FQDN max is 253 chars.
+      z.string().min(1).max(253),
+    )
+    // Practical upper bound — prevents unbounded growth in the DB array column.
     .max(100),
 });
 

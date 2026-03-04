@@ -27,3 +27,4 @@ export const MAX_FLAGS = 10_000;
 
 /** Left-indent pixels added per nesting level in the flags table. */
 export const FLAG_INDENT_PX_PER_LEVEL = 16;
+
