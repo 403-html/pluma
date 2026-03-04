@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
-import { MAX_PARENT_DEPTH, MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
+import { MAX_PARENT_DEPTH, MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX, AuditActions, AuditEntityTypes, AuditActorTypes } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 
@@ -167,8 +167,8 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
 
       try {
         await writeAuditLog({
-          action: 'create',
-          entityType: 'flag',
+          action: AuditActions.CREATE,
+          entityType: AuditEntityTypes.FLAG,
           entityId: flag.id,
           entityKey: flag.key,
           projectId: flag.projectId,
@@ -180,7 +180,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,
             requestId: request.id,
-            actorType: 'user',
+            actorType: AuditActorTypes.USER,
           },
         });
       } catch (auditError) {
@@ -243,8 +243,8 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
 
         try {
           await writeAuditLog({
-            action: 'update',
-            entityType: 'flag',
+            action: AuditActions.UPDATE,
+            entityType: AuditEntityTypes.FLAG,
             entityId: flag.id,
             entityKey: flag.key,
             projectId: flag.projectId,
@@ -257,7 +257,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {
@@ -311,8 +311,8 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
 
         try {
           await writeAuditLog({
-            action: 'delete',
-            entityType: 'flag',
+            action: AuditActions.DELETE,
+            entityType: AuditEntityTypes.FLAG,
             entityId: deletedFlag.id,
             entityKey: deletedFlag.key,
             projectId: deletedFlag.projectId,
@@ -324,7 +324,7 @@ export async function registerFlagRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {

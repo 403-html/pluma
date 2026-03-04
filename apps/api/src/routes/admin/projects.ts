@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
-import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
+import { MAX_PROJECT_KEY_LENGTH, MAX_PROJECT_NAME_LENGTH, PROJECT_KEY_REGEX, AuditActions, AuditEntityTypes, AuditActorTypes } from '@pluma-flags/types';
 import { writeAuditLog } from '../../lib/audit';
 
 const PAGE_SIZE = 100;
@@ -74,8 +74,8 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
       try {
         await writeAuditLog({
-          action: 'create',
-          entityType: 'project',
+          action: AuditActions.CREATE,
+          entityType: AuditEntityTypes.PROJECT,
           entityId: project.id,
           entityKey: project.key,
           projectId: project.id,
@@ -86,7 +86,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,
             requestId: request.id,
-            actorType: 'user',
+            actorType: AuditActorTypes.USER,
           },
         });
       } catch (auditError) {
@@ -132,8 +132,8 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
       try {
         await writeAuditLog({
-          action: 'update',
-          entityType: 'project',
+          action: AuditActions.UPDATE,
+          entityType: AuditEntityTypes.PROJECT,
           entityId: project.id,
           entityKey: project.key,
           projectId: project.id,
@@ -145,7 +145,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,
             requestId: request.id,
-            actorType: 'user',
+            actorType: AuditActorTypes.USER,
           },
         });
       } catch (auditError) {
@@ -192,8 +192,8 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
 
       try {
         await writeAuditLog({
-          action: 'delete',
-          entityType: 'project',
+          action: AuditActions.DELETE,
+          entityType: AuditEntityTypes.PROJECT,
           entityId: project.id,
           entityKey: project.key,
           projectId: project.id,
@@ -204,7 +204,7 @@ export async function registerProjectRoutes(fastify: FastifyInstance) {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,
             requestId: request.id,
-            actorType: 'user',
+            actorType: AuditActorTypes.USER,
           },
         });
       } catch (auditError) {

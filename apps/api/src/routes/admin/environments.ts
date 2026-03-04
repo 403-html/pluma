@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
-import { MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX } from '@pluma-flags/types';
+import { MAX_PROJECT_KEY_LENGTH, PROJECT_KEY_REGEX, AuditActions, AuditEntityTypes, AuditActorTypes } from '@pluma-flags/types';
 import { writeAuditLog } from '../../lib/audit';
 
 const envBodySchema = z.object({
@@ -118,8 +118,8 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
 
         try {
           await writeAuditLog({
-            action: 'create',
-            entityType: 'environment',
+            action: AuditActions.CREATE,
+            entityType: AuditEntityTypes.ENVIRONMENT,
             entityId: environment.id,
             entityKey: environment.key,
             projectId: environment.projectId,
@@ -131,7 +131,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {
@@ -184,8 +184,8 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
 
         try {
           await writeAuditLog({
-            action: 'update',
-            entityType: 'environment',
+            action: AuditActions.UPDATE,
+            entityType: AuditEntityTypes.ENVIRONMENT,
             entityId: environment.id,
             entityKey: environment.key,
             projectId: environment.projectId,
@@ -198,7 +198,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {
@@ -252,8 +252,8 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
 
         try {
           await writeAuditLog({
-            action: 'delete',
-            entityType: 'environment',
+            action: AuditActions.DELETE,
+            entityType: AuditEntityTypes.ENVIRONMENT,
             entityId: environment.id,
             entityKey: environment.key,
             projectId: environment.projectId,
@@ -265,7 +265,7 @@ export async function registerEnvironmentRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {

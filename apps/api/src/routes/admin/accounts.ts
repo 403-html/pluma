@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
-import { USER_ROLES } from '@pluma-flags/types';
+import { USER_ROLES, UserRoles, AuditActions, AuditEntityTypes, AuditActorTypes } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 
@@ -32,7 +32,7 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
   fastify.get('/accounts', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const actor = request.sessionUser!;
 
-    if (actor.role === 'user') {
+    if (actor.role === UserRoles.USER) {
       request.log.warn({ actorId: actor.id }, 'Accounts list rejected: insufficient role');
       return reply.code(StatusCodes.FORBIDDEN).send({ error: ReasonPhrases.FORBIDDEN });
     }
@@ -72,7 +72,7 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
   fastify.patch('/accounts/:id', { preHandler: [adminAuthHook] }, async (request, reply) => {
     const actor = request.sessionUser!;
 
-    if (actor.role === 'user') {
+    if (actor.role === UserRoles.USER) {
       request.log.warn({ actorId: actor.id }, 'Account patch rejected: insufficient role');
       return reply.code(StatusCodes.FORBIDDEN).send({ error: ReasonPhrases.FORBIDDEN });
     }
@@ -96,7 +96,7 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
       return reply.code(StatusCodes.NOT_FOUND).send({ error: ReasonPhrases.NOT_FOUND });
     }
 
-    if (disabled !== undefined && target.role === 'operator') {
+    if (disabled !== undefined && target.role === UserRoles.OPERATOR) {
       request.log.warn({ actorId: actor.id, targetId: id }, 'Account patch rejected: cannot disable operator account');
       return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Cannot disable an operator account' });
     }
@@ -106,7 +106,7 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
         request.log.warn({ actorId: actor.id }, 'Account patch rejected: cannot change own role');
         return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Cannot change your own role' });
       }
-      if (target.role === 'operator') {
+      if (target.role === UserRoles.OPERATOR) {
         request.log.warn({ actorId: actor.id, targetId: id }, 'Account patch rejected: cannot change operator role');
         return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Cannot change the role of an operator' });
       }
@@ -127,8 +127,8 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
       if (disabled !== undefined) { before.disabled = target.disabled; after.disabled = disabled; }
       if (role !== undefined) { before.role = target.role; after.role = role; }
       await writeAuditLog({
-        action: 'update',
-        entityType: 'account',
+        action: AuditActions.UPDATE,
+        entityType: AuditEntityTypes.ACCOUNT,
         entityId: updated.id,
         entityKey: updated.email,
         actorId: actor.id,
@@ -138,7 +138,7 @@ export async function registerAccountRoutes(fastify: FastifyInstance) {
           ip: request.ip,
           ua: request.headers['user-agent'] as string | undefined,
           requestId: request.id,
-          actorType: 'user',
+          actorType: AuditActorTypes.USER,
         },
       });
     } catch (auditError) {

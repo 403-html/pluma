@@ -122,11 +122,52 @@ export type Snapshot = {
 export const AUDIT_ACTIONS = ['create', 'update', 'delete', 'enable', 'disable'] as const;
 export type AuditAction = typeof AUDIT_ACTIONS[number];
 
-export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token', 'account'] as const;
+export const AUDIT_ENTITY_TYPES = ['project', 'flag', 'environment', 'flagConfig', 'token', 'account', 'orgSettings'] as const;
 export type AuditEntityType = typeof AUDIT_ENTITY_TYPES[number];
 
 export const AUDIT_ACTOR_TYPES = ['user', 'system', 'sdk-token'] as const;
 export type AuditActorType = typeof AUDIT_ACTOR_TYPES[number];
+
+// Named role constants — single source of truth for role string values
+export const UserRoles = {
+  OPERATOR: 'operator',
+  ADMIN: 'admin',
+  USER: 'user',
+} as const satisfies Record<string, UserRole>;
+
+// Named audit action constants
+export const AuditActions = {
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
+  ENABLE: 'enable',
+  DISABLE: 'disable',
+} as const satisfies Record<string, AuditAction>;
+
+// Named audit entity type constants
+export const AuditEntityTypes = {
+  PROJECT: 'project',
+  FLAG: 'flag',
+  ENVIRONMENT: 'environment',
+  FLAG_CONFIG: 'flagConfig',
+  TOKEN: 'token',
+  ACCOUNT: 'account',
+  ORG_SETTINGS: 'orgSettings',
+} as const;
+
+// Named audit actor type constants
+export const AuditActorTypes = {
+  USER: 'user',
+  SYSTEM: 'system',
+  SDK_TOKEN: 'sdk-token',
+} as const satisfies Record<string, AuditActorType>;
+
+// Org Settings
+export type OrgSettings = {
+  id: string;
+  allowedDomains: string[];
+  updatedAt: string;
+};
 
 export interface AuditMeta {
   ip?: string;

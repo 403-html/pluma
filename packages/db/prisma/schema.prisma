@@ -109,6 +109,12 @@ model FlagConfig {
   @@id([envId, flagId])
 }
 
+model OrgSettings {
+  id             String   @id @default("default")
+  allowedDomains String[]
+  updatedAt      DateTime @updatedAt
+}
+
 model AuditLog {
   id             String   @id @default(uuid())
   action         String   // "create" | "update" | "delete" | "enable" | "disable"

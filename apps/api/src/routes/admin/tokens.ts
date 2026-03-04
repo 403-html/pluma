@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { randomBytes, createHash } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
+import { AuditActions, AuditEntityTypes, AuditActorTypes } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 import { TOKEN_BYTES, TOKEN_PREFIX, TOKEN_PREFIX_LENGTH } from '../../lib/tokenConstants';
@@ -101,8 +102,8 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
 
       try {
         await writeAuditLog({
-          action: 'create',
-          entityType: 'token',
+          action: AuditActions.CREATE,
+          entityType: AuditEntityTypes.TOKEN,
           entityId: sdkToken.id,
           projectId: sdkToken.projectId,
           actorId: request.sessionUserId!,
@@ -112,7 +113,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
             ip: request.ip,
             ua: request.headers['user-agent'] as string | undefined,
             requestId: request.id,
-            actorType: 'user',
+            actorType: AuditActorTypes.USER,
           },
         });
       } catch (auditError) {
@@ -150,8 +151,8 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
 
         try {
           await writeAuditLog({
-            action: 'delete',
-            entityType: 'token',
+            action: AuditActions.DELETE,
+            entityType: AuditEntityTypes.TOKEN,
             entityId: parsedParams.data.tokenId,
             projectId: parsedParams.data.id,
             actorId: request.sessionUserId!,
@@ -160,7 +161,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {

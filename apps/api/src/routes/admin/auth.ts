@@ -4,8 +4,9 @@ import { compare, hash } from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
-import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, MAX_EMAIL_LENGTH } from '@pluma-flags/types';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, MAX_EMAIL_LENGTH, UserRoles } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
+import { sendWelcomeEmail } from '../../lib/mailer';
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const BCRYPT_ROUNDS = 12;
@@ -66,7 +67,19 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     }
 
     const existingCount = await prisma.user.count();
-    const role = existingCount === 0 ? 'operator' : 'user';
+    const role = existingCount === 0 ? UserRoles.OPERATOR : UserRoles.USER;
+
+    // Domain allowlist enforcement: check before user creation so we don't
+    // create then immediately reject. Applies to all registrations including
+    // the first operator.
+    const orgSettings = await prisma.orgSettings.findUnique({ where: { id: 'default' } });
+    if (orgSettings && orgSettings.allowedDomains.length > 0) {
+      const emailDomain = parsedBody.data.email.split('@')[1]?.toLowerCase() ?? '';
+      if (!orgSettings.allowedDomains.map((d) => d.toLowerCase()).includes(emailDomain)) {
+        request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email domain not allowed');
+        return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Email domain not allowed' });
+      }
+    }
 
     const passwordHash = await hash(parsedBody.data.password, BCRYPT_ROUNDS);
 
@@ -86,14 +99,14 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
 
       // If we tried to create the first operator and the index fired (concurrent
       // registration beat us), retry as 'user'. Otherwise it's a duplicate email.
-      if (role !== 'operator') {
+      if (role !== UserRoles.OPERATOR) {
         request.log.warn({ email: parsedBody.data.email }, 'Register rejected: email already exists');
         return reply.code(StatusCodes.CONFLICT).send({ error: 'Email already registered' });
       }
 
       try {
         user = await prisma.user.create({
-          data: { email: parsedBody.data.email, passwordHash, role: 'user' },
+          data: { email: parsedBody.data.email, passwordHash, role: UserRoles.USER },
         });
       } catch (retryError) {
         if (isP2002(retryError)) {
@@ -104,6 +117,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
         throw retryError;
       }
     }
+
+    // Fire-and-forget welcome email — never blocks the response or throws.
+    sendWelcomeEmail(user.email).catch((err: unknown) => {
+      request.log.error({ err, email: user.email }, 'Register: failed to send welcome email');
+    });
 
     return reply.code(StatusCodes.CREATED).send({
       id: user.id,

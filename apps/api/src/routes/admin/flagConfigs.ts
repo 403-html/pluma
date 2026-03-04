@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { ReasonPhrases } from 'http-status-codes';
 import { prisma } from '@pluma-flags/db';
+import { AuditActions, AuditEntityTypes, AuditActorTypes } from '@pluma-flags/types';
 import { adminAuthHook } from '../../hooks/adminAuth';
 import { writeAuditLog } from '../../lib/audit';
 
@@ -257,8 +258,8 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
       if (parsedBody.data.enabled !== undefined) {
         try {
           await writeAuditLog({
-            action: config.enabled ? 'enable' : 'disable',
-            entityType: 'flag',
+            action: config.enabled ? AuditActions.ENABLE : AuditActions.DISABLE,
+            entityType: AuditEntityTypes.FLAG,
             entityId: validated.flagId,
             entityKey: validated.flagKey,
             projectId: validated.projectId,
@@ -273,7 +274,7 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
               ip: request.ip,
               ua: request.headers['user-agent'] as string | undefined,
               requestId: request.id,
-              actorType: 'user',
+              actorType: AuditActorTypes.USER,
             },
           });
         } catch (auditError) {

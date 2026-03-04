@@ -58,6 +58,9 @@ const { prismaMock, bcryptMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    orgSettings: {
+      findUnique: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
   bcryptMock: {
@@ -70,6 +73,10 @@ vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
 vi.mock('bcryptjs', () => ({
   compare: bcryptMock.compare,
   hash: bcryptMock.hash,
+}));
+// Mailer is fire-and-forget — mock it to prevent real SMTP connections in tests
+vi.mock('../lib/mailer', () => ({
+  sendWelcomeEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('Auth routes', () => {
@@ -233,6 +240,125 @@ describe('Auth routes', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 when email domain is not in allowedDomains', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default',
+        allowedDomains: ['allowed.com'],
+        updatedAt: new Date(),
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'user@notallowed.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(403);
+      const payload = JSON.parse(response.payload);
+      expect(payload).toHaveProperty('error', 'Email domain not allowed');
+      // User should NOT be created
+      expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('should allow registration when email domain is in allowedDomains', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default',
+        allowedDomains: ['allowed.com'],
+        updatedAt: new Date(),
+      });
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 'new-user-id',
+        email: 'user@allowed.com',
+        role: 'user',
+        passwordHash: 'hashed_pw',
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'user@allowed.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(prismaMock.user.create).toHaveBeenCalled();
+    });
+
+    it('should allow registration when allowedDomains is empty (no restriction)', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default',
+        allowedDomains: [],
+        updatedAt: new Date(),
+      });
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 'new-user-id',
+        email: 'anyuser@anydomain.com',
+        role: 'user',
+        passwordHash: 'hashed_pw',
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'anyuser@anydomain.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+    });
+
+    it('should allow registration when no OrgSettings row exists', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.orgSettings.findUnique.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 'new-user-id',
+        email: 'anyuser@anydomain.com',
+        role: 'user',
+        passwordHash: 'hashed_pw',
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'anyuser@anydomain.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
+    });
+
+    it('domain check is case-insensitive', async () => {
+      prismaMock.user.count.mockResolvedValue(1);
+      bcryptMock.hash.mockResolvedValue('hashed_pw');
+      prismaMock.orgSettings.findUnique.mockResolvedValue({
+        id: 'default',
+        allowedDomains: ['Allowed.COM'],
+        updatedAt: new Date(),
+      });
+      prismaMock.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 'new-user-id',
+        email: 'user@allowed.com',
+        role: 'user',
+        passwordHash: 'hashed_pw',
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/register',
+        payload: { email: 'user@allowed.com', password: 'securepassword' },
+      });
+
+      expect(response.statusCode).toBe(201);
     });
   });
 
