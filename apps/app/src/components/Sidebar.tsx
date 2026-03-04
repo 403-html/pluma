@@ -49,7 +49,7 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { currentUser } = useCurrentUser();
 
-  const isAdminOrOperator = currentUser?.role !== 'user';
+  const isAdminOrOperator = currentUser?.role === 'admin' || currentUser?.role === 'operator';
 
   const isActive = (segment: string): boolean => {
     if (!pathname) return false;
