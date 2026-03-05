@@ -13,10 +13,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "pnpm -r test",
     "storybook": "pnpm --filter @pluma-flags/storybook dev",
-    "build-storybook": "pnpm --filter @pluma-flags/storybook build",
-    "release:sdk": "bash scripts/release.sh sdk",
-    "release:types": "bash scripts/release.sh types",
-    "release:docker": "bash scripts/release.sh docker"
+    "build-storybook": "pnpm --filter @pluma-flags/storybook build"
   },
   "devDependencies": {
     "@commitlint/cli": "19.8.0",

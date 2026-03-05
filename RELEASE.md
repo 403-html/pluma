@@ -4,33 +4,35 @@
 
 Before starting any release:
 
-1. You are on the `main` branch with a clean working tree (`git status` shows
-   no uncommitted changes).
-2. CI is green on the latest `main` commit.
-3. `CHANGELOG.md` is updated with all changes for the version being released.
-4. Any dependent package is already published (e.g., Types before SDK if the
+1. CI is green on the latest `main` commit.
+2. `CHANGELOG.md` is updated with all changes for the version being released.
+3. Any dependent package is already published (e.g., Types before SDK if the
    SDK depends on newer types).
 
-## Release Helper Script
+## How Releases Work
 
-Pluma provides `scripts/release.sh` to automate version bumping and tag
-creation. It is exposed through root `package.json` scripts:
+All releases are triggered through the **GitHub Actions UI** using
+`workflow_dispatch`. There are no local release scripts — the workflow itself
+handles validation, version bumping, building, publishing, committing, and
+tagging.
 
-```bash
-pnpm release:sdk <version>      # e.g., pnpm release:sdk 1.0.0
-pnpm release:types <version>    # e.g., pnpm release:types 1.0.0
-pnpm release:docker <version>   # e.g., pnpm release:docker 1.0.0
-```
+To start a release:
 
-The script will:
+1. Go to the **Actions** tab in GitHub.
+2. Select the release workflow (e.g., *Release — SDK*).
+3. Click **Run workflow**.
+4. Enter the version (semver, e.g. `1.0.0` or `1.0.0-beta.1`).
+5. Click **Run workflow** to start.
+
+Each workflow will:
 
 1. Validate the version matches semver format.
-2. Ensure the working tree is clean and the tag does not already exist.
+2. Verify the target tag does not already exist.
 3. Bump the `version` field in the target `package.json` file(s).
-4. Commit with message `chore(release): <package> v<version>`.
-5. Create an annotated git tag.
-
-> **The script does not push.** You must push the commit and tag manually.
+4. Build and (for npm packages) run tests.
+5. Publish artifacts (npm or Docker images).
+6. Commit with message `chore(release): <package> v<version>`.
+7. Create an annotated git tag and push.
 
 ---
 
@@ -42,17 +44,11 @@ Types should be released before SDK when the SDK depends on updated type
 definitions.
 
 1. Update `CHANGELOG.md` — add entries under the **Types** section.
-2. Run the release script:
-   ```bash
-   pnpm release:types <version>
-   ```
-3. Push the commit and tag:
-   ```bash
-   git push origin main types/v<version>
-   ```
-4. Verify the [`release-types.yml`](.github/workflows/release-types.yml)
+2. Trigger the **Release — Types** workflow from the GitHub Actions UI with
+   the desired version.
+3. Verify the [`release-types.yml`](.github/workflows/release-types.yml)
    workflow completes successfully in GitHub Actions.
-5. Verify the package is live on npm:
+4. Verify the package is live on npm:
    ```bash
    npm view @pluma-flags/types version
    ```
@@ -62,17 +58,11 @@ definitions.
 1. If the SDK depends on a newer `@pluma-flags/types` version, ensure that
    Types has been published first.
 2. Update `CHANGELOG.md` — add entries under the **SDK** section.
-3. Run the release script:
-   ```bash
-   pnpm release:sdk <version>
-   ```
-4. Push the commit and tag:
-   ```bash
-   git push origin main sdk/v<version>
-   ```
-5. Verify the [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow
+3. Trigger the **Release — SDK** workflow from the GitHub Actions UI with
+   the desired version.
+4. Verify the [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow
    completes successfully in GitHub Actions.
-6. Verify the package is live on npm:
+5. Verify the package is live on npm:
    ```bash
    npm view @pluma-flags/sdk version
    ```
@@ -85,24 +75,18 @@ A Docker release publishes both `pluma-api` and `pluma-app` images to
 1. Ensure all database migrations are finalized and merged to `main`.
 2. Update `CHANGELOG.md` — add entries under the **Docker (API + App)**
    section. Include migration notes if applicable.
-3. Run the release script:
-   ```bash
-   pnpm release:docker <version>
-   ```
-   This bumps `version` in both `apps/api/package.json` and
-   `apps/app/package.json`.
-4. Push the commit and tag:
-   ```bash
-   git push origin main v<version>
-   ```
-5. Verify the [`release-docker.yml`](.github/workflows/release-docker.yml)
+3. Trigger the **Release — Docker** workflow from the GitHub Actions UI with
+   the desired version. This builds and pushes both `pluma-api` and
+   `pluma-app` images, then bumps `version` in both `apps/api/package.json`
+   and `apps/app/package.json`, commits, and tags.
+4. Verify the [`release-docker.yml`](.github/workflows/release-docker.yml)
    workflow completes successfully in GitHub Actions.
-6. Verify images are available on ghcr.io:
+5. Verify images are available on ghcr.io:
    ```bash
    docker pull ghcr.io/403-html/pluma-api:v<version>
    docker pull ghcr.io/403-html/pluma-app:v<version>
    ```
-7. Test a deployment with the new images (docker compose or your staging
+6. Test a deployment with the new images (docker compose or your staging
    environment).
 
 ---
@@ -116,21 +100,18 @@ SDK support), release in dependency order:
 2. **SDK** — publish SDK that depends on the new types.
 3. **Docker** — publish API + App images last.
 
-Each package gets its own version bump, commit, tag, and CI workflow. There is
+Each package gets its own version and CI workflow. There is
 no single "release all" command — this is intentional to allow independent
 versioning.
 
-```bash
-# Example: coordinated 1.0.0 release
-pnpm release:types 1.0.0
-git push origin main types/v1.0.0
+**Example: coordinated 1.0.0 release**
 
-pnpm release:sdk 1.0.0
-git push origin main sdk/v1.0.0
-
-pnpm release:docker 1.0.0
-git push origin main v1.0.0
-```
+1. Go to **Actions → Release — Types → Run workflow** → enter `1.0.0`.
+2. Wait for it to complete and verify on npm.
+3. Go to **Actions → Release — SDK → Run workflow** → enter `1.0.0`.
+4. Wait for it to complete and verify on npm.
+5. Go to **Actions → Release — Docker → Run workflow** → enter `1.0.0`.
+6. Wait for it to complete and verify images on ghcr.io.
 
 ---
 
@@ -167,7 +148,7 @@ git push origin main v1.0.0
    gh release delete v<version> --yes
    git push --delete origin v<version>
    ```
-2. Re-tag a known-good commit and push to trigger a new Docker build, or roll
+2. Re-tag a known-good commit and re-run the Docker release workflow, or roll
    back your deployment to the previous image tag.
 
 ---

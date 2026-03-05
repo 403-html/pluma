@@ -1,16 +1,19 @@
 name: "Release — Docker"
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (semver, e.g. 1.0.0 or 1.0.0-beta.1)"
+        required: true
+        type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -19,6 +22,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate semver
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "::error::Invalid semver: '$VERSION'"
+            exit 1
+          fi
+
+      - name: Parse version components
+        id: semver
+        run: |
+          VERSION="${{ inputs.version }}"
+          MAJOR="${VERSION%%.*}"
+          MINOR="${VERSION#*.}"
+          MINOR="${MINOR%%.*}"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -38,9 +59,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/pluma-api
           tags: |
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=v${{ inputs.version }}
+            type=raw,value=v${{ steps.semver.outputs.major }}.${{ steps.semver.outputs.minor }}
+            type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
             type=sha
 
       - name: Build and push API image
@@ -59,6 +80,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate semver
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "::error::Invalid semver: '$VERSION'"
+            exit 1
+          fi
+
+      - name: Parse version components
+        id: semver
+        run: |
+          VERSION="${{ inputs.version }}"
+          MAJOR="${VERSION%%.*}"
+          MINOR="${VERSION#*.}"
+          MINOR="${MINOR%%.*}"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -78,9 +117,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/pluma-app
           tags: |
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=v${{ inputs.version }}
+            type=raw,value=v${{ steps.semver.outputs.major }}.${{ steps.semver.outputs.minor }}
+            type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
             type=sha
 
       - name: Build and push App image
@@ -93,3 +132,43 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  finalize:
+    name: Commit version bump and tag
+    needs: [release-api, release-app]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify tag does not exist
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Bump app versions
+        run: |
+          pnpm --filter @pluma-flags/api pkg set version="${{ inputs.version }}"
+          pnpm --filter @pluma-flags/app pkg set version="${{ inputs.version }}"
+
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/api/package.json apps/app/package.json
+          git commit -m "chore(release): docker v${{ inputs.version }}"
+          git tag -a "v${{ inputs.version }}" -m "Release Docker v${{ inputs.version }}"
+          git push origin HEAD --follow-tags
