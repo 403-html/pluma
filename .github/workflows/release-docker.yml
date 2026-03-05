@@ -1,12 +1,8 @@
 name: "Release — Docker"
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (semver, e.g. 1.0.0)"
-        required: true
-        type: string
+  release:
+    types: [published]
 
 concurrency:
   group: ${{ github.workflow }}
@@ -20,14 +16,27 @@ jobs:
   validate:
     name: Validate version
     runs-on: ubuntu-latest
+    if: >-
+      startsWith(github.ref_name, 'v') &&
+      !startsWith(github.ref_name, 'sdk/') &&
+      !startsWith(github.ref_name, 'types/')
     outputs:
       major: ${{ steps.semver.outputs.major }}
       minor: ${{ steps.semver.outputs.minor }}
+      version: ${{ steps.version.outputs.version }}
 
     steps:
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Validate semver
         run: |
-          VERSION="${{ inputs.version }}"
+          VERSION="${{ env.RELEASE_VERSION }}"
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Invalid semver: '$VERSION'"
             exit 1
@@ -36,7 +45,7 @@ jobs:
       - name: Parse version components
         id: semver
         run: |
-          VERSION="${{ inputs.version }}"
+          VERSION="${{ env.RELEASE_VERSION }}"
           MAJOR="${VERSION%%.*}"
           MINOR="${VERSION#*.}"
           MINOR="${MINOR%%.*}"
@@ -45,13 +54,6 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Verify tag does not exist
-        run: |
-          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "::error::Tag v${{ inputs.version }} already exists"
-            exit 1
-          fi
 
   release-api:
     name: Release API image
@@ -78,7 +80,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/pluma-api
           tags: |
-            type=raw,value=v${{ inputs.version }}
+            type=raw,value=v${{ needs.validate.outputs.version }}
             type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
             type=raw,value=latest
             type=sha
@@ -119,7 +121,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/pluma-app
           tags: |
-            type=raw,value=v${{ inputs.version }}
+            type=raw,value=v${{ needs.validate.outputs.version }}
             type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
             type=raw,value=latest
             type=sha
@@ -156,14 +158,13 @@ jobs:
 
       - name: Bump app versions
         run: |
-          pnpm --filter @pluma-flags/api pkg set version="${{ inputs.version }}"
-          pnpm --filter @pluma-flags/app pkg set version="${{ inputs.version }}"
+          pnpm --filter @pluma-flags/api pkg set version="${{ needs.validate.outputs.version }}"
+          pnpm --filter @pluma-flags/app pkg set version="${{ needs.validate.outputs.version }}"
 
-      - name: Commit and tag
+      - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add apps/api/package.json apps/app/package.json
-          git commit -m "chore(release): docker v${{ inputs.version }}"
-          git tag -a "v${{ inputs.version }}" -m "Release Docker v${{ inputs.version }}"
-          git push origin HEAD --follow-tags
+          git diff --staged --quiet || git commit -m "chore(release): docker v${{ needs.validate.outputs.version }}"
+          git push origin HEAD:refs/heads/main --force-with-lease
