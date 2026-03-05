@@ -6,7 +6,7 @@ const REDIS_URL = process.env.REDIS_URL;
 
 type MailJobData = { to: string; from: string; subject: string; text: string; html: string };
 
-const QUEUE_NAME = 'pluma:emails';
+const QUEUE_NAME = 'pluma-emails';
 
 /**
  * Parses a redis:// URL into a BullMQ-compatible connection options object.

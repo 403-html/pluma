@@ -93,10 +93,6 @@ services:
       PORT: 2137
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
-      SMTP_HOST: postfix
-      SMTP_PORT: 587
-      SMTP_SECURE: 'false'
-      SMTP_FROM: ${SMTP_FROM:-noreply@pluma.local}
 
   # app — Pluma Next.js frontend
   app:

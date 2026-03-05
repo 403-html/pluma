@@ -19,6 +19,36 @@ services:
       timeout: 5s
       retries: 5
 
+  # redis — BullMQ email queue (optional in dev; omit to send emails synchronously)
+  redis:
+    image: redis:7-alpine
+    container_name: pluma-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # postfix — local SMTP relay for development mail delivery
+  # Configure the SMTP host/port via the org settings UI after first login.
+  # To route through an external smarthost set RELAYHOST / RELAYHOST_USERNAME /
+  # RELAYHOST_PASSWORD in a local .env file or via the shell environment.
+  postfix:
+    image: boky/postfix:latest
+    container_name: pluma-postfix
+    restart: unless-stopped
+    ports:
+      - '1587:587'
+    environment:
+      HOSTNAME: ${SMTP_HOSTNAME:-pluma.local}
+      ALLOWED_SENDER_DOMAINS: ${SMTP_ALLOWED_DOMAINS:-pluma.local}
+      RELAYHOST: ${RELAYHOST:-}
+      RELAYHOST_USERNAME: ${RELAYHOST_USERNAME:-}
+      RELAYHOST_PASSWORD: ${RELAYHOST_PASSWORD:-}
+
 volumes:
   pluma_postgres_data:
     name: pluma_postgres_data
