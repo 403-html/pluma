@@ -42,7 +42,8 @@ pnpm db:generate
 pnpm db:migrate
 ```
 
-Creates migration files and applies them to the database. Use this for tracking schema history.
+Creates migration files and applies them to the database. Use this for tracking
+schema history.
 
 **For Quick Development (No Migration Files):**
 
@@ -78,7 +79,8 @@ Populates the database with initial data defined in `prisma/seed.ts`.
 ### I want to: Create a production migration
 
 1. Edit `prisma/schema.prisma`
-2. Run `pnpm db:migrate --name descriptive_name` (creates migration file + applies it)
+2. Run `pnpm db:migrate --name descriptive_name` (creates migration file +
+   applies it)
 3. Commit the migration file in `prisma/migrations/`
 4. In production, run `pnpm db:migrate:deploy`
 
@@ -102,7 +104,7 @@ pnpm db:seed            # (Optional) Reseed data
 ## Usage in Code
 
 ```typescript
-import { prisma } from '@pluma-flags/db';
+import { prisma } from "@pluma-flags/db";
 
 // Query projects
 const projects = await prisma.project.findMany();
@@ -110,8 +112,8 @@ const projects = await prisma.project.findMany();
 // Create a project
 const project = await prisma.project.create({
   data: {
-    key: 'my-project',
-    name: 'My Project',
+    key: "my-project",
+    name: "My Project",
   },
 });
 ```
@@ -140,4 +142,6 @@ docker-compose down -v
 
 ## Schema
 
-Edit `prisma/schema.prisma` to define your database models. Prisma 7 uses a `prisma.config.ts` file for database connection configuration, keeping the schema file clean and focused on your data models.
+Edit `prisma/schema.prisma` to define your database models. Prisma 7 uses a
+`prisma.config.ts` file for database connection configuration, keeping the
+schema file clean and focused on your data models.
