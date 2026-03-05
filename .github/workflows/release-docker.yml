@@ -17,9 +17,12 @@ permissions:
   packages: write
 
 jobs:
-  release-api:
-    name: Release API image
+  validate:
+    name: Validate version
     runs-on: ubuntu-latest
+    outputs:
+      major: ${{ steps.semver.outputs.major }}
+      minor: ${{ steps.semver.outputs.minor }}
 
     steps:
       - name: Validate semver
@@ -40,6 +43,22 @@ jobs:
           echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
           echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify tag does not exist
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+  release-api:
+    name: Release API image
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -60,7 +79,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pluma-api
           tags: |
             type=raw,value=v${{ inputs.version }}
-            type=raw,value=v${{ steps.semver.outputs.major }}.${{ steps.semver.outputs.minor }}
+            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
             type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
             type=sha
 
@@ -77,27 +96,10 @@ jobs:
 
   release-app:
     name: Release App image
+    needs: validate
     runs-on: ubuntu-latest
 
     steps:
-      - name: Validate semver
-        run: |
-          VERSION="${{ inputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-            echo "::error::Invalid semver: '$VERSION'"
-            exit 1
-          fi
-
-      - name: Parse version components
-        id: semver
-        run: |
-          VERSION="${{ inputs.version }}"
-          MAJOR="${VERSION%%.*}"
-          MINOR="${VERSION#*.}"
-          MINOR="${MINOR%%.*}"
-          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
-          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -118,7 +120,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pluma-app
           tags: |
             type=raw,value=v${{ inputs.version }}
-            type=raw,value=v${{ steps.semver.outputs.major }}.${{ steps.semver.outputs.minor }}
+            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
             type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
             type=sha
 
@@ -135,7 +137,7 @@ jobs:
 
   finalize:
     name: Commit version bump and tag
-    needs: [release-api, release-app]
+    needs: [validate, release-api, release-app]
     runs-on: ubuntu-latest
 
     steps:
@@ -143,13 +145,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify tag does not exist
-        run: |
-          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "::error::Tag v${{ inputs.version }} already exists"
-            exit 1
-          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
