@@ -7,9 +7,12 @@ import {
 } from '../fixtures';
 import { PlumaSnapshotCache } from '@pluma-flags/sdk';
 
+/** TTL of 0 forces the SDK client to re-fetch on every evaluator() call. */
+const ALWAYS_STALE_TTL = 0;
+
 // ── Prisma mock (hoisted) ───────────────────────────────────────────────────
 const { prismaMock } = vi.hoisted(() => {
-  const prismaMock = {
+  const mock = {
     project: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -68,12 +71,12 @@ const { prismaMock } = vi.hoisted(() => {
       count: vi.fn(),
       deleteMany: vi.fn(),
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $transaction: vi.fn() as any,
+    $transaction: vi.fn(),
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prismaMock.$transaction.mockImplementation((fn: (tx: any) => Promise<any>) => fn(prismaMock));
-  return { prismaMock };
+  mock.$transaction.mockImplementation(
+    (fn: (tx: typeof mock) => Promise<unknown>) => fn(mock),
+  );
+  return { prismaMock: mock };
 });
 
 vi.mock('@pluma-flags/db', () => ({ prisma: prismaMock }));
@@ -182,7 +185,7 @@ describe('SDK ↔ API integration', () => {
     const cache = PlumaSnapshotCache.create({
       baseUrl,
       token: RAW_SDK_TOKEN,
-      ttlMs: 0, // always stale → triggers refresh on every evaluator() call
+      ttlMs: ALWAYS_STALE_TTL,
     });
 
     // First call → 200 with full snapshot
@@ -215,7 +218,7 @@ describe('SDK ↔ API integration', () => {
     const cache = PlumaSnapshotCache.create({
       baseUrl,
       token: RAW_SDK_TOKEN,
-      ttlMs: 0,
+      ttlMs: ALWAYS_STALE_TTL,
     });
 
     const eval1 = await cache.evaluator();
