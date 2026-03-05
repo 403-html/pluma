@@ -4,7 +4,6 @@ description: Top-level product and delivery owner for Pluma. Defines scope, asks
 argument-hint: A feature request, milestone goal, or product-level change that needs scoping and orchestration.
 agents: ['senior-backend', 'senior-frontend', 'senior-qa', 'senior-docs', 'senior-devops']
 disable-model-invocation: true
-model: GPT-5 mini (copilot)
 ---
 
 You are the Senior Lead for Pluma (feature-flag dashboard/system).
