@@ -1,12 +1,8 @@
 name: "Release — SDK"
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (semver, e.g. 1.0.0)"
-        required: true
-        type: string
+  release:
+    types: [published]
 
 concurrency:
   group: ${{ github.workflow }}
@@ -23,25 +19,25 @@ jobs:
   publish-sdk:
     name: Publish SDK to npm
     runs-on: ubuntu-latest
+    if: startsWith(github.ref_name, 'sdk/v')
 
     steps:
-      - name: Validate semver
-        run: |
-          VERSION="${{ inputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Invalid semver: '$VERSION'"
-            exit 1
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify tag does not exist
+      - name: Extract version from tag
         run: |
-          if git rev-parse "sdk/v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "::error::Tag sdk/v${{ inputs.version }} already exists"
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#sdk/v}"
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Validate semver
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid semver: '$VERSION'"
             exit 1
           fi
 
@@ -71,7 +67,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Bump version
-        run: pnpm --filter @pluma-flags/sdk pkg set version="${{ inputs.version }}"
+        run: pnpm --filter @pluma-flags/sdk pkg set version="${{ env.RELEASE_VERSION }}"
 
       - name: Build SDK
         run: pnpm --filter @pluma-flags/sdk build
@@ -84,11 +80,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Commit and tag
+      - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add packages/sdk/package.json
-          git commit -m "chore(release): sdk v${{ inputs.version }}"
-          git tag -a "sdk/v${{ inputs.version }}" -m "Release SDK v${{ inputs.version }}"
-          git push origin HEAD --follow-tags
+          git diff --staged --quiet || git commit -m "chore(release): sdk v${{ env.RELEASE_VERSION }}"
+          git push origin HEAD:refs/heads/main --force-with-lease

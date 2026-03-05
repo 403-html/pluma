@@ -10,28 +10,33 @@ Before starting any release:
 
 ## How Releases Work
 
-All releases are triggered through the **GitHub Actions UI** using
-`workflow_dispatch`. There are no local release scripts — the workflow itself
-handles validation, version bumping, building, publishing, committing, and
-tagging.
+All releases are triggered through the **GitHub Release UI**. There are no local
+release scripts — the workflow itself handles validation, version bumping,
+building, publishing, and committing.
 
 To start a release:
 
-1. Go to the **Actions** tab in GitHub.
-2. Select the release workflow (e.g., _Release — SDK_).
-3. Click **Run workflow**.
-4. Enter the version (semver, e.g. `1.0.0`).
-5. Click **Run workflow** to start.
+1. Go to the repository on GitHub and click **Releases** in the right sidebar.
+2. Click **Draft a new release**.
+3. Click **Choose a tag**, type the new tag following the naming convention
+   below, and select **Create a new tag: … on publish**.
+   - SDK: `sdk/v1.0.0`
+   - Types: `types/v1.0.0`
+   - Docker (API + App): `v1.0.0`
+4. Set the target branch to **main**.
+5. Fill in the release title and release notes.
+6. Click **Publish release**.
 
-Each workflow will:
+The matching workflow fires automatically based on the tag prefix. Each workflow
+will:
 
-1. Validate the version matches semver format.
-2. Verify the target tag does not already exist.
+1. Extract the version from the tag name.
+2. Validate the version matches semver format.
 3. Bump the `version` field in the target `package.json` file(s).
 4. Build and (for npm packages) run tests.
 5. Publish artifacts (npm or Docker images).
-6. Commit with message `chore(release): <package> v<version>`.
-7. Create an annotated git tag and push.
+6. Commit the version bump with message `chore(release): <package> v<version>`
+   and push to `main`.
 
 ---
 
@@ -42,11 +47,14 @@ Each workflow will:
 Types should be released before SDK when the SDK depends on updated type
 definitions.
 
-1. Trigger the **Release — Types** workflow from the GitHub Actions UI with the
-   desired version.
-2. Verify the [`release-types.yml`](.github/workflows/release-types.yml)
-   workflow completes successfully in GitHub Actions.
-3. Verify the package is live on npm:
+1. Go to **Releases → Draft a new release** and create a tag `types/v<version>`
+   targeting `main`.
+2. Publish the release. The
+   [`release-types.yml`](.github/workflows/release-types.yml) workflow fires
+   automatically.
+3. Verify the workflow completes successfully in the **Actions** tab.
+4. Verify the package is live on npm
+   (<https://www.npmjs.com/package/@pluma-flags/types>):
    ```bash
    npm view @pluma-flags/types version
    ```
@@ -55,11 +63,14 @@ definitions.
 
 1. If the SDK depends on a newer `@pluma-flags/types` version, ensure that Types
    has been published first.
-2. Trigger the **Release — SDK** workflow from the GitHub Actions UI with the
-   desired version.
-3. Verify the [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow
-   completes successfully in GitHub Actions.
-4. Verify the package is live on npm:
+2. Go to **Releases → Draft a new release** and create a tag `sdk/v<version>`
+   targeting `main`.
+3. Publish the release. The
+   [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow fires
+   automatically.
+4. Verify the workflow completes successfully in the **Actions** tab.
+5. Verify the package is live on npm
+   (<https://www.npmjs.com/package/@pluma-flags/sdk>):
    ```bash
    npm view @pluma-flags/sdk version
    ```
@@ -70,13 +81,15 @@ A Docker release publishes both `pluma-api` and `pluma-app` images to `ghcr.io`
 under the same version tag.
 
 1. Ensure all database migrations are finalized and merged to `main`.
-2. Trigger the **Release — Docker** workflow from the GitHub Actions UI with the
-   desired version. This builds and pushes both `pluma-api` and `pluma-app`
-   images, then bumps `version` in both `apps/api/package.json` and
-   `apps/app/package.json`, commits, and tags.
-3. Verify the [`release-docker.yml`](.github/workflows/release-docker.yml)
-   workflow completes successfully in GitHub Actions.
-4. Verify images are available on ghcr.io:
+2. Go to **Releases → Draft a new release** and create a tag `v<version>`
+   targeting `main`. This triggers the
+   [`release-docker.yml`](.github/workflows/release-docker.yml) workflow, which
+   builds and pushes both `pluma-api` and `pluma-app` images, then bumps
+   `version` in both `apps/api/package.json` and `apps/app/package.json` and
+   commits to `main`.
+3. Verify the workflow completes successfully in the **Actions** tab.
+4. Verify images are available on GHCR
+   (<https://github.com/orgs/403-html/packages>):
    ```bash
    docker pull ghcr.io/403-html/pluma-api:v<version>
    docker pull ghcr.io/403-html/pluma-app:v<version>
@@ -100,12 +113,12 @@ all" command — this is intentional to allow independent versioning.
 
 **Example: coordinated 1.0.0 release**
 
-1. Go to **Actions → Release — Types → Run workflow** → enter `1.0.0`.
-2. Wait for it to complete and verify on npm.
-3. Go to **Actions → Release — SDK → Run workflow** → enter `1.0.0`.
-4. Wait for it to complete and verify on npm.
-5. Go to **Actions → Release — Docker → Run workflow** → enter `1.0.0`.
-6. Wait for it to complete and verify images on ghcr.io.
+1. Go to **Releases → Draft a new release**, create tag `types/v1.0.0`, publish.
+2. Wait for the Types workflow to complete and verify on npm.
+3. Go to **Releases → Draft a new release**, create tag `sdk/v1.0.0`, publish.
+4. Wait for the SDK workflow to complete and verify on npm.
+5. Go to **Releases → Draft a new release**, create tag `v1.0.0`, publish.
+6. Wait for the Docker workflow to complete and verify images on ghcr.io.
 
 ---
 
