@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release (semver, e.g. 1.0.0 or 1.0.0-beta.1)"
+        description: "Version to release (semver, e.g. 1.0.0)"
         required: true
         type: string
 
@@ -28,7 +28,7 @@ jobs:
       - name: Validate semver
         run: |
           VERSION="${{ inputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Invalid semver: '$VERSION'"
             exit 1
           fi
@@ -79,17 +79,8 @@ jobs:
       - name: Run SDK tests
         run: pnpm --filter @pluma-flags/sdk test
 
-      - name: Detect pre-release
-        id: prerelease
-        run: |
-          if [[ "${{ inputs.version }}" == *-* ]]; then
-            echo "tag=next" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Publish to npm
-        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance --tag ${{ steps.prerelease.outputs.tag }}
+        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

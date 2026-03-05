@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release (semver, e.g. 1.0.0 or 1.0.0-beta.1)"
+        description: "Version to release (semver, e.g. 1.0.0)"
         required: true
         type: string
 
@@ -28,7 +28,7 @@ jobs:
       - name: Validate semver
         run: |
           VERSION="${{ inputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Invalid semver: '$VERSION'"
             exit 1
           fi
@@ -79,8 +79,8 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pluma-api
           tags: |
             type=raw,value=v${{ inputs.version }}
-            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }},enable=${{ !contains(inputs.version, '-') }}
-            type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
+            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
+            type=raw,value=latest
             type=sha
 
       - name: Build and push API image
@@ -120,8 +120,8 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pluma-app
           tags: |
             type=raw,value=v${{ inputs.version }}
-            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }},enable=${{ !contains(inputs.version, '-') }}
-            type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
+            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
+            type=raw,value=latest
             type=sha
 
       - name: Build and push App image

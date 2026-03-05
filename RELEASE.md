@@ -20,7 +20,7 @@ To start a release:
 1. Go to the **Actions** tab in GitHub.
 2. Select the release workflow (e.g., _Release — SDK_).
 3. Click **Run workflow**.
-4. Enter the version (semver, e.g. `1.0.0` or `1.0.0-beta.1`).
+4. Enter the version (semver, e.g. `1.0.0`).
 5. Click **Run workflow** to start.
 
 Each workflow will:
@@ -106,35 +106,6 @@ all" command — this is intentional to allow independent versioning.
 4. Wait for it to complete and verify on npm.
 5. Go to **Actions → Release — Docker → Run workflow** → enter `1.0.0`.
 6. Wait for it to complete and verify images on ghcr.io.
-
----
-
-## Pre-release / Beta
-
-To publish a pre-release version (alpha, beta, or release candidate), use a
-semver pre-release identifier when triggering the workflow — e.g.
-`1.0.0-beta.1`.
-
-The workflows detect the `-` in the version and adjust behavior automatically:
-
-| Artifact                      | Stable (`1.0.0`) | Pre-release (`1.0.0-beta.1`) |
-| ----------------------------- | ---------------- | ---------------------------- |
-| npm dist-tag                  | `latest`         | `next`                       |
-| Docker `latest` tag           | ✅ Applied       | ❌ Skipped                   |
-| Docker `v<major>.<minor>` tag | ✅ Applied       | ❌ Skipped                   |
-| Docker version tag            | `v1.0.0`         | `v1.0.0-beta.1`              |
-
-### Installing pre-release npm packages
-
-```bash
-npm install @pluma-flags/sdk@next
-npm install @pluma-flags/types@next
-```
-
-### Promoting a pre-release to stable
-
-Pre-release versions are never promoted in-place. Once testing is complete,
-release a new stable version (e.g. `1.0.0`) using the normal release workflow.
 
 ---
 

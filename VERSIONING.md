@@ -92,21 +92,6 @@ A **major** bump is required when:
 - **Destructive** migrations (dropped columns/tables, renames with data loss,
   type changes) → **major** Docker bump with an explicit upgrade guide
 
-## Pre-release Conventions
-
-Pre-release versions use dot-separated identifiers after a hyphen:
-
-```
-1.0.0-alpha.1
-1.0.0-beta.1
-1.0.0-rc.1
-```
-
-- Pre-release SDK and Types packages are published to npm with the `next`
-  dist-tag (`npm install @pluma-flags/sdk@next`).
-- Pre-release Docker images are tagged with the full pre-release version (e.g.,
-  `v1.0.0-beta.1`) but **not** tagged `latest`.
-
 ## v1 Contract
 
 Reaching `1.0.0` for a package establishes these stability guarantees:
