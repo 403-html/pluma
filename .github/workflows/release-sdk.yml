@@ -79,8 +79,17 @@ jobs:
       - name: Run SDK tests
         run: pnpm --filter @pluma-flags/sdk test
 
+      - name: Detect pre-release
+        id: prerelease
+        run: |
+          if [[ "${{ inputs.version }}" == *-* ]]; then
+            echo "tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm
-        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance
+        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance --tag ${{ steps.prerelease.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

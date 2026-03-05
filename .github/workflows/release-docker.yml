@@ -79,7 +79,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pluma-api
           tags: |
             type=raw,value=v${{ inputs.version }}
-            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
+            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }},enable=${{ !contains(inputs.version, '-') }}
             type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
             type=sha
 
@@ -120,7 +120,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/pluma-app
           tags: |
             type=raw,value=v${{ inputs.version }}
-            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }}
+            type=raw,value=v${{ needs.validate.outputs.major }}.${{ needs.validate.outputs.minor }},enable=${{ !contains(inputs.version, '-') }}
             type=raw,value=latest,enable=${{ !contains(inputs.version, '-') }}
             type=sha
 

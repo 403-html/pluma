@@ -76,8 +76,17 @@ jobs:
       - name: Build types
         run: pnpm --filter @pluma-flags/types build
 
+      - name: Detect pre-release
+        id: prerelease
+        run: |
+          if [[ "${{ inputs.version }}" == *-* ]]; then
+            echo "tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm
-        run: pnpm --filter @pluma-flags/types publish --no-git-checks --access public
+        run: pnpm --filter @pluma-flags/types publish --no-git-checks --access public --tag ${{ steps.prerelease.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

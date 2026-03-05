@@ -115,6 +115,34 @@ versioning.
 
 ---
 
+## Pre-release / Beta
+
+To publish a pre-release version (alpha, beta, or release candidate), use a
+semver pre-release identifier when triggering the workflow — e.g. `1.0.0-beta.1`.
+
+The workflows detect the `-` in the version and adjust behavior automatically:
+
+| Artifact | Stable (`1.0.0`) | Pre-release (`1.0.0-beta.1`) |
+| --- | --- | --- |
+| npm dist-tag | `latest` | `next` |
+| Docker `latest` tag | ✅ Applied | ❌ Skipped |
+| Docker `v<major>.<minor>` tag | ✅ Applied | ❌ Skipped |
+| Docker version tag | `v1.0.0` | `v1.0.0-beta.1` |
+
+### Installing pre-release npm packages
+
+```bash
+npm install @pluma-flags/sdk@next
+npm install @pluma-flags/types@next
+```
+
+### Promoting a pre-release to stable
+
+Pre-release versions are never promoted in-place. Once testing is complete,
+release a new stable version (e.g. `1.0.0`) using the normal release workflow.
+
+---
+
 ## Hotfix Process
 
 1. Create a branch from the release tag:
