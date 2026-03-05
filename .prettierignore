@@ -1,0 +1,8 @@
+node_modules
+dist
+.next
+pnpm-lock.yaml
+package-lock.json
+.github/agents
+.github/skills
+.github/copilot-instructions.md

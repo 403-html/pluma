@@ -5,9 +5,8 @@
 Before starting any release:
 
 1. CI is green on the latest `main` commit.
-2. `CHANGELOG.md` is updated with all changes for the version being released.
-3. Any dependent package is already published (e.g., Types before SDK if the
-   SDK depends on newer types).
+2. Any dependent package is already published (e.g., Types before SDK if the SDK
+   depends on newer types).
 
 ## How Releases Work
 
@@ -19,7 +18,7 @@ tagging.
 To start a release:
 
 1. Go to the **Actions** tab in GitHub.
-2. Select the release workflow (e.g., *Release — SDK*).
+2. Select the release workflow (e.g., _Release — SDK_).
 3. Click **Run workflow**.
 4. Enter the version (semver, e.g. `1.0.0` or `1.0.0-beta.1`).
 5. Click **Run workflow** to start.
@@ -43,50 +42,46 @@ Each workflow will:
 Types should be released before SDK when the SDK depends on updated type
 definitions.
 
-1. Update `CHANGELOG.md` — add entries under the **Types** section.
-2. Trigger the **Release — Types** workflow from the GitHub Actions UI with
-   the desired version.
-3. Verify the [`release-types.yml`](.github/workflows/release-types.yml)
+1. Trigger the **Release — Types** workflow from the GitHub Actions UI with the
+   desired version.
+2. Verify the [`release-types.yml`](.github/workflows/release-types.yml)
    workflow completes successfully in GitHub Actions.
-4. Verify the package is live on npm:
+3. Verify the package is live on npm:
    ```bash
    npm view @pluma-flags/types version
    ```
 
 ### 2. SDK Release (`@pluma-flags/sdk`)
 
-1. If the SDK depends on a newer `@pluma-flags/types` version, ensure that
-   Types has been published first.
-2. Update `CHANGELOG.md` — add entries under the **SDK** section.
-3. Trigger the **Release — SDK** workflow from the GitHub Actions UI with
-   the desired version.
-4. Verify the [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow
+1. If the SDK depends on a newer `@pluma-flags/types` version, ensure that Types
+   has been published first.
+2. Trigger the **Release — SDK** workflow from the GitHub Actions UI with the
+   desired version.
+3. Verify the [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow
    completes successfully in GitHub Actions.
-5. Verify the package is live on npm:
+4. Verify the package is live on npm:
    ```bash
    npm view @pluma-flags/sdk version
    ```
 
 ### 3. Docker Release (API + App)
 
-A Docker release publishes both `pluma-api` and `pluma-app` images to
-`ghcr.io` under the same version tag.
+A Docker release publishes both `pluma-api` and `pluma-app` images to `ghcr.io`
+under the same version tag.
 
 1. Ensure all database migrations are finalized and merged to `main`.
-2. Update `CHANGELOG.md` — add entries under the **Docker (API + App)**
-   section. Include migration notes if applicable.
-3. Trigger the **Release — Docker** workflow from the GitHub Actions UI with
-   the desired version. This builds and pushes both `pluma-api` and
-   `pluma-app` images, then bumps `version` in both `apps/api/package.json`
-   and `apps/app/package.json`, commits, and tags.
-4. Verify the [`release-docker.yml`](.github/workflows/release-docker.yml)
+2. Trigger the **Release — Docker** workflow from the GitHub Actions UI with the
+   desired version. This builds and pushes both `pluma-api` and `pluma-app`
+   images, then bumps `version` in both `apps/api/package.json` and
+   `apps/app/package.json`, commits, and tags.
+3. Verify the [`release-docker.yml`](.github/workflows/release-docker.yml)
    workflow completes successfully in GitHub Actions.
-5. Verify images are available on ghcr.io:
+4. Verify images are available on ghcr.io:
    ```bash
    docker pull ghcr.io/403-html/pluma-api:v<version>
    docker pull ghcr.io/403-html/pluma-app:v<version>
    ```
-6. Test a deployment with the new images (docker compose or your staging
+5. Test a deployment with the new images (docker compose or your staging
    environment).
 
 ---
@@ -100,9 +95,8 @@ SDK support), release in dependency order:
 2. **SDK** — publish SDK that depends on the new types.
 3. **Docker** — publish API + App images last.
 
-Each package gets its own version and CI workflow. There is
-no single "release all" command — this is intentional to allow independent
-versioning.
+Each package gets its own version and CI workflow. There is no single "release
+all" command — this is intentional to allow independent versioning.
 
 **Example: coordinated 1.0.0 release**
 
@@ -118,16 +112,17 @@ versioning.
 ## Pre-release / Beta
 
 To publish a pre-release version (alpha, beta, or release candidate), use a
-semver pre-release identifier when triggering the workflow — e.g. `1.0.0-beta.1`.
+semver pre-release identifier when triggering the workflow — e.g.
+`1.0.0-beta.1`.
 
 The workflows detect the `-` in the version and adjust behavior automatically:
 
-| Artifact | Stable (`1.0.0`) | Pre-release (`1.0.0-beta.1`) |
-| --- | --- | --- |
-| npm dist-tag | `latest` | `next` |
-| Docker `latest` tag | ✅ Applied | ❌ Skipped |
-| Docker `v<major>.<minor>` tag | ✅ Applied | ❌ Skipped |
-| Docker version tag | `v1.0.0` | `v1.0.0-beta.1` |
+| Artifact                      | Stable (`1.0.0`) | Pre-release (`1.0.0-beta.1`) |
+| ----------------------------- | ---------------- | ---------------------------- |
+| npm dist-tag                  | `latest`         | `next`                       |
+| Docker `latest` tag           | ✅ Applied       | ❌ Skipped                   |
+| Docker `v<major>.<minor>` tag | ✅ Applied       | ❌ Skipped                   |
+| Docker version tag            | `v1.0.0`         | `v1.0.0-beta.1`              |
 
 ### Installing pre-release npm packages
 
@@ -183,8 +178,8 @@ release a new stable version (e.g. `1.0.0`) using the normal release workflow.
 
 ## Tag Reference
 
-| Package | Tag format | Example | Workflow |
-| --- | --- | --- | --- |
-| `@pluma-flags/sdk` | `sdk/v*.*.*` | `sdk/v1.0.0` | `release-sdk.yml` |
-| `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `release-types.yml` |
-| Docker (API + App) | `v*.*.*` | `v1.0.0` | `release-docker.yml` |
+| Package              | Tag format     | Example        | Workflow             |
+| -------------------- | -------------- | -------------- | -------------------- |
+| `@pluma-flags/sdk`   | `sdk/v*.*.*`   | `sdk/v1.0.0`   | `release-sdk.yml`    |
+| `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `release-types.yml`  |
+| Docker (API + App)   | `v*.*.*`       | `v1.0.0`       | `release-docker.yml` |

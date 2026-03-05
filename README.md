@@ -1,6 +1,7 @@
 # Pluma
 
-Self-hosted feature flag system — manage flags via a web UI and evaluate them in your application with a lightweight SDK.
+Self-hosted feature flag system — manage flags via a web UI and evaluate them in
+your application with a lightweight SDK.
 
 ## Running with Docker Compose
 
@@ -19,7 +20,8 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pluma} -d ${DB_NAME:-pluma}"]
+      test:
+        ["CMD-SHELL", "pg_isready -U ${DB_USER:-pluma} -d ${DB_NAME:-pluma}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -58,14 +60,15 @@ docker compose up -d
 
 ### Environment Variables
 
-| Variable      | Default              | Description                                      |
-|---------------|----------------------|--------------------------------------------------|
-| `DB_USER`     | `pluma`              | PostgreSQL username                              |
-| `DB_PASSWORD` | `pluma`              | PostgreSQL password                              |
-| `DB_NAME`     | `pluma`              | PostgreSQL database name                         |
-| `API_URL`     | `http://api:2137`    | API base URL (override when API is external)     |
+| Variable      | Default           | Description                                  |
+| ------------- | ----------------- | -------------------------------------------- |
+| `DB_USER`     | `pluma`           | PostgreSQL username                          |
+| `DB_PASSWORD` | `pluma`           | PostgreSQL password                          |
+| `DB_NAME`     | `pluma`           | PostgreSQL database name                     |
+| `API_URL`     | `http://api:2137` | API base URL (override when API is external) |
 
-> **Production:** set `DB_PASSWORD` to a strong value and override `API_URL` if the API is publicly accessible.
+> **Production:** set `DB_PASSWORD` to a strong value and override `API_URL` if
+> the API is publicly accessible.
 
 ## SDK
 
@@ -79,7 +82,8 @@ pnpm add @pluma-flags/sdk
 
 ### Usage
 
-SDK tokens are created in the Pluma UI under **Settings**. Each token is scoped to a project and environment.
+SDK tokens are created in the Pluma UI under **Settings**. Each token is scoped
+to a project and environment.
 
 ```ts
 import { PlumaSnapshotCache } from "@pluma-flags/sdk";
@@ -97,11 +101,17 @@ if (evaluator.isEnabled("my-feature-flag")) {
 }
 ```
 
-`evaluator()` is async — it fetches a snapshot from `/sdk/v1/snapshot` on first call and caches it for `ttlMs`. Subsequent calls within the TTL window return from cache. Reuse the same `client` instance across requests to benefit from caching; the snapshot is not scoped to `subjectKey`.
+`evaluator()` is async — it fetches a snapshot from `/sdk/v1/snapshot` on first
+call and caches it for `ttlMs`. Subsequent calls within the TTL window return
+from cache. Reuse the same `client` instance across requests to benefit from
+caching; the snapshot is not scoped to `subjectKey`.
 
 ## Contributing
 
-- Full development setup (Node.js, pnpm, Prisma, local DB) is documented in [CONTRIBUTING.md](CONTRIBUTING.md).
-- The stack is a pnpm monorepo: `apps/api` (Fastify), `apps/app` (Next.js), `packages/sdk`, `packages/db`, `packages/types`.
+- Full development setup (Node.js, pnpm, Prisma, local DB) is documented in
+  [CONTRIBUTING.md](CONTRIBUTING.md).
+- The stack is a pnpm monorepo: `apps/api` (Fastify), `apps/app` (Next.js),
+  `packages/sdk`, `packages/db`, `packages/types`.
 - Lint, test, and build must pass before opening a PR.
-- Keep cross-package contracts in `@pluma-flags/types`; commit migration files when the schema changes.
+- Keep cross-package contracts in `@pluma-flags/types`; commit migration files
+  when the schema changes.

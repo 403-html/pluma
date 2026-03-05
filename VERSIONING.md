@@ -17,14 +17,14 @@ for all externally consumed packages and Docker images:
 
 ## Package Versioning
 
-| Package | Registry | Tag pattern | Notes |
-| --- | --- | --- | --- |
-| `@pluma-flags/sdk` | npm | `sdk/v*.*.*` | Independent version; depends on `@pluma-flags/types` |
-| `@pluma-flags/types` | npm | `types/v*.*.*` | Independent version |
-| Docker (API + App) | ghcr.io | `v*.*.*` | API and App share one version and release together |
+| Package              | Registry | Tag pattern    | Notes                                                |
+| -------------------- | -------- | -------------- | ---------------------------------------------------- |
+| `@pluma-flags/sdk`   | npm      | `sdk/v*.*.*`   | Independent version; depends on `@pluma-flags/types` |
+| `@pluma-flags/types` | npm      | `types/v*.*.*` | Independent version                                  |
+| Docker (API + App)   | ghcr.io  | `v*.*.*`       | API and App share one version and release together   |
 
-- **SDK and Types** are versioned independently on npm. A new Types release
-  does not require an SDK release (and vice-versa) unless there is a dependency
+- **SDK and Types** are versioned independently on npm. A new Types release does
+  not require an SDK release (and vice-versa) unless there is a dependency
   change.
 - **Docker images** (`pluma-api` and `pluma-app`) always share a single version.
   A Docker release is one atomic unit that includes the API server, the web UI,
@@ -41,11 +41,12 @@ match. A deployment might run Docker `1.2.0`, SDK `1.1.0`, and Types `1.0.0`
 simultaneously.
 
 The Docker release bundles the API, App, and database migrations as a single
-unit. Upgrading the API image is sufficient to apply new migrations and serve the
-updated UI.
+unit. Upgrading the API image is sufficient to apply new migrations and serve
+the updated UI.
 
-Check the [Compatibility matrix](#compatibility-matrix) in `CHANGELOG.md` when
-mixing versions across packages.
+Check the [Compatibility matrix](#compatibility-matrix) and the
+[GitHub Releases](https://github.com/403-html/pluma/releases) page when mixing
+versions across packages.
 
 ## Breaking Change Policy
 
@@ -101,24 +102,24 @@ Pre-release versions use dot-separated identifiers after a hyphen:
 1.0.0-rc.1
 ```
 
-- Pre-release SDK and Types packages are published to npm with the `next` dist-tag
-  (`npm install @pluma-flags/sdk@next`).
-- Pre-release Docker images are tagged with the full pre-release version
-  (e.g., `v1.0.0-beta.1`) but **not** tagged `latest`.
+- Pre-release SDK and Types packages are published to npm with the `next`
+  dist-tag (`npm install @pluma-flags/sdk@next`).
+- Pre-release Docker images are tagged with the full pre-release version (e.g.,
+  `v1.0.0-beta.1`) but **not** tagged `latest`.
 
 ## v1 Contract
 
 Reaching `1.0.0` for a package establishes these stability guarantees:
 
-| Area | Guarantee |
-| --- | --- |
-| SDK public API | Stable; changes follow semver strictly |
-| SDK snapshot format | Frozen per major version |
-| Types exports | Frozen per major version |
-| Admin API endpoints | Frozen per major version; new endpoints = minor bump |
-| SDK API endpoints | Frozen per major version |
-| Environment variables | Contract frozen per major version |
-| Database schema | Changes always include Prisma migration files |
+| Area                  | Guarantee                                            |
+| --------------------- | ---------------------------------------------------- |
+| SDK public API        | Stable; changes follow semver strictly               |
+| SDK snapshot format   | Frozen per major version                             |
+| Types exports         | Frozen per major version                             |
+| Admin API endpoints   | Frozen per major version; new endpoints = minor bump |
+| SDK API endpoints     | Frozen per major version                             |
+| Environment variables | Contract frozen per major version                    |
+| Database schema       | Changes always include Prisma migration files        |
 
 "Frozen" means no removals or incompatible changes within a major version. New
 additions (endpoints, optional fields, new types) are permitted in minor
@@ -126,8 +127,8 @@ releases.
 
 ## Internal Packages
 
-The following packages are **private** (`"private": true` in `package.json`)
-and do not follow semver for external consumers:
+The following packages are **private** (`"private": true` in `package.json`) and
+do not follow semver for external consumers:
 
 - `@pluma-flags/db` — Prisma ORM, migrations, seed scripts
 - `@pluma-flags/eslint-config` — shared ESLint configuration
@@ -137,5 +138,5 @@ Their `version` fields exist only for pnpm workspace compatibility.
 
 ## Compatibility Matrix
 
-As versions are released, a compatibility matrix mapping SDK versions to
-minimum required API versions will be maintained in [CHANGELOG.md](CHANGELOG.md).
+As versions are released, a compatibility matrix mapping SDK versions to minimum
+required API versions will be maintained in this section.

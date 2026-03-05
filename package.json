@@ -11,6 +11,8 @@
     "build": "pnpm -r build",
     "build:esbuild": "node tooling/esbuild/build.mjs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write \"**/*.md\"",
+    "format:check": "prettier --check \"**/*.md\"",
     "test": "pnpm -r test",
     "storybook": "pnpm --filter @pluma-flags/storybook dev",
     "build-storybook": "pnpm --filter @pluma-flags/storybook build"
@@ -26,6 +28,7 @@
     "eslint": "^10.0.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-storybook": "10.2.10",
-    "globals": "^17.3.0"
+    "globals": "^17.3.0",
+    "prettier": "3.8.1"
   }
 }
