@@ -41,6 +41,21 @@ const patchOrgSettingsBodySchema = z.object({
     // Practical upper bound — prevents unbounded growth in the DB array column.
     .max(100)
     .optional(),
+  // SMTP connection settings (moved from env vars).
+  smtpHost: z
+    .string()
+    .max(253)
+    .transform((v) => v.trim())
+    .refine(
+      (v) => v === '' || /^[a-zA-Z0-9.-]+$/.test(v),
+      { message: 'smtpHost must be a valid hostname' },
+    )
+    .optional(),
+  smtpPort: z.number().int().min(1).max(65535).optional(),
+  smtpSecure: z.boolean().optional(),
+  smtpUser: z.string().max(320).transform((v) => v.trim()).optional(),
+  // Empty string clears the stored password; omitting leaves it unchanged.
+  smtpPass: z.string().max(1024).optional(),
   // Configurable From address; empty string means use the server-level SMTP_FROM env var.
   smtpFrom: z
     .string()
@@ -72,12 +87,25 @@ const patchOrgSettingsBodySchema = z.object({
   // When true, a welcome email is sent to newly registered users.
   sendWelcomeEmail: z.boolean().optional(),
 }).refine(
-  (d) => d.allowedDomains !== undefined || d.smtpFrom !== undefined || d.sendWelcomeEmail !== undefined,
+  (d) =>
+    d.allowedDomains !== undefined ||
+    d.smtpHost !== undefined ||
+    d.smtpPort !== undefined ||
+    d.smtpSecure !== undefined ||
+    d.smtpUser !== undefined ||
+    d.smtpPass !== undefined ||
+    d.smtpFrom !== undefined ||
+    d.sendWelcomeEmail !== undefined,
   { message: 'At least one field must be provided' },
 );
 
 type OrgSettingsUpdateData = {
   allowedDomains?: string[];
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure?: boolean;
+  smtpUser?: string;
+  smtpPass?: string;
   smtpFrom?: string;
   sendWelcomeEmail?: boolean;
 };
@@ -85,6 +113,11 @@ type OrgSettingsUpdateData = {
 function buildOrgSettingsResponse(settings: {
   id: string;
   allowedDomains: string[];
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string;
+  smtpPass: string;
   smtpFrom: string;
   sendWelcomeEmail: boolean;
   updatedAt: Date;
@@ -92,6 +125,11 @@ function buildOrgSettingsResponse(settings: {
   return {
     id: settings.id,
     allowedDomains: settings.allowedDomains,
+    smtpHost: settings.smtpHost,
+    smtpPort: settings.smtpPort,
+    smtpSecure: settings.smtpSecure,
+    smtpUser: settings.smtpUser,
+    smtpPassSet: settings.smtpPass !== '',
     smtpFrom: settings.smtpFrom,
     sendWelcomeEmail: settings.sendWelcomeEmail,
     updatedAt: settings.updatedAt.toISOString(),
@@ -108,7 +146,7 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
     const settings = await prisma.orgSettings.upsert({
       where: { id: ORG_SETTINGS_ID },
       update: {},
-      create: { id: ORG_SETTINGS_ID, allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false },
+      create: { id: ORG_SETTINGS_ID, allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: '', sendWelcomeEmail: false },
     });
 
     return reply.code(StatusCodes.OK).send(buildOrgSettingsResponse(settings));
@@ -133,20 +171,30 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
       return reply.badRequest('Invalid request body');
     }
 
-    const { allowedDomains, smtpFrom, sendWelcomeEmail } = parsedBody.data;
+    const { allowedDomains, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, smtpFrom, sendWelcomeEmail } = parsedBody.data;
 
     const updateData: OrgSettingsUpdateData = {};
     if (allowedDomains !== undefined) updateData.allowedDomains = allowedDomains;
+    if (smtpHost !== undefined) updateData.smtpHost = smtpHost;
+    if (smtpPort !== undefined) updateData.smtpPort = smtpPort;
+    if (smtpSecure !== undefined) updateData.smtpSecure = smtpSecure;
+    if (smtpUser !== undefined) updateData.smtpUser = smtpUser;
+    if (smtpPass !== undefined) updateData.smtpPass = smtpPass;
     if (smtpFrom !== undefined) updateData.smtpFrom = smtpFrom;
     if (sendWelcomeEmail !== undefined) updateData.sendWelcomeEmail = sendWelcomeEmail;
 
     const updated = await prisma.orgSettings.upsert({
       where: { id: ORG_SETTINGS_ID },
       update: updateData,
-      create: { id: ORG_SETTINGS_ID, allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false, ...updateData },
+      create: { id: ORG_SETTINGS_ID, allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: '', sendWelcomeEmail: false, ...updateData },
     });
 
     try {
+      // Redact smtpPass from the audit log to avoid storing credentials.
+      const auditAfter: OrgSettingsUpdateData = { ...updateData };
+      if (auditAfter.smtpPass !== undefined) {
+        auditAfter.smtpPass = '[redacted]';
+      }
       await writeAuditLog({
         action: AuditActions.UPDATE,
         entityType: AuditEntityTypes.ORG_SETTINGS,
@@ -154,7 +202,7 @@ export async function registerOrgSettingsRoutes(fastify: FastifyInstance) {
         entityKey: 'org-settings',
         actorId: actor.id,
         actorEmail: actor.email,
-        details: { after: updateData },
+        details: { after: auditAfter },
         meta: {
           ip: request.ip,
           ua: request.headers['user-agent'] as string | undefined,

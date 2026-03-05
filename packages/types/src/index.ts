@@ -166,6 +166,12 @@ export const AuditActorTypes = {
 export type OrgSettings = {
   id: string;
   allowedDomains: string[];
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string;
+  /** Never returned by the API — only indicates whether a password is stored. */
+  smtpPassSet: boolean;
   smtpFrom: string;
   sendWelcomeEmail: boolean;
   updatedAt: string;

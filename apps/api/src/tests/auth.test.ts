@@ -131,7 +131,7 @@ describe('Auth routes', () => {
       bcryptMock.hash.mockResolvedValue('hashed_pw');
       prismaMock.user.create.mockResolvedValue({ ...mockUser, role: 'operator', passwordHash: 'hashed_pw' });
       prismaMock.orgSettings.findUnique.mockResolvedValue({
-        id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
+        id: 'default', allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: '', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
       });
 
       const response = await app.inject({
@@ -153,7 +153,7 @@ describe('Auth routes', () => {
       );
       // Welcome email must be dispatched (fire-and-forget) when sendWelcomeEmail is true
       expect(sendWelcomeEmailMock).toHaveBeenCalledTimes(1);
-      expect(sendWelcomeEmailMock).toHaveBeenCalledWith(mockUser.email, undefined);
+      expect(sendWelcomeEmailMock).toHaveBeenCalledWith(mockUser.email);
     });
 
     it('should create subsequent users as user role (not 409)', async () => {
@@ -167,7 +167,7 @@ describe('Auth routes', () => {
         passwordHash: 'hashed_pw2',
       });
       prismaMock.orgSettings.findUnique.mockResolvedValue({
-        id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
+        id: 'default', allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: '', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
       });
 
       const response = await app.inject({
@@ -186,7 +186,7 @@ describe('Auth routes', () => {
       );
       // Welcome email must be dispatched for every successful registration when enabled
       expect(sendWelcomeEmailMock).toHaveBeenCalledTimes(1);
-      expect(sendWelcomeEmailMock).toHaveBeenCalledWith('other@example.com', undefined);
+      expect(sendWelcomeEmailMock).toHaveBeenCalledWith('other@example.com');
     });
 
     it('should NOT send welcome email when sendWelcomeEmail is false', async () => {
@@ -196,7 +196,7 @@ describe('Auth routes', () => {
         ...mockUser, id: 'new-id', email: 'user@example.com', role: 'user', passwordHash: 'hashed_pw',
       });
       prismaMock.orgSettings.findUnique.mockResolvedValue({
-        id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false, updatedAt: FIXED_DATE,
+        id: 'default', allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: '', sendWelcomeEmail: false, updatedAt: FIXED_DATE,
       });
 
       const response = await app.inject({
@@ -227,14 +227,14 @@ describe('Auth routes', () => {
       expect(sendWelcomeEmailMock).not.toHaveBeenCalled();
     });
 
-    it('should use smtpFrom from OrgSettings as the From address', async () => {
+    it('sends welcome email with just the recipient address (SMTP settings read from DB by mailer)', async () => {
       prismaMock.user.count.mockResolvedValue(1);
       bcryptMock.hash.mockResolvedValue('hashed_pw');
       prismaMock.user.create.mockResolvedValue({
         ...mockUser, id: 'new-id', email: 'user@company.com', role: 'user', passwordHash: 'hashed_pw',
       });
       prismaMock.orgSettings.findUnique.mockResolvedValue({
-        id: 'default', allowedDomains: [], smtpFrom: 'noreply@company.com', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
+        id: 'default', allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: 'noreply@company.com', sendWelcomeEmail: true, updatedAt: FIXED_DATE,
       });
 
       await app.inject({
@@ -243,7 +243,7 @@ describe('Auth routes', () => {
         payload: { email: 'user@company.com', password: 'securepassword' },
       });
 
-      expect(sendWelcomeEmailMock).toHaveBeenCalledWith('user@company.com', 'noreply@company.com');
+      expect(sendWelcomeEmailMock).toHaveBeenCalledWith('user@company.com');
     });
 
     it('should return 409 when email already exists (role user)', async () => {

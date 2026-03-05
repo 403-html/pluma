@@ -112,6 +112,11 @@ model FlagConfig {
 model OrgSettings {
   id               String   @id @default("default")
   allowedDomains   String[]
+  smtpHost         String   @default("")
+  smtpPort         Int      @default(587)
+  smtpSecure       Boolean  @default(false)
+  smtpUser         String   @default("")
+  smtpPass         String   @default("")
   smtpFrom         String   @default("")
   sendWelcomeEmail Boolean  @default(false)
   updatedAt        DateTime @updatedAt

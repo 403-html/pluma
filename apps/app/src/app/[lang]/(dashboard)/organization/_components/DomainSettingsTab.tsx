@@ -27,6 +27,14 @@ export default function DomainSettingsTab() {
   const [inputValue, setInputValue] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
 
+  // SMTP connection state
+  const [smtpHost, setSmtpHost] = useState('');
+  const [smtpPort, setSmtpPort] = useState(587);
+  const [smtpSecure, setSmtpSecure] = useState(false);
+  const [smtpUser, setSmtpUser] = useState('');
+  const [smtpPass, setSmtpPass] = useState('');
+  const [smtpPassSet, setSmtpPassSet] = useState(false);
+
   // Email notification state
   const [sendWelcomeEmail, setSendWelcomeEmail] = useState(false);
   const [smtpFrom, setSmtpFrom] = useState('');
@@ -38,6 +46,11 @@ export default function DomainSettingsTab() {
       const result = await getOrgSettings();
       if (result.ok) {
         setDomains(result.settings.allowedDomains);
+        setSmtpHost(result.settings.smtpHost);
+        setSmtpPort(result.settings.smtpPort);
+        setSmtpSecure(result.settings.smtpSecure);
+        setSmtpUser(result.settings.smtpUser);
+        setSmtpPassSet(result.settings.smtpPassSet);
         setSendWelcomeEmail(result.settings.sendWelcomeEmail);
         setSmtpFrom(result.settings.smtpFrom);
       } else {
@@ -72,10 +85,26 @@ export default function DomainSettingsTab() {
 
   async function handleSave() {
     setIsSaving(true);
-    const result = await patchOrgSettings({ allowedDomains: domains, smtpFrom, sendWelcomeEmail });
+    const result = await patchOrgSettings({
+      allowedDomains: domains,
+      smtpHost,
+      smtpPort,
+      smtpSecure,
+      smtpUser,
+      // Only send the password when the user has typed something new.
+      ...(smtpPass !== '' ? { smtpPass } : {}),
+      smtpFrom,
+      sendWelcomeEmail,
+    });
     setIsSaving(false);
     if (result.ok) {
       setDomains(result.settings.allowedDomains);
+      setSmtpHost(result.settings.smtpHost);
+      setSmtpPort(result.settings.smtpPort);
+      setSmtpSecure(result.settings.smtpSecure);
+      setSmtpUser(result.settings.smtpUser);
+      setSmtpPassSet(result.settings.smtpPassSet);
+      setSmtpPass('');
       setSendWelcomeEmail(result.settings.sendWelcomeEmail);
       setSmtpFrom(result.settings.smtpFrom);
       toast.success(labels.toastSaveSuccess);
@@ -180,6 +209,90 @@ export default function DomainSettingsTab() {
               {inputError}
             </p>
           )}
+        </div>
+      </div>
+
+      {/* ── SMTP Server ───────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">{labels.smtpSection}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{labels.smtpSectionDesc}</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 max-w-lg">
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <label htmlFor="smtp-host-input" className="text-sm font-medium">
+              {labels.smtpHostLabel}
+            </label>
+            <Input
+              id="smtp-host-input"
+              type="text"
+              placeholder={labels.smtpHostPlaceholder}
+              value={smtpHost}
+              onChange={(e) => setSmtpHost(e.target.value)}
+              disabled={isReadOnly || isSaving}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="smtp-port-input" className="text-sm font-medium">
+              {labels.smtpPortLabel}
+            </label>
+            <Input
+              id="smtp-port-input"
+              type="number"
+              min={1}
+              max={65535}
+              value={smtpPort}
+              onChange={(e) => {
+                const parsed = parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setSmtpPort(parsed);
+              }}
+              disabled={isReadOnly || isSaving}
+            />
+          </div>
+
+          <div className="flex items-end pb-1.5">
+            <CheckboxField
+              checked={smtpSecure}
+              onCheckedChange={(checked) => setSmtpSecure(checked)}
+              disabled={isReadOnly || isSaving}
+              label={labels.smtpSecureLabel}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="smtp-user-input" className="text-sm font-medium">
+              {labels.smtpUserLabel}
+            </label>
+            <Input
+              id="smtp-user-input"
+              type="text"
+              placeholder={labels.smtpUserPlaceholder}
+              value={smtpUser}
+              onChange={(e) => setSmtpUser(e.target.value)}
+              disabled={isReadOnly || isSaving}
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="smtp-pass-input" className="text-sm font-medium">
+              {labels.smtpPassLabel}
+              {smtpPassSet && smtpPass === '' && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">(set)</span>
+              )}
+            </label>
+            <Input
+              id="smtp-pass-input"
+              type="password"
+              placeholder={smtpPassSet ? labels.smtpPassPlaceholder : ''}
+              value={smtpPass}
+              onChange={(e) => setSmtpPass(e.target.value)}
+              disabled={isReadOnly || isSaving}
+              autoComplete="new-password"
+            />
+          </div>
         </div>
       </div>
 

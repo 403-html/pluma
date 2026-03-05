@@ -29,6 +29,11 @@ const mockUserSession = {
 const defaultOrgSettings = {
   id: 'default',
   allowedDomains: [] as string[],
+  smtpHost: '',
+  smtpPort: 587,
+  smtpSecure: false,
+  smtpUser: '',
+  smtpPass: '',
   smtpFrom: '',
   sendWelcomeEmail: false,
   updatedAt: FIXED_DATE,
@@ -101,7 +106,7 @@ describe('OrgSettings routes', () => {
       expect(prismaMock.orgSettings.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'default' },
-          create: { id: 'default', allowedDomains: [], smtpFrom: '', sendWelcomeEmail: false },
+          create: { id: 'default', allowedDomains: [], smtpHost: '', smtpPort: 587, smtpSecure: false, smtpUser: '', smtpPass: '', smtpFrom: '', sendWelcomeEmail: false },
         }),
       );
     });
@@ -461,6 +466,77 @@ describe('OrgSettings routes', () => {
         url: '/api/v1/org/settings',
         headers: { cookie: AUTH_COOKIE },
         payload: { smtpFrom: longFrom },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('operator can update smtpHost and smtpPort', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.orgSettings.upsert.mockResolvedValue({
+        ...defaultOrgSettings, smtpHost: 'mail.example.com', smtpPort: 465, smtpSecure: true,
+      });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpHost: 'mail.example.com', smtpPort: 465, smtpSecure: true },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.smtpHost).toBe('mail.example.com');
+      expect(payload.smtpPort).toBe(465);
+      expect(payload.smtpSecure).toBe(true);
+    });
+
+    it('response includes smtpPassSet: true when a password is stored', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.orgSettings.upsert.mockResolvedValue({
+        ...defaultOrgSettings, smtpPass: 'secret',
+      });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpPass: 'secret' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.smtpPassSet).toBe(true);
+      expect(payload).not.toHaveProperty('smtpPass');
+    });
+
+    it('response includes smtpPassSet: false when no password is stored', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+      prismaMock.orgSettings.upsert.mockResolvedValue({ ...defaultOrgSettings });
+      prismaMock.auditLog.create.mockResolvedValue({} as never);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpHost: 'mail.example.com' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const payload = JSON.parse(response.payload);
+      expect(payload.smtpPassSet).toBe(false);
+    });
+
+    it('returns 400 when smtpPort is out of range', async () => {
+      prismaMock.session.findUnique.mockResolvedValue(mockSession);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/org/settings',
+        headers: { cookie: AUTH_COOKIE },
+        payload: { smtpPort: 99999 },
       });
 
       expect(response.statusCode).toBe(400);

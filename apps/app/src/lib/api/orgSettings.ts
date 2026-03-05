@@ -7,6 +7,11 @@ export type OrgSettingsResult =
 
 export type PatchOrgSettingsData = {
   allowedDomains?: string[];
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure?: boolean;
+  smtpUser?: string;
+  smtpPass?: string;
   smtpFrom?: string;
   sendWelcomeEmail?: boolean;
 };

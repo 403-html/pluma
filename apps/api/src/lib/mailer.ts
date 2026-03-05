@@ -1,35 +1,12 @@
 import nodemailer from 'nodemailer';
 import { Queue, Worker } from 'bullmq';
-
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = parseInt(process.env.SMTP_PORT ?? '587', 10);
-const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM_ENV = process.env.SMTP_FROM ?? 'noreply@pluma.local';
+import { prisma } from '@pluma-flags/db';
 
 const REDIS_URL = process.env.REDIS_URL;
 
 type MailJobData = { to: string; from: string; subject: string; text: string; html: string };
 
 const QUEUE_NAME = 'pluma:emails';
-
-// Create SMTP transport once at module init; null when SMTP is unconfigured.
-const transport = SMTP_HOST
-  ? nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_SECURE,
-      auth:
-        SMTP_USER && SMTP_PASS
-          ? { user: SMTP_USER, pass: SMTP_PASS }
-          : undefined,
-    })
-  : null;
-
-if (!transport) {
-  console.warn('[mailer] SMTP_HOST is not set — email delivery is disabled');
-}
 
 /**
  * Parses a redis:// URL into a BullMQ-compatible connection options object.
@@ -75,6 +52,26 @@ function parseRedisUrl(url: string): { host: string; port: number; password?: st
   };
 }
 
+/**
+ * Reads SMTP settings from OrgSettings in the DB and returns a Nodemailer transport,
+ * or null when SMTP is not configured.
+ */
+async function createTransportFromDb(): Promise<nodemailer.Transporter | null> {
+  const settings = await prisma.orgSettings.findUnique({ where: { id: 'default' } });
+  if (!settings || !settings.smtpHost) {
+    return null;
+  }
+  return nodemailer.createTransport({
+    host: settings.smtpHost,
+    port: settings.smtpPort,
+    secure: settings.smtpSecure,
+    auth:
+      settings.smtpUser && settings.smtpPass
+        ? { user: settings.smtpUser, pass: settings.smtpPass }
+        : undefined,
+  });
+}
+
 // BullMQ queue + worker — lazily initialised via initMailer(); null until then.
 let emailQueue: Queue<MailJobData> | null = null;
 let emailWorker: Worker<MailJobData> | null = null;
@@ -83,16 +80,11 @@ let emailWorker: Worker<MailJobData> | null = null;
  * Initialises the BullMQ queue and worker.
  *
  * Should be called once from `buildApp` after the Fastify instance is ready.
- * When SMTP is not configured the queue is skipped (it would be useless without
- * a transport). When Redis is not configured emails fall back to synchronous
- * delivery. `closeMailer` must be registered separately on the shutdown hook.
+ * Requires REDIS_URL to be set — without it emails fall back to synchronous
+ * delivery (see sendWelcomeEmail). `closeMailer` must be registered separately
+ * on the shutdown hook.
  */
 export function initMailer(): void {
-  if (!transport) {
-    // SMTP is not configured — no point creating a queue.
-    return;
-  }
-
   if (!REDIS_URL) {
     console.warn('[mailer] REDIS_URL is not set — emails will be sent synchronously without retry');
     return;
@@ -105,6 +97,11 @@ export function initMailer(): void {
   emailWorker = new Worker<MailJobData>(
     QUEUE_NAME,
     async (job) => {
+      const transport = await createTransportFromDb();
+      if (!transport) {
+        console.warn(`[mailer] Skipped email job ${job.id}: SMTP not configured`);
+        return;
+      }
       await transport.sendMail(job.data);
     },
     { connection, concurrency: 2 },
@@ -121,18 +118,20 @@ export function initMailer(): void {
  * When Redis is configured (via `initMailer`) the mail is enqueued (delivered
  * asynchronously with up to 3 retry attempts using exponential back-off).
  * Without Redis it is sent synchronously via nodemailer. When SMTP is not
- * configured this is always a no-op.
+ * configured in OrgSettings this is always a no-op.
  *
  * @param email - recipient address
- * @param from  - optional From override; falls back to the SMTP_FROM env var
  */
-export async function sendWelcomeEmail(email: string, from?: string): Promise<void> {
-  // No SMTP configured — no-op regardless of queue state.
-  if (!transport) return;
+export async function sendWelcomeEmail(email: string): Promise<void> {
+  const settings = await prisma.orgSettings.findUnique({ where: { id: 'default' } });
+  if (!settings || !settings.smtpHost) {
+    // SMTP not configured — no-op.
+    return;
+  }
 
   const mailData: MailJobData = {
     to: email,
-    from: from || SMTP_FROM_ENV,
+    from: settings.smtpFrom || `noreply@pluma.local`,
     subject: 'Welcome to Pluma',
     text: 'Your Pluma account has been created successfully.',
     html: '<p>Your Pluma account has been created successfully.</p>',
@@ -146,6 +145,11 @@ export async function sendWelcomeEmail(email: string, from?: string): Promise<vo
     return;
   }
 
+  const transport = await createTransportFromDb();
+  if (!transport) {
+    console.warn('[mailer] Synchronous email skipped: SMTP not configured');
+    return;
+  }
   await transport.sendMail(mailData);
 }
 
