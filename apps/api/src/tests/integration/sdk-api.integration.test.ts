@@ -5,7 +5,7 @@ import {
   PROJECT_ID, ENV_ID, RAW_SDK_TOKEN,
   mockSdkToken, mockEnvironmentWithProject,
 } from '../fixtures';
-import { PlumaSnapshotCache } from '../../../../../packages/sdk/src/index';
+import { PlumaSnapshotCache } from '@pluma-flags/sdk';
 
 // ── Prisma mock (hoisted) ───────────────────────────────────────────────────
 const { prismaMock } = vi.hoisted(() => {
