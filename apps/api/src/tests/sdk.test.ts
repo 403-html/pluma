@@ -119,7 +119,7 @@ describe('SDK snapshot', () => {
     expect(response.statusCode).toBe(401);
   });
 
-  it('should return 401 for project-scoped tokens (no envId)', async () => {
+  it('should return 403 for project-scoped tokens (no envId)', async () => {
     prismaMock.sdkToken.findUnique.mockResolvedValue({
       ...mockSdkToken,
       envId: null,
@@ -131,7 +131,7 @@ describe('SDK snapshot', () => {
       headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
     });
 
-    expect(response.statusCode).toBe(401);
+    expect(response.statusCode).toBe(403);
   });
 
   it('should return env-scoped flag snapshot for a valid env token', async () => {

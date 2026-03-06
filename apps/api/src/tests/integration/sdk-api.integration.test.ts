@@ -272,6 +272,23 @@ describe('SDK ↔ API integration', () => {
     );
   });
 
+  // ── 5b. Project-scoped token ──────────────────────────────────────────────
+  it('should throw Forbidden error for project-scoped token (no envId)', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue({
+      ...mockSdkToken,
+      envId: null,
+    });
+
+    const cache = PlumaSnapshotCache.create({
+      baseUrl,
+      token: RAW_SDK_TOKEN,
+    });
+
+    await expect(cache.evaluator()).rejects.toThrow(
+      'Pluma snapshot fetch failed: Forbidden (403) – your SDK token does not have access to this resource',
+    );
+  });
+
   // ── 6. Parent flag inheritance through SDK evaluator ──────────────────
   it('should evaluate child flag using parent inheritance', async () => {
     mockValidTokenAndEnv(3);

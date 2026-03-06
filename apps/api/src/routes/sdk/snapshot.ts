@@ -15,7 +15,7 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
 
     if (!envId) {
       // Project-scoped tokens cannot access the snapshot endpoint.
-      return reply.code(StatusCodes.UNAUTHORIZED).send({ error: 'Unauthorized' });
+      return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Forbidden' });
     }
 
     const environment = await prisma.environment.findUnique({
@@ -24,7 +24,7 @@ export async function registerSdkRoutes(fastify: FastifyInstance) {
     });
 
     if (!environment || environment.projectId !== projectId) {
-      return reply.code(StatusCodes.UNAUTHORIZED).send({ error: 'Unauthorized' });
+      return reply.code(StatusCodes.FORBIDDEN).send({ error: 'Forbidden' });
     }
 
     const etag = String(environment.configVersion);
