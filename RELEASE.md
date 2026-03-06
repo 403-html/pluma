@@ -11,8 +11,9 @@ Before starting any release:
 ## How Releases Work
 
 All releases are triggered through the **GitHub Release UI**. There are no local
-release scripts — the workflow itself handles validation, version bumping,
-building, publishing, and committing.
+release scripts — a single [`release.yml`](.github/workflows/release.yml)
+workflow handles validation, version bumping, building, publishing, and updating
+`main` with the new version.
 
 To start a release:
 
@@ -35,8 +36,7 @@ will:
 3. Bump the `version` field in the target `package.json` file(s).
 4. Build and (for npm packages) run tests.
 5. Publish artifacts (npm or Docker images).
-6. Commit the version bump with message `chore(release): <package> v<version>`
-   and push to `main`.
+6. Commit the version bump to `main` so the repo stays in sync.
 
 ---
 
@@ -49,9 +49,8 @@ definitions.
 
 1. Go to **Releases → Draft a new release** and create a tag `types/v<version>`
    targeting `main`.
-2. Publish the release. The
-   [`release-types.yml`](.github/workflows/release-types.yml) workflow fires
-   automatically.
+2. Publish the release. The [`release.yml`](.github/workflows/release.yml)
+   workflow fires automatically.
 3. Verify the workflow completes successfully in the **Actions** tab.
 4. Verify the package is live on npm
    (<https://www.npmjs.com/package/@pluma-flags/types>):
@@ -65,9 +64,8 @@ definitions.
    has been published first.
 2. Go to **Releases → Draft a new release** and create a tag `sdk/v<version>`
    targeting `main`.
-3. Publish the release. The
-   [`release-sdk.yml`](.github/workflows/release-sdk.yml) workflow fires
-   automatically.
+3. Publish the release. The [`release.yml`](.github/workflows/release.yml)
+   workflow fires automatically.
 4. Verify the workflow completes successfully in the **Actions** tab.
 5. Verify the package is live on npm
    (<https://www.npmjs.com/package/@pluma-flags/sdk>):
@@ -83,10 +81,8 @@ under the same version tag.
 1. Ensure all database migrations are finalized and merged to `main`.
 2. Go to **Releases → Draft a new release** and create a tag `v<version>`
    targeting `main`. This triggers the
-   [`release-docker.yml`](.github/workflows/release-docker.yml) workflow, which
-   builds and pushes both `pluma-api` and `pluma-app` images, then bumps
-   `version` in both `apps/api/package.json` and `apps/app/package.json` and
-   commits to `main`.
+   [`release.yml`](.github/workflows/release.yml) workflow, which builds and
+   pushes both `pluma-api` and `pluma-app` images.
 3. Verify the workflow completes successfully in the **Actions** tab.
 4. Verify images are available on GHCR
    (<https://github.com/orgs/403-html/packages>):
@@ -162,8 +158,8 @@ all" command — this is intentional to allow independent versioning.
 
 ## Tag Reference
 
-| Package              | Tag format     | Example        | Workflow             |
-| -------------------- | -------------- | -------------- | -------------------- |
-| `@pluma-flags/sdk`   | `sdk/v*.*.*`   | `sdk/v1.0.0`   | `release-sdk.yml`    |
-| `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `release-types.yml`  |
-| Docker (API + App)   | `v*.*.*`       | `v1.0.0`       | `release-docker.yml` |
+| Package              | Tag format     | Example        | Workflow      |
+| -------------------- | -------------- | -------------- | ------------- |
+| `@pluma-flags/sdk`   | `sdk/v*.*.*`   | `sdk/v1.0.0`   | `release.yml` |
+| `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `release.yml` |
+| Docker (API + App)   | `v*.*.*`       | `v1.0.0`       | `release.yml` |
