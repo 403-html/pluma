@@ -27,6 +27,7 @@ interface CreateTokenModalProps {
     cancelBtn: string;
     nameRequired: string;
     projectRequired: string;
+    envRequired: string;
   };
   onClose: () => void;
   onCreated: (token: CreatedToken, projectName: string) => void;
@@ -94,6 +95,10 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
     }
     if (!selectedProjectId) {
       setCreateError(labels.projectRequired);
+      return;
+    }
+    if (!selectedEnvId) {
+      setCreateError(labels.envRequired);
       return;
     }
 
@@ -164,11 +169,10 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
               onValueChange={(v) => setSelectedEnvId(fromRadixEnv(v))}
               disabled={isCreating || !selectedProjectId}
             >
-              <SelectTrigger id="api-key-env" className="w-full">
+              <SelectTrigger id="api-key-env" className="w-full" aria-required="true">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ENV_NONE}>{labels.envPlaceholder}</SelectItem>
                 {environments.map((env) => (
                   <SelectItem key={env.id} value={env.id}>
                     {env.name}
