@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import { buildApp } from '../app';
 import type { FastifyInstance } from 'fastify';
 import {
-  PROJECT_ID, ENV_ID, AUTH_COOKIE,
+  PROJECT_ID, ENV_ID, AUTH_COOKIE, OTHER_PROJECT_ID,
   RAW_SDK_TOKEN, SDK_TOKEN_HASH,
   mockSession, mockSdkToken, mockEnvironmentWithProject, mockProject,
 } from './fixtures';
@@ -123,6 +123,35 @@ describe('SDK snapshot', () => {
     prismaMock.sdkToken.findUnique.mockResolvedValue({
       ...mockSdkToken,
       envId: null,
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should return 403 when environment does not exist', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue(null);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/sdk/v1/snapshot',
+      headers: { authorization: `Bearer ${RAW_SDK_TOKEN}` },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should return 403 when environment belongs to a different project', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue(mockSdkToken);
+    prismaMock.environment.findUnique.mockResolvedValue({
+      ...mockEnvironmentWithProject,
+      projectId: OTHER_PROJECT_ID,
     });
 
     const response = await app.inject({
