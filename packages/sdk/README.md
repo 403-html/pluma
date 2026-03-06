@@ -22,7 +22,7 @@ import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const client = PlumaSnapshotCache.create({
   baseUrl: "http://localhost:2137",
-  token: "sdk_your_token_here", // Settings → SDK Tokens in the Pluma UI
+  token: "sdk_your_token_here", // Organisation → API Keys in the Pluma UI
   ttlMs: 30_000, // optional; defaults to 30_000 ms
 });
 
@@ -34,7 +34,7 @@ if (evaluator.isEnabled("my-feature")) {
 ```
 
 SDK tokens are scoped to a project and environment. Create them in the Pluma UI
-under **Settings → SDK Tokens**.
+under **Organisation → API Keys**.
 
 ## Framework examples
 
@@ -174,7 +174,7 @@ result. The traversal is iterative (not recursive) and bounded by
 | Field     | Type     | Required | Default | Description                          |
 | --------- | -------- | -------- | ------- | ------------------------------------ |
 | `baseUrl` | `string` | yes      | —       | Base URL of the Pluma API server     |
-| `token`   | `string` | yes      | —       | SDK token from Settings → SDK Tokens |
+| `token`   | `string` | yes      | —       | SDK token from Organisation → API Keys |
 | `ttlMs`   | `number` | no       | `30000` | Snapshot cache TTL in milliseconds   |
 
 ### `EvaluatorOptions`
