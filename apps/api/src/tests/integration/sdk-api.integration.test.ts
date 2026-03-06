@@ -250,7 +250,9 @@ describe('SDK ↔ API integration', () => {
       token: RAW_SDK_TOKEN,
     });
 
-    await expect(cache.evaluator()).rejects.toThrow('Pluma snapshot fetch failed: 401');
+    await expect(cache.evaluator()).rejects.toThrow(
+      'Pluma snapshot fetch failed: Unauthorized (401) – check that your SDK token is correct and has not been revoked',
+    );
   });
 
   // ── 5. Revoked token round-trip ───────────────────────────────────────
@@ -265,7 +267,9 @@ describe('SDK ↔ API integration', () => {
       token: RAW_SDK_TOKEN,
     });
 
-    await expect(cache.evaluator()).rejects.toThrow('Pluma snapshot fetch failed: 401');
+    await expect(cache.evaluator()).rejects.toThrow(
+      'Pluma snapshot fetch failed: Unauthorized (401) – check that your SDK token is correct and has not been revoked',
+    );
   });
 
   // ── 6. Parent flag inheritance through SDK evaluator ──────────────────
