@@ -74,7 +74,15 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
     setIsLoadingEnvs(true);
     setSelectedEnvId('');
     void (async () => {
-      const result = await listEnvironments(selectedProjectId);
+      const project = projects.find((p) => p.id === selectedProjectId);
+      if (!project) {
+        // Should not happen: selectedProjectId is always set from projects[].id
+        setEnvironments([]);
+        setCreateError('Selected project not found. Please try again.');
+        setIsLoadingEnvs(false);
+        return;
+      }
+      const result = await listEnvironments(project.key);
       if (result.ok) {
         setEnvironments(result.environments);
       } else {
@@ -82,7 +90,7 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
       }
       setIsLoadingEnvs(false);
     })();
-  }, [selectedProjectId]);
+  }, [selectedProjectId, projects]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
