@@ -118,8 +118,10 @@ from the authenticated user's session when propagating the result.
 
 ## Per-subject targeting
 
-Pass a stable identifier (user ID, session ID, device ID) as `subjectKey` to
-`evaluator()`. Evaluation precedence for each flag:
+Pass the user's ID (or any numeric-based identifier) as `subjectKey` to
+`evaluator()`. The value must match exactly what is stored in the allow/deny
+lists in the Pluma UI — those lists are populated with known user IDs.
+Evaluation precedence for each flag:
 
 1. **Deny list** — if `subjectKey` is in `denyList`, returns `false`
    immediately.
@@ -179,7 +181,7 @@ result. The traversal is iterative (not recursive) and bounded by
 
 | Field        | Type     | Required | Description                                        |
 | ------------ | -------- | -------- | -------------------------------------------------- |
-| `subjectKey` | `string` | no       | Stable subject identifier (user ID, session ID, …) |
+| `subjectKey` | `string` | no       | User ID or numeric-based identifier matched against allow/deny lists |
 
 ### `Evaluator`
 
