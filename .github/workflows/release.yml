@@ -136,6 +136,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Sync types version from npm
+        run: |
+          TYPES_VERSION=$(npm view @pluma-flags/types version 2>/dev/null) || true
+          if [ -z "$TYPES_VERSION" ]; then
+            echo "::error::Failed to fetch @pluma-flags/types version from npm — is the package published?"
+            exit 1
+          fi
+          (cd packages/types && npm pkg set version="$TYPES_VERSION")
+
       - name: Bump version
         run: (cd packages/sdk && npm pkg set version="${{ needs.detect.outputs.version }}")
 
