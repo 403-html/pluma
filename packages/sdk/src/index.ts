@@ -188,7 +188,17 @@ export class PlumaSnapshotCache {
     }
 
     if (!response.ok) {
-      throw new Error(`Pluma snapshot fetch failed: ${response.status}`);
+      if (response.status === 401) {
+        throw new Error(
+          'Pluma snapshot fetch failed: Unauthorized (401) – check that your SDK token is correct and has not been revoked',
+        );
+      }
+      if (response.status === 403) {
+        throw new Error(
+          'Pluma snapshot fetch failed: Forbidden (403) – your SDK token does not have access to this resource',
+        );
+      }
+      throw new Error(`Pluma snapshot fetch failed: HTTP ${response.status}`);
     }
 
     const data = (await response.json()) as Snapshot;

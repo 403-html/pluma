@@ -158,12 +158,13 @@ describe('Org-level Token routes', () => {
   describe('POST /api/v1/tokens', () => {
     it('should return 201 with raw token starting with pluma_sdk_', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.sdkToken.create.mockResolvedValue(mockSdkTokenWithPrefix);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/tokens',
-        payload: { projectId: PROJECT_ID, name: 'My Org Token' },
+        payload: { projectId: PROJECT_ID, envId: ENV_ID, name: 'My Org Token' },
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -175,12 +176,13 @@ describe('Org-level Token routes', () => {
 
     it('should store tokenPrefix equal to first 12 chars of the raw token', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.sdkToken.create.mockResolvedValue(mockSdkTokenWithPrefix);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/tokens',
-        payload: { projectId: PROJECT_ID, name: 'My Org Token' },
+        payload: { projectId: PROJECT_ID, envId: ENV_ID, name: 'My Org Token' },
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -192,12 +194,13 @@ describe('Org-level Token routes', () => {
 
     it('should store tokenHash as SHA256 of the raw token, not the raw token itself', async () => {
       prismaMock.project.findUnique.mockResolvedValue(mockProject);
+      prismaMock.environment.findUnique.mockResolvedValue(mockEnvironment);
       prismaMock.sdkToken.create.mockResolvedValue(mockSdkTokenWithPrefix);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/tokens',
-        payload: { projectId: PROJECT_ID, name: 'My Org Token' },
+        payload: { projectId: PROJECT_ID, envId: ENV_ID, name: 'My Org Token' },
         headers: { cookie: AUTH_COOKIE },
       });
 
@@ -261,6 +264,17 @@ describe('Org-level Token routes', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 when envId is missing', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/tokens',
+        payload: { projectId: PROJECT_ID, name: 'No Env Token' },
+        headers: { cookie: AUTH_COOKIE },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 401 without auth cookie', async () => {
       prismaMock.session.findUnique.mockResolvedValue(null);
 
@@ -279,7 +293,7 @@ describe('Org-level Token routes', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/tokens',
-        payload: { projectId: PROJECT_ID, name: 'My Org Token' },
+        payload: { projectId: PROJECT_ID, envId: ENV_ID, name: 'My Org Token' },
         headers: { cookie: AUTH_COOKIE },
       });
 

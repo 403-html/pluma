@@ -220,8 +220,8 @@ export const en = {
     namePlaceholder: 'e.g. Production SDK',
     projectLabel: 'Project',
     projectPlaceholder: 'Select a project…',
-    envLabel: 'Environment (optional)',
-    envPlaceholder: 'All environments (project-scoped)',
+    envLabel: 'Environment',
+    envPlaceholder: 'Select an environment…',
     loadingEnvironments: 'Loading environments…',
     createBtn: 'Create',
     createLoading: 'Creating…',
@@ -234,6 +234,7 @@ export const en = {
     noProjects: 'No projects found.',
     nameRequired: 'Name is required',
     projectRequired: 'Project is required',
+    envRequired: 'Environment is required',
     tabs: {
       apiKeys: 'API Keys',
       accounts: 'Accounts',

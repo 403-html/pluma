@@ -27,17 +27,12 @@ interface CreateTokenModalProps {
     cancelBtn: string;
     nameRequired: string;
     projectRequired: string;
+    envRequired: string;
   };
   onClose: () => void;
   onCreated: (token: CreatedToken, projectName: string) => void;
 }
 
-// Radix Select forbids value="" (reserved for showing the placeholder).
-// Use a sentinel value internally and map back to the empty-string convention
-// that the rest of the modal state uses.
-const ENV_NONE = '__none__';
-const toRadixEnv = (v: string) => (v === '' ? ENV_NONE : v);
-const fromRadixEnv = (v: string) => (v === ENV_NONE ? '' : v);
 
 export default function CreateTokenModal({ labels, onClose, onCreated }: CreateTokenModalProps) {
   const [newKeyName, setNewKeyName] = useState('');
@@ -104,6 +99,10 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
       setCreateError(labels.projectRequired);
       return;
     }
+    if (!selectedEnvId) {
+      setCreateError(labels.envRequired);
+      return;
+    }
 
     setIsCreating(true);
     const result = await createOrgToken(newKeyName, selectedProjectId, selectedEnvId || undefined);
@@ -168,15 +167,14 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
             <p className="text-sm text-muted-foreground">{labels.loadingEnvironments}</p>
           ) : (
             <Select
-              value={toRadixEnv(selectedEnvId)}
-              onValueChange={(v) => setSelectedEnvId(fromRadixEnv(v))}
+              value={selectedEnvId || undefined}
+              onValueChange={setSelectedEnvId}
               disabled={isCreating || !selectedProjectId}
             >
-              <SelectTrigger id="api-key-env" className="w-full">
-                <SelectValue />
+              <SelectTrigger id="api-key-env" className="w-full" aria-required="true">
+                <SelectValue placeholder={labels.envPlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ENV_NONE}>{labels.envPlaceholder}</SelectItem>
                 {environments.map((env) => (
                   <SelectItem key={env.id} value={env.id}>
                     {env.name}

@@ -250,7 +250,9 @@ describe('SDK ↔ API integration', () => {
       token: RAW_SDK_TOKEN,
     });
 
-    await expect(cache.evaluator()).rejects.toThrow('Pluma snapshot fetch failed: 401');
+    await expect(cache.evaluator()).rejects.toThrow(
+      'Pluma snapshot fetch failed: Unauthorized (401) – check that your SDK token is correct and has not been revoked',
+    );
   });
 
   // ── 5. Revoked token round-trip ───────────────────────────────────────
@@ -265,7 +267,26 @@ describe('SDK ↔ API integration', () => {
       token: RAW_SDK_TOKEN,
     });
 
-    await expect(cache.evaluator()).rejects.toThrow('Pluma snapshot fetch failed: 401');
+    await expect(cache.evaluator()).rejects.toThrow(
+      'Pluma snapshot fetch failed: Unauthorized (401) – check that your SDK token is correct and has not been revoked',
+    );
+  });
+
+  // ── 5b. Project-scoped token ──────────────────────────────────────────────
+  it('should throw Forbidden error for project-scoped token (no envId)', async () => {
+    prismaMock.sdkToken.findUnique.mockResolvedValue({
+      ...mockSdkToken,
+      envId: null,
+    });
+
+    const cache = PlumaSnapshotCache.create({
+      baseUrl,
+      token: RAW_SDK_TOKEN,
+    });
+
+    await expect(cache.evaluator()).rejects.toThrow(
+      'Pluma snapshot fetch failed: Forbidden (403) – your SDK token does not have access to this resource',
+    );
   });
 
   // ── 6. Parent flag inheritance through SDK evaluator ──────────────────

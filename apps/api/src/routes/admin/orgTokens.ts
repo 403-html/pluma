@@ -11,7 +11,7 @@ const PAGE_SIZE = 100;
 
 const orgTokenBodySchema = z.object({
   projectId: z.uuid(),
-  envId: z.uuid().optional(),
+  envId: z.uuid(),
   name: z.string().min(1).max(100),
 });
 
@@ -76,15 +76,10 @@ export async function registerOrgTokenRoutes(fastify: FastifyInstance) {
         return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
-      if (envId) {
-        const environment = await prisma.environment.findUnique({
-          where: { id: envId },
-        });
-
-        if (!environment || environment.projectId !== projectId) {
-          request.log.warn({ envId, projectId }, 'POST /tokens rejected: environment not found');
-          return reply.notFound(ReasonPhrases.NOT_FOUND);
-        }
+      const environment = await prisma.environment.findUnique({ where: { id: envId } });
+      if (!environment || environment.projectId !== projectId) {
+        request.log.warn({ envId, projectId }, 'POST /tokens rejected: environment not found');
+        return reply.notFound(ReasonPhrases.NOT_FOUND);
       }
 
       const rawToken = TOKEN_PREFIX + randomBytes(TOKEN_BYTES).toString('hex');

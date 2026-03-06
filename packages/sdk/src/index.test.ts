@@ -117,7 +117,9 @@ describe("PlumaSnapshotCache", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 401 }));
 
     const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
-    await expect(cache.evaluator()).rejects.toThrow("401");
+    await expect(cache.evaluator()).rejects.toThrow(
+      "Pluma snapshot fetch failed: Unauthorized (401) – check that your SDK token is correct and has not been revoked",
+    );
   });
 
   describe("TTL expiry renewal", () => {
@@ -216,15 +218,18 @@ describe("PlumaSnapshotCache", () => {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403 }));
 
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
-      await expect(cache.evaluator()).rejects.toThrow("403");
+      await expect(cache.evaluator()).rejects.toThrow(
+        "Pluma snapshot fetch failed: Forbidden (403) – your SDK token does not have access to this resource",
+      );
     });
 
     it("throws on 500 Internal Server Error", async () => {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
 
       const cache = PlumaSnapshotCache.create({ baseUrl: BASE_URL, token: TOKEN });
-      await expect(cache.evaluator()).rejects.toThrow("500");
+      await expect(cache.evaluator()).rejects.toThrow("Pluma snapshot fetch failed: HTTP 500");
     });
+
   });
 
   describe("evaluation precedence", () => {
