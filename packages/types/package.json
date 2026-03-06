@@ -1,7 +1,7 @@
 {
   "name": "@pluma-flags/types",
   "license": "Apache-2.0",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
