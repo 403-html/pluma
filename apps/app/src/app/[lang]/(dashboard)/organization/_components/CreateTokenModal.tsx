@@ -170,7 +170,7 @@ export default function CreateTokenModal({ labels, onClose, onCreated }: CreateT
               disabled={isCreating || !selectedProjectId}
             >
               <SelectTrigger id="api-key-env" className="w-full" aria-required="true">
-                <SelectValue />
+                <SelectValue placeholder={labels.envPlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 {environments.map((env) => (
