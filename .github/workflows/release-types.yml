@@ -12,7 +12,7 @@ env:
   NODE_VERSION: "20"
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 jobs:
@@ -77,10 +77,3 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Commit version bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add packages/types/package.json
-          git diff --staged --quiet || git commit -m "chore(release): types v${{ env.RELEASE_VERSION }}"
-          git push origin HEAD:refs/heads/main --force-with-lease
