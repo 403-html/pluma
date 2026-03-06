@@ -13,6 +13,8 @@
 #   DB_PASSWORD=secret docker compose up
 #   API_URL=https://api.example.com docker compose up
 
+name: pluma
+
 services:
 
   # postgres — shared PostgreSQL 16 database
