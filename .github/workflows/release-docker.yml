@@ -158,8 +158,8 @@ jobs:
 
       - name: Bump app versions
         run: |
-          pnpm --filter @pluma-flags/api pkg set version="${{ needs.validate.outputs.version }}"
-          pnpm --filter @pluma-flags/app pkg set version="${{ needs.validate.outputs.version }}"
+          (cd apps/api && npm pkg set version="${{ needs.validate.outputs.version }}")
+          (cd apps/app && npm pkg set version="${{ needs.validate.outputs.version }}")
 
       - name: Commit version bump
         run: |
