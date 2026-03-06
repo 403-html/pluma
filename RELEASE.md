@@ -12,7 +12,7 @@ Before starting any release:
 
 All releases are triggered through the **GitHub Release UI**. There are no local
 release scripts — the workflow itself handles validation, version bumping,
-building, publishing, and committing.
+building, and publishing.
 
 To start a release:
 
@@ -35,8 +35,6 @@ will:
 3. Bump the `version` field in the target `package.json` file(s).
 4. Build and (for npm packages) run tests.
 5. Publish artifacts (npm or Docker images).
-6. Commit the version bump with message `chore(release): <package> v<version>`
-   and push to `main`.
 
 ---
 
@@ -84,9 +82,7 @@ under the same version tag.
 2. Go to **Releases → Draft a new release** and create a tag `v<version>`
    targeting `main`. This triggers the
    [`release-docker.yml`](.github/workflows/release-docker.yml) workflow, which
-   builds and pushes both `pluma-api` and `pluma-app` images, then bumps
-   `version` in both `apps/api/package.json` and `apps/app/package.json` and
-   commits to `main`.
+   builds and pushes both `pluma-api` and `pluma-app` images.
 3. Verify the workflow completes successfully in the **Actions** tab.
 4. Verify images are available on GHCR
    (<https://github.com/orgs/403-html/packages>):
