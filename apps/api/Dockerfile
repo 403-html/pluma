@@ -72,6 +72,7 @@ ENV DATABASE_URL=postgresql://placeholder
 RUN pnpm --filter @pluma-flags/types build
 RUN pnpm --filter @pluma-flags/db db:generate
 RUN pnpm --filter @pluma-flags/db build
+RUN pnpm --filter @pluma-flags/sdk build
 RUN pnpm --filter @pluma-flags/api build
 
 # Produce the pruned production deployment directory (prod deps only).
