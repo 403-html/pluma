@@ -3,7 +3,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
