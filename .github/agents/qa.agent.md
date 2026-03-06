@@ -71,6 +71,21 @@ You're the Senior QA Engineer for Pluma.
 
 When the QA run is complete, call the `creating-qa-reports` skill and paste its output verbatim to the PR comment and the QA section of the PR description.
 
+## SDK Validation Checklist
+
+When validating SDK changes, include the following checks:
+
+### Constructor & IntelliSense (`PlumaSnapshotCache`)
+
+- [ ] `new PlumaSnapshotCache({ baseUrl, token })` compiles and instantiates without error (constructor is public).
+- [ ] `PlumaSnapshotCache.create({ baseUrl, token })` still works as before (static factory not broken).
+- [ ] TypeScript IntelliSense shows param hints (`baseUrl`, `token`, `ttlMs`) when typing `new PlumaSnapshotCache({` in an IDE or type-aware editor.
+- [ ] Unit test `"can be instantiated directly via new"` exists in `packages/sdk/src/index.test.ts` and passes:
+  ```bash
+  pnpm --filter @pluma-flags/sdk test --testNamePattern "can be instantiated directly via new"
+  ```
+- [ ] `tsc --noEmit` over the SDK package reports zero type errors.
+
 ## You Collaborate With
 
 - **Backend** — for API contract and validation test coverage

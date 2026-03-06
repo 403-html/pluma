@@ -29,6 +29,11 @@ describe("PlumaSnapshotCache", () => {
     expect(cache).toBeInstanceOf(PlumaSnapshotCache);
   });
 
+  it("can be instantiated directly via new", () => {
+    const cache = new PlumaSnapshotCache({ baseUrl: BASE_URL, token: TOKEN });
+    expect(cache).toBeInstanceOf(PlumaSnapshotCache);
+  });
+
   it("throws if baseUrl is missing", () => {
     expect(() => PlumaSnapshotCache.create({ baseUrl: "", token: TOKEN })).toThrow("baseUrl is required");
   });

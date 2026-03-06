@@ -53,7 +53,7 @@ export class PlumaSnapshotCache {
   private snapshot: Snapshot | null = null;
   private fetchedAt: number | null = null;
 
-  private constructor(options: PlumaSnapshotCacheOptions) {
+  constructor(options: PlumaSnapshotCacheOptions) {
     if (!options.baseUrl) {
       throw new Error('baseUrl is required');
     }
