@@ -67,7 +67,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Bump version
-        run: pnpm --filter @pluma-flags/sdk pkg set version="${{ env.RELEASE_VERSION }}"
+        run: (cd packages/sdk && npm pkg set version="${{ env.RELEASE_VERSION }}")
 
       - name: Build SDK
         run: pnpm --filter @pluma-flags/sdk build
