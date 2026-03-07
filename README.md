@@ -8,6 +8,8 @@
 
 <p align="center">Self-hosted feature flag system. Manage flags via a web UI and evaluate them in your application with a lightweight SDK.</p>
 
+<p align="center"><em>Pluma (Spanish: feather) — lightweight by design.</em></p>
+
 </div>
 
 ---
