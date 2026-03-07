@@ -14,12 +14,11 @@ pnpm install
 
 # 2. Start the database
 cd packages/db
-docker compose up -d
 cp .env.example .env   # uses default credentials — fine for local dev
+docker compose up -d
 
 # 3. Apply migrations and seed
-pnpm db:generate
-pnpm db:migrate
+pnpm db:migrate:deploy
 pnpm db:seed  # optional
 
 # 4. Run the full stack
