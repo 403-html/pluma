@@ -116,44 +116,11 @@ Alternatively, edit `replicas` in the `deploy` block of your
 
 ## Verifying the Setup
 
-### 1. Confirm all replicas are running
-
-```bash
-docker compose ps
-```
-
-You should see `N` containers for the `api` service (e.g. `pluma-api-1`,
-`pluma-api-2`, `pluma-api-3`) all in the `running` state, plus one `nginx`
-container.
-
-### 2. Confirm nginx is distributing requests
-
-Send a few requests through nginx and watch the API logs:
-
-```bash
-# In one terminal — tail the api logs across all replicas
-docker compose logs -f api
-
-# In another terminal — send several requests through nginx
-for _ in $(seq 1 10); do curl -s -o /dev/null http://localhost/api/health; done
-```
-
-Each request is logged by the replica that handled it. Look for the
-`container_id` or `hostname` field in the log lines — you should see different
-values cycling through replicas, which confirms nginx is load-balancing.
-
-### 3. Inspect which container handled a request
-
-Alternatively, ask Docker which container IPs are registered under the `api`
-name:
-
 ```bash
 docker compose exec nginx nslookup api
 ```
 
-The response lists one A-record per running replica. If you see only one IP,
-confirm that `replicas: N` (N > 1) is set and all containers started cleanly
-(`docker compose ps`).
+One A-record per running replica confirms load balancing is active.
 
 ## Notes and Caveats
 
