@@ -2,11 +2,11 @@
 
 k6 performance scripts for the Pluma API.
 
-| Script | VUs | Duration | Thresholds |
-|--------|-----|----------|------------|
-| `smoke.js` | 1 | 60 s | p95 < 500 ms, errors < 1 % |
-| `load.js` | 50 | 7 min (ramp+hold) | p95 < 500 ms, errors < 1 % |
-| `stress.js` | 300 | 16 min (ramp+hold) | p95 < 2 s, errors < 5 % |
+| Script      | VUs | Duration           | Thresholds                 |
+| ----------- | --- | ------------------ | -------------------------- |
+| `smoke.js`  | 1   | 60 s               | p95 < 500 ms, errors < 1 % |
+| `load.js`   | 50  | 7 min (ramp+hold)  | p95 < 500 ms, errors < 1 % |
+| `stress.js` | 300 | 16 min (ramp+hold) | p95 < 2 s, errors < 5 %    |
 
 ## Running
 
@@ -34,10 +34,10 @@ API_URL=http://localhost:2137 SDK_TOKEN=plt_xxx k6 run load-tests/k6/smoke.js
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `API_URL` | `http://localhost:2137` | Base URL of the Pluma API |
-| `SDK_TOKEN` | *(empty)* | SDK bearer token — skips snapshot checks if unset |
+| Variable    | Default                 | Description                                       |
+| ----------- | ----------------------- | ------------------------------------------------- |
+| `API_URL`   | `http://localhost:2137` | Base URL of the Pluma API                         |
+| `SDK_TOKEN` | _(empty)_               | SDK bearer token — skips snapshot checks if unset |
 
 Get a token from the Admin UI: **Settings → SDK Tokens → Create token**.
 
