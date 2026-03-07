@@ -13,5 +13,6 @@ export default [{
     "**/node_modules",
     "**/dist",
     "**/.next",
+    "load-tests",
   ],
 }, ...base, ...storybook.configs["flat/recommended"]];
