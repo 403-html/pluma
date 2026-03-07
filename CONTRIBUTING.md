@@ -21,13 +21,11 @@ docker compose up -d
 pnpm db:migrate:deploy
 pnpm db:seed  # optional
 
-# 4. Run the full stack
+# 4. Run the apps (each in its own terminal, from the repo root)
 cd ../..
-pnpm dev
+pnpm api:dev   # API  → http://localhost:2137
+pnpm app:dev   # UI   → http://localhost:3000
 ```
-
-- **UI** → <http://localhost:3000>
-- **API** → <http://localhost:2137>
 
 ## Repository layout
 
