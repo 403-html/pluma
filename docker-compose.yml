@@ -1,15 +1,16 @@
-# docker-compose.yml — monorepo root
+# docker-compose.yml — monorepo root (local development + testing)
 #
-# Runs the full Pluma stack: PostgreSQL, API (scalable), nginx, and Next.js frontend.
-# Images default to the pre-built GHCR releases so no local build is required.
-# Build context is the monorepo root so that workspace packages
-# (@pluma-flags/types) are reachable during the build.
+# Runs the full Pluma stack locally: PostgreSQL, API (scalable), nginx, and
+# Next.js frontend.  Images are built from the local source tree so that code
+# changes are reflected immediately on the next `--build`.
+#
+# For production / no-build deployments see README.md (GHCR images).
 #
 # Usage:
-#   docker compose up                           # pull images + start (single API instance)
-#   docker compose up --scale api=3             # 3 API replicas behind nginx (no build needed)
-#   docker compose up --build                   # rebuild images locally + start
-#   docker compose up --build --scale api=3     # rebuild locally + 3 replicas
+#   docker compose build                        # build images once from source
+#   docker compose up                           # start the stack (single API instance)
+#   docker compose up --scale api=3             # scale to 3 replicas (no rebuild needed)
+#   docker compose up --build --scale api=3     # rebuild + start with 3 replicas
 #   docker compose up api                       # API + its postgres dependency only
 #
 # Override defaults with env vars:
@@ -55,7 +56,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: ghcr.io/403-html/pluma-api:latest
+    image: pluma-api:local
     restart: unless-stopped
     depends_on:
       postgres:
@@ -86,7 +87,7 @@ services:
     build:
       context: .
       dockerfile: apps/app/Dockerfile
-    image: ghcr.io/403-html/pluma-app:latest
+    image: pluma-app:local
     restart: unless-stopped
     ports:
       - '3000:3000'

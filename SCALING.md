@@ -16,30 +16,24 @@ you can run as many API replicas as you need by changing a single flag.
 
 ## Quick Start
 
-### Step 1 — Pull the images
+### Step 1 — Build the images
 
 ```bash
-# Pull pre-built images from GHCR (no local build required)
-docker compose pull
-```
-
-To build from source instead:
-
-```bash
+# From the monorepo root (only needed once, or after code changes)
 docker compose build
 ```
 
 ### Step 2 — Start with N API replicas
 
 ```bash
-# 3 API replicas behind nginx
+# 3 API replicas behind nginx — no rebuild needed
 docker compose up --scale api=3
 
 # 5 replicas
 docker compose up --scale api=5
 
 # Single instance (default, identical to plain `docker compose up`)
-docker compose up --scale api=1
+docker compose up
 ```
 
 That's it. nginx resolves the upstream name `api` via Docker Compose's internal

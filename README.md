@@ -81,6 +81,10 @@ docker compose up -d
 > **First run:** change `DB_PASSWORD` to a strong value before going to
 > production.
 
+> **Horizontal scaling:** add an nginx load-balancer and run multiple API
+> replicas with `--scale api=N` — no image rebuild required. See
+> [SCALING.md](SCALING.md) for the full setup.
+
 ### SDK
 
 ```bash
