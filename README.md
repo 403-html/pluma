@@ -1,9 +1,22 @@
+<div align="center">
+
+[![CI](https://github.com/403-html/pluma/actions/workflows/ci.yml/badge.svg)](https://github.com/403-html/pluma/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/github/v/release/403-html/pluma?label=docker)](https://github.com/403-html/pluma/releases)
+[![SDK](https://img.shields.io/npm/v/%40pluma-flags%2Fsdk?label=sdk)](https://www.npmjs.com/package/@pluma-flags/sdk)
+
 # Pluma
 
-Self-hosted feature flag system — manage flags via a web UI and evaluate them in
-your application with a lightweight SDK.
+<p align="center">Self-hosted feature flag system. Manage flags via a web UI and evaluate them in your application with a lightweight SDK.</p>
 
-## Running with Docker Compose
+<p align="center"><em>Pluma (Spanish: feather) — lightweight by design.</em></p>
+
+</div>
+
+---
+
+## Quick start
+
+### Docker Compose
 
 Pluma ships as pre-built Docker images. No build step required.
 
@@ -58,21 +71,17 @@ docker compose up -d
 - **UI** → [http://localhost:3000](http://localhost:3000)
 - **API** → [http://localhost:2137](http://localhost:2137)
 
-### Environment Variables
+| Variable      | Default           | Description              |
+| ------------- | ----------------- | ------------------------ |
+| `DB_USER`     | `pluma`           | PostgreSQL username      |
+| `DB_PASSWORD` | `pluma`           | PostgreSQL password      |
+| `DB_NAME`     | `pluma`           | PostgreSQL database name |
+| `API_URL`     | `http://api:2137` | API base URL             |
 
-| Variable      | Default           | Description                                  |
-| ------------- | ----------------- | -------------------------------------------- |
-| `DB_USER`     | `pluma`           | PostgreSQL username                          |
-| `DB_PASSWORD` | `pluma`           | PostgreSQL password                          |
-| `DB_NAME`     | `pluma`           | PostgreSQL database name                     |
-| `API_URL`     | `http://api:2137` | API base URL (override when API is external) |
+> **First run:** change `DB_PASSWORD` to a strong value before going to
+> production.
 
-> **Production:** set `DB_PASSWORD` to a strong value and override `API_URL` if
-> the API is publicly accessible.
-
-## SDK
-
-### Install
+### SDK
 
 ```bash
 npm install @pluma-flags/sdk
@@ -80,17 +89,15 @@ npm install @pluma-flags/sdk
 pnpm add @pluma-flags/sdk
 ```
 
-### Usage
-
-SDK tokens are created in the Pluma UI under **Settings**. Each token is scoped
-to a project and environment.
+SDK tokens are created in the Pluma UI under **Organisation → API Keys**. Each
+token is scoped to a project and environment.
 
 ```ts
 import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const client = PlumaSnapshotCache.create({
   baseUrl: "http://localhost:2137",
-  token: "sdk_your_token_here", // from UI → Settings
+  token: "sdk_your_token_here", // Organisation → API Keys in the Pluma UI
   ttlMs: 30_000, // optional; defaults to 30_000 ms (30 s)
 });
 
@@ -101,17 +108,19 @@ if (evaluator.isEnabled("my-feature-flag")) {
 }
 ```
 
-`evaluator()` is async — it fetches a snapshot from `/sdk/v1/snapshot` on first
-call and caches it for `ttlMs`. Subsequent calls within the TTL window return
-from cache. Reuse the same `client` instance across requests to benefit from
-caching; the snapshot is not scoped to `subjectKey`.
+For the full SDK reference (caching, per-subject targeting, framework examples,
+and the complete API) see [`packages/sdk/README.md`](packages/sdk/README.md).
 
 ## Contributing
 
-- Full development setup (Node.js, pnpm, Prisma, local DB) is documented in
-  [CONTRIBUTING.md](CONTRIBUTING.md).
-- The stack is a pnpm monorepo: `apps/api` (Fastify), `apps/app` (Next.js),
-  `packages/sdk`, `packages/db`, `packages/types`.
-- Lint, test, and build must pass before opening a PR.
-- Keep cross-package contracts in `@pluma-flags/types`; commit migration files
-  when the schema changes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup and contribution
+guidelines.
+
+## Support
+
+If Pluma is useful to you, consider
+[buying a coffee ☕](https://ko-fi.com/403html).
+
+## License
+
+Apache 2.0, see [LICENSE](LICENSE).
