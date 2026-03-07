@@ -31,8 +31,8 @@ http {
 
 ## docker-compose.yml
 
-Remove `ports` from the `api` service, add `deploy.replicas`, and add an
-`nginx` service:
+Remove `ports` from the `api` service, add `deploy.replicas`, and add an `nginx`
+service:
 
 ```yaml
 api:
