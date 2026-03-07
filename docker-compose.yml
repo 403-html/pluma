@@ -96,6 +96,22 @@ services:
       PORT: 3000
       NODE_ENV: production
 
+  # k6 — load-test runner (not started by default; use `docker compose run`).
+  # Usage:
+  #   docker compose run --rm k6 run /scripts/smoke.js
+  #   SDK_TOKEN=plt_xxx docker compose run --rm k6 run /scripts/load.js
+  k6:
+    image: grafana/k6:latest
+    profiles:
+      - tools
+    depends_on:
+      - nginx
+    volumes:
+      - ./load-tests/k6:/scripts:ro
+    environment:
+      API_URL: ${API_URL:-http://nginx:80}
+      SDK_TOKEN: ${SDK_TOKEN:-}
+
 volumes:
   pluma_postgres_data:
     name: pluma_postgres_data
