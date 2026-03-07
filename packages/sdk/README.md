@@ -3,7 +3,7 @@
 Client SDK for evaluating feature flags from a
 [Pluma](https://github.com/403-html/pluma) self-hosted feature flag server.
 
-Fetches a flag snapshot from the Pluma API and evaluates flags locally — no
+Fetches a flag snapshot from the Pluma API and evaluates flags locally; no
 round-trip per flag check. Supports per-subject targeting via allow/deny lists
 and deterministic rollout percentages.
 
@@ -48,7 +48,7 @@ import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const app = express();
 
-// Create once — shared across all requests.
+// Create once; shared across all requests.
 const flagCache = PlumaSnapshotCache.create({
   baseUrl: process.env.PLUMA_API_URL!,
   token: process.env.PLUMA_SDK_TOKEN!,
@@ -80,7 +80,7 @@ Use a module-level singleton in a Server Component or Route Handler. The cache
 is shared across server-side renders within the same Node.js process.
 
 ```ts
-// lib/flags.ts  — singleton, imported wherever flags are needed
+// lib/flags.ts  (singleton, imported wherever flags are needed)
 import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 export const flagCache = PlumaSnapshotCache.create({
@@ -90,7 +90,7 @@ export const flagCache = PlumaSnapshotCache.create({
 ```
 
 ```tsx
-// app/dashboard/page.tsx  — Server Component
+// app/dashboard/page.tsx  (Server Component)
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { flagCache } from "@/lib/flags";
@@ -120,19 +120,18 @@ from the authenticated user's session when propagating the result.
 
 Pass the user's ID (or any numeric-based identifier) as `subjectKey` to
 `evaluator()`. The value must match exactly what is stored in the allow/deny
-lists in the Pluma UI — those lists are populated with known user IDs.
-Evaluation precedence for each flag:
+lists in the Pluma UI; those lists are populated with known user IDs. Evaluation
+precedence for each flag:
 
-1. **Deny list** — if `subjectKey` is in `denyList`, returns `false`
+1. **Deny list**: if `subjectKey` is in `denyList`, returns `false` immediately.
+2. **Allow list**: if `subjectKey` is in `allowList`, returns `true`
    immediately.
-2. **Allow list** — if `subjectKey` is in `allowList`, returns `true`
-   immediately.
-3. **Rollout percentage** — if set (not `null`), a deterministic FNV-1a 32-bit
+3. **Rollout percentage**: if set (not `null`), a deterministic FNV-1a 32-bit
    hash of `subjectKey:flagKey` assigns the subject to a bucket in `[0, 100)`.
    Returns `true` if the bucket falls within the percentage.
-4. **Parent inheritance** — if `inheritParent` is set and the flag has a parent,
+4. **Parent inheritance**: if `inheritParent` is set and the flag has a parent,
    evaluation walks up the parent chain.
-5. **Base enabled state** — returns the flag's `enabled` value.
+5. **Base enabled state**: returns the flag's `enabled` value.
 
 If `subjectKey` is omitted, steps 1–3 are skipped (allow/deny lists and rollout
 are not evaluated). The flag resolves purely from parent inheritance and its
@@ -144,8 +143,8 @@ base enabled state.
 snapshot is fetched on the first `evaluator()` call and reused until the TTL
 expires. There is no background polling.
 
-- **Create the cache once** — at module level or in application startup.
-  Creating a new instance per request defeats the cache entirely.
+- **Create the cache once**: at module level or in application startup. Creating
+  a new instance per request defeats the cache entirely.
 - The snapshot is **not** scoped to `subjectKey`. One cached snapshot serves all
   subjects.
 - On refresh, the SDK sends the current snapshot version as an `If-None-Match`
@@ -171,16 +170,16 @@ result. The traversal is iterative (not recursive) and bounded by
 
 ### `PlumaSnapshotCacheOptions`
 
-| Field     | Type     | Required | Default | Description                          |
-| --------- | -------- | -------- | ------- | ------------------------------------ |
-| `baseUrl` | `string` | yes      | —       | Base URL of the Pluma API server     |
-| `token`   | `string` | yes      | —       | SDK token from Organisation → API Keys |
-| `ttlMs`   | `number` | no       | `30000` | Snapshot cache TTL in milliseconds   |
+| Field     | Type     | Required | Default | Description                             |
+| --------- | -------- | -------- | ------- | --------------------------------------- |
+| `baseUrl` | `string` | yes      | (none)  | Base URL of the Pluma API server        |
+| `token`   | `string` | yes      | (none)  | SDK token from Organisation -> API Keys |
+| `ttlMs`   | `number` | no       | `30000` | Snapshot cache TTL in milliseconds      |
 
 ### `EvaluatorOptions`
 
-| Field        | Type     | Required | Description                                        |
-| ------------ | -------- | -------- | -------------------------------------------------- |
+| Field        | Type     | Required | Description                                                          |
+| ------------ | -------- | -------- | -------------------------------------------------------------------- |
 | `subjectKey` | `string` | no       | User ID or numeric-based identifier matched against allow/deny lists |
 
 ### `Evaluator`

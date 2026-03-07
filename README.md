@@ -6,8 +6,7 @@
 
 # Pluma
 
-Self-hosted feature flag system — manage flags via a web UI and evaluate them in
-your application with a lightweight SDK.
+<p align="center">Self-hosted feature flag system. Manage flags via a web UI and evaluate them in your application with a lightweight SDK.</p>
 
 </div>
 
@@ -107,8 +106,8 @@ if (evaluator.isEnabled("my-feature-flag")) {
 }
 ```
 
-For the full SDK reference — caching, per-subject targeting, framework examples,
-and the complete API — see [`packages/sdk/README.md`](packages/sdk/README.md).
+For the full SDK reference (caching, per-subject targeting, framework examples,
+and the complete API) see [`packages/sdk/README.md`](packages/sdk/README.md).
 
 ## Contributing
 
@@ -122,4 +121,4 @@ If Pluma is useful to you, consider
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
+Apache 2.0, see [LICENSE](LICENSE).

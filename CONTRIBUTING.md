@@ -14,7 +14,7 @@ pnpm install
 
 # 2. Start the database
 cd packages/db
-cp .env.example .env   # uses default credentials — fine for local dev
+cp .env.example .env   # uses default credentials, fine for local dev
 docker compose up -d
 
 # 3. Apply migrations and seed
@@ -52,6 +52,6 @@ All three must pass. PRs that fail CI will not be merged.
 - Keep shared contracts in `@pluma-flags/types`; bump the package when types
   change.
 - Commit Prisma migration files (`packages/db/prisma/migrations/`) when the
-  schema changes — never use `db:push` for changes meant for production.
+  schema changes; never use `db:push` for changes meant for production.
 - Write or update tests for every behaviour change.
 - Keep functions under ~60 lines; validate all external inputs with Zod.

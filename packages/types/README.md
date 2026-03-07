@@ -63,18 +63,18 @@ const role: UserRole = "admin"; // 'operator' | 'admin' | 'user'
 
 ### Types
 
-| Export               | Description                                                                           |
-| -------------------- | ------------------------------------------------------------------------------------- |
-| `UserRole`           | `'operator' \| 'admin' \| 'user'`                                                     |
-| `AuthUser`           | Authenticated user — `id`, `email`, `role`, `disabled`, `createdAt`                   |
-| `Project`            | Project record                                                                        |
-| `ProjectSummary`     | Serialised project with environments list (API response shape)                        |
-| `SdkToken`           | SDK token record — `id`, `projectId`, `name`, `createdAt`, `revokedAt`                |
-| `FeatureFlag`        | Flag record — `id`, `projectId`, `key`, `name`, `parentFlagId`                        |
-| `Environment`        | Environment record                                                                    |
-| `EnvironmentSummary` | Serialised environment with flag stats (API response shape)                           |
-| `FlagConfig`         | Per-environment flag config — `enabled`, `allowList`, `denyList`, `rolloutPercentage` |
-| `SnapshotFlag`       | Flag entry in an SDK snapshot                                                         |
-| `Snapshot`           | Full SDK snapshot — `version`, `projectKey`, `envKey`, `flags`                        |
-| `AuditMeta`          | Request metadata attached to audit log entries                                        |
-| `AuditLogEntry`      | Full audit log entry record                                                           |
+| Export               | Description                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `UserRole`           | `'operator' \| 'admin' \| 'user'`                                                    |
+| `AuthUser`           | Authenticated user: `id`, `email`, `role`, `disabled`, `createdAt`                   |
+| `Project`            | Project record                                                                       |
+| `ProjectSummary`     | Serialised project with environments list (API response shape)                       |
+| `SdkToken`           | SDK token record: `id`, `projectId`, `name`, `createdAt`, `revokedAt`                |
+| `FeatureFlag`        | Flag record: `id`, `projectId`, `key`, `name`, `parentFlagId`                        |
+| `Environment`        | Environment record                                                                   |
+| `EnvironmentSummary` | Serialised environment with flag stats (API response shape)                          |
+| `FlagConfig`         | Per-environment flag config: `enabled`, `allowList`, `denyList`, `rolloutPercentage` |
+| `SnapshotFlag`       | Flag entry in an SDK snapshot                                                        |
+| `Snapshot`           | Full SDK snapshot: `version`, `projectKey`, `envKey`, `flags`                        |
+| `AuditMeta`          | Request metadata attached to audit log entries                                       |
+| `AuditLogEntry`      | Full audit log entry record                                                          |
