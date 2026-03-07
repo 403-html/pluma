@@ -118,25 +118,6 @@ uses PostgreSQL advisory locks to serialise migration execution — only one
 instance runs the migrations and the rest wait, then proceed once the lock is
 released.
 
-## Load Tests
-
-Performance scripts are in [`load-tests/k6/`](load-tests/README.md). Run a smoke
-test after scaling to confirm all replicas are responding:
-
-```bash
-# Quick sanity check after scaling (no k6 binary required)
-docker compose run --rm k6 run /scripts/smoke.js
-
-# Full load test (ramps to 50 VUs)
-docker compose run --rm k6 run /scripts/load.js
-
-# Stress test (ramps to 300 VUs — finds breaking point)
-docker compose run --rm k6 run /scripts/stress.js
-```
-
-See [`load-tests/README.md`](load-tests/README.md) for full instructions
-including binary-based execution.
-
 ## Production Considerations
 
 For production deployments beyond a local Docker Compose setup:
@@ -166,8 +147,7 @@ For production deployments beyond a local Docker Compose setup:
 ### Monitoring
 
 - Export Prometheus metrics from the API and scrape with Grafana
-- Alert on `http_req_failed > 1%` and `p95 latency > 500 ms` (matching the
-  load-test thresholds)
+- Alert on high error rates and elevated p95 latency
 - Monitor PostgreSQL connection count — alert when approaching `max_connections`
 
 ### Health checks
