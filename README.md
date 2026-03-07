@@ -111,6 +111,12 @@ if (evaluator.isEnabled("my-feature-flag")) {
 For the full SDK reference (caching, per-subject targeting, framework examples,
 and the complete API) see [`packages/sdk/README.md`](packages/sdk/README.md).
 
+## Scaling
+
+The `api` service is stateless and can be scaled horizontally by running
+multiple replicas behind an nginx reverse proxy. See [SCALING.md](SCALING.md)
+for a step-by-step guide.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup and contribution
