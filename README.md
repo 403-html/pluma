@@ -4,7 +4,7 @@
 [![Docker](https://img.shields.io/github/v/release/403-html/pluma?label=docker)](https://github.com/403-html/pluma/releases)
 [![SDK](https://img.shields.io/npm/v/%40pluma-flags%2Fsdk?label=sdk)](https://www.npmjs.com/package/@pluma-flags/sdk)
 
-# Pluma
+<img width="4030" height="1766" alt="Pluma header" src="https://github.com/user-attachments/assets/c2128faa-3d60-44de-a4f1-60384660fcb3" />
 
 <p align="center">Self-hosted feature flag system. Manage flags via a web UI and evaluate them in your application with a lightweight SDK.</p>
 
