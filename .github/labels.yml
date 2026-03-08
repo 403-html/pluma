@@ -1,5 +1,6 @@
 # Release labels — every PR needs at least one before it can merge.
-# api/app:* triggers a Docker bump; types:* triggers an npm types bump.
+# api/app:* triggers a Docker bump; types:* triggers an npm types bump;
+# sdk:* triggers an npm SDK bump.
 labels:
   - { name: "api:patch",   color: "0e8a16", description: "API fix (apps/api)"                    }
   - { name: "api:minor",   color: "fbca04", description: "API feature (apps/api)"                 }
@@ -7,6 +8,9 @@ labels:
   - { name: "app:patch",   color: "0e8a16", description: "UI fix (apps/app)"                      }
   - { name: "app:minor",   color: "fbca04", description: "UI feature (apps/app)"                  }
   - { name: "app:major",   color: "d93f0b", description: "UI breaking change (apps/app)"          }
+  - { name: "sdk:patch",   color: "0e8a16", description: "SDK fix (packages/sdk)"                 }
+  - { name: "sdk:minor",   color: "fbca04", description: "SDK feature (packages/sdk)"             }
+  - { name: "sdk:major",   color: "d93f0b", description: "SDK breaking change (packages/sdk)"     }
   - { name: "types:patch", color: "0e8a16", description: "Types fix (packages/types)"             }
   - { name: "types:minor", color: "fbca04", description: "Types feature (packages/types)"         }
   - { name: "types:major", color: "d93f0b", description: "Types breaking change (packages/types)" }

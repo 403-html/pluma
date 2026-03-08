@@ -60,6 +60,7 @@ merge. Each label encodes the affected package and the semver bump level:
 |---|---|---|
 | `api:patch` / `api:minor` / `api:major` | Docker (API + App) | patch / minor / major |
 | `app:patch` / `app:minor` / `app:major` | Docker (API + App) | patch / minor / major |
+| `sdk:patch` / `sdk:minor` / `sdk:major` | npm `@pluma-flags/sdk` | patch / minor / major |
 | `types:patch` / `types:minor` / `types:major` | npm `@pluma-flags/types` | patch / minor / major |
 
 A PR may have more than one label (e.g. `api:minor` + `types:patch`). When

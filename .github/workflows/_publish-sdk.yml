@@ -1,0 +1,83 @@
+# Reusable workflow — publish @pluma-flags/sdk to npm.
+# Called by release.yml (manual hotfix) and auto-release.yml (automated).
+#
+# The sync-types step is intentionally lenient: if @pluma-flags/types is not
+# yet visible on npm (propagation delay after a same-run types release) the SDK
+# is built against the local package.json version with a warning rather than
+# failing the build.
+name: _Publish SDK
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Semver version to publish (e.g. "1.2.3")
+        required: true
+        type: string
+      ref:
+        description: >
+          Git ref or SHA to checkout. Defaults to the calling workflow's SHA
+          when omitted.
+        required: false
+        type: string
+        default: ""
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  publish:
+    name: Publish SDK to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # npm provenance
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync types version from npm
+        run: |
+          TYPES_VERSION=$(npm view @pluma-flags/types version 2>/dev/null || echo "")
+          if [ -n "${TYPES_VERSION}" ]; then
+            echo "Syncing @pluma-flags/types → ${TYPES_VERSION}"
+            cd packages/types && npm pkg set version="${TYPES_VERSION}"
+          else
+            echo "::warning::@pluma-flags/types not found on npm — SDK will be built against the local types version from package.json"
+          fi
+
+      - name: Bump SDK version
+        run: cd packages/sdk && npm pkg set version="${{ inputs.version }}"
+
+      - name: Build types
+        run: pnpm --filter @pluma-flags/types build
+
+      - name: Build SDK
+        run: pnpm --filter @pluma-flags/sdk build
+
+      - name: Run SDK tests
+        run: pnpm --filter @pluma-flags/sdk test
+
+      - name: Publish to npm
+        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance --tag latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
