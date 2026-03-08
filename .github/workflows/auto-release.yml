@@ -342,7 +342,7 @@ jobs:
               while IFS= read -r SUBJECT; do
                 if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT%" (#${PR_NUM})"}"
+                  TITLE="${SUBJECT% (#${PR_NUM})}"
                   echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges 2>/dev/null || true)
@@ -423,7 +423,7 @@ jobs:
               while IFS= read -r SUBJECT; do
                 if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT%" (#${PR_NUM})"}"
+                  TITLE="${SUBJECT% (#${PR_NUM})}"
                   echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges 2>/dev/null || true)
@@ -512,7 +512,7 @@ jobs:
               while IFS= read -r SUBJECT; do
                 if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT%" (#${PR_NUM})"}"
+                  TITLE="${SUBJECT% (#${PR_NUM})}"
                   echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges 2>/dev/null || true)
