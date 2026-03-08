@@ -337,15 +337,15 @@ jobs:
             echo "# Changes"
             echo ""
             if [ -n "${PREV_TAG}" ]; then
-              # Only commits with a trailing "(#NNN)" PR reference are listed;
-              # direct pushes and bot commits without a PR number are skipped.
-              while IFS= read -r SUBJECT; do
-                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
+              # Only merged PRs are listed; direct pushes without a merge commit are skipped.
+              while IFS= read -r SHA; do
+                SUBJ=$(git log -1 --format="%s" "${SHA}")
+                if [[ "${SUBJ}" =~ ^Merge\ pull\ request\ #([0-9]+)\ from ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT% (#${PR_NUM})}"
-                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
+                  TITLE=$(git log -1 --format="%b" "${SHA}" | grep -m1 '.' | xargs)
+                  [[ -n "${TITLE}" ]] && echo "- ${TITLE} [#${PR_NUM}]"
                 fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/types/ 2>/dev/null || true)
+              done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- packages/types/ 2>/dev/null || true)
               echo ""
               echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
@@ -418,15 +418,15 @@ jobs:
             echo "# Changes"
             echo ""
             if [ -n "${PREV_TAG}" ]; then
-              # Only commits with a trailing "(#NNN)" PR reference are listed;
-              # direct pushes and bot commits without a PR number are skipped.
-              while IFS= read -r SUBJECT; do
-                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
+              # Only merged PRs are listed; direct pushes without a merge commit are skipped.
+              while IFS= read -r SHA; do
+                SUBJ=$(git log -1 --format="%s" "${SHA}")
+                if [[ "${SUBJ}" =~ ^Merge\ pull\ request\ #([0-9]+)\ from ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT% (#${PR_NUM})}"
-                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
+                  TITLE=$(git log -1 --format="%b" "${SHA}" | grep -m1 '.' | xargs)
+                  [[ -n "${TITLE}" ]] && echo "- ${TITLE} [#${PR_NUM}]"
                 fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/sdk/ 2>/dev/null || true)
+              done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- packages/sdk/ 2>/dev/null || true)
               echo ""
               echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
@@ -507,15 +507,15 @@ jobs:
             echo "# Changes"
             echo ""
             if [ -n "${PREV_TAG}" ]; then
-              # Only commits with a trailing "(#NNN)" PR reference are listed;
-              # direct pushes and bot commits without a PR number are skipped.
-              while IFS= read -r SUBJECT; do
-                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
+              # Only merged PRs are listed; direct pushes without a merge commit are skipped.
+              while IFS= read -r SHA; do
+                SUBJ=$(git log -1 --format="%s" "${SHA}")
+                if [[ "${SUBJ}" =~ ^Merge\ pull\ request\ #([0-9]+)\ from ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT% (#${PR_NUM})}"
-                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
+                  TITLE=$(git log -1 --format="%b" "${SHA}" | grep -m1 '.' | xargs)
+                  [[ -n "${TITLE}" ]] && echo "- ${TITLE} [#${PR_NUM}]"
                 fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
+              done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
               echo ""
               echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
