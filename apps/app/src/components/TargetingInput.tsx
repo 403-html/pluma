@@ -162,7 +162,7 @@ export function TargetingInput({
     <div ref={containerRef} className="relative">
       {/* Tag chips + input */}
       <div
-        className="flex flex-wrap gap-1.5 min-h-[38px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-within:ring-1 focus-within:ring-ring cursor-text"
+        className="flex flex-wrap items-center gap-1.5 min-h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-within:ring-1 focus-within:ring-ring cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
         {tags.map((tag) => (

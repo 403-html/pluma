@@ -12,14 +12,14 @@ export function TagInput({
   pending?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${pending ? 'bg-destructive/15 text-destructive ring-1 ring-destructive/40' : 'bg-muted text-foreground'}`}>
+    <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium leading-none ${pending ? 'bg-destructive/15 text-destructive ring-1 ring-destructive/40' : 'bg-muted text-foreground'}`}>
       {value}
       <button
         type="button"
         aria-label={`Remove ${value}`}
         onClick={onRemove}
         disabled={disabled}
-        className="leading-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed"
+        className="p-0 leading-none cursor-pointer text-muted-foreground hover:text-foreground disabled:cursor-not-allowed"
       >
         ×
       </button>
