@@ -1,5 +1,85 @@
 # Release Process
 
+## Automated Releases
+
+Releases are fully automated on push to `main`. The
+[`auto-release.yml`](.github/workflows/auto-release.yml) workflow fires after
+CI passes and independently releases each package group that has new commits.
+
+### What Triggers an Automated Release
+
+1. A pull request (or direct push) is merged to `main`.
+2. The **CI** workflow runs and passes.
+3. The **Auto Release** workflow starts via `workflow_run`.
+
+No manual intervention is required. Releases happen package-by-package based on
+what actually changed.
+
+### How Changed Packages Are Detected
+
+For each release group, the workflow compares the commit range from the last
+release tag for that group to the current `HEAD`:
+
+| Release group | Watched paths | Last-tag pattern |
+|---|---|---|
+| Types | `packages/types/**` | `types/v*.*.*` |
+| SDK | `packages/sdk/**` | `sdk/v*.*.*` |
+| Docker | `apps/api/**`, `apps/app/**`, `packages/db/**` | `v*.*.*` |
+
+If no matching tag exists yet (first release), the diff goes back to the
+repository's initial commit.
+
+### How the Bump Type Is Determined
+
+For each release group the workflow inspects **only the commits that touched
+that group's paths** since the last tag:
+
+| Commit signal | Bump |
+|---|---|
+| `BREAKING CHANGE` anywhere in message body | **major** |
+| Subject matches `^[a-z]+!:` (e.g. `feat!:`) | **major** |
+| Subject starts with `feat(` or `feat:` | **minor** |
+| Everything else (`fix`, `chore`, `refactor`, …) | **patch** |
+
+If no commits are found for a group's paths the default is **patch**.
+
+### Skip-Release Guard
+
+If the `HEAD` commit subject matches `^chore\(release\):`, the workflow exits
+immediately without releasing anything. This prevents the version-bump commit
+that the workflow itself pushes from triggering another release. The
+`update-main` job uses the message `chore(release): bump versions [skip ci]`,
+which matches this pattern.
+
+### Job Ordering
+
+```
+detect
+  ├── release-types  ────────────────────────────┐
+  ├── release-types → release-sdk                │
+  ├── release-api ──┐                            │
+  └── release-app ──┴─ tag-docker                │
+                                                 ▼
+                                   update-main (always, if ≥1 succeeded)
+```
+
+- `release-sdk` always waits for `release-types` (if types was skipped it
+  proceeds immediately and syncs the latest published types version from npm).
+- `release-api` and `release-app` run in parallel.
+- `tag-docker` waits for both image builds to succeed, then creates the shared
+  git tag and GitHub Release.
+- `update-main` commits all version bumps back to `main` after every successful
+  release.
+
+---
+
+## Manual / Hotfix Release
+
+The [`release.yml`](.github/workflows/release.yml) workflow remains available
+as an escape hatch for hotfixes and out-of-band releases. Use it whenever you
+need to release without going through the automated path (e.g. a critical
+production fix that can't wait for a PR merge).
+
 ## Prerequisites
 
 Before starting any release:
@@ -8,9 +88,9 @@ Before starting any release:
 2. Any dependent package is already published (e.g., Types before SDK if the SDK
    depends on newer types).
 
-## How Releases Work
+## How Releases Work (Manual / Hotfix)
 
-All releases are triggered through the **GitHub Release UI**. There are no local
+All **manual** releases are triggered through the **GitHub Release UI**. There are no local
 release scripts — a single [`release.yml`](.github/workflows/release.yml)
 workflow handles validation, version bumping, building, publishing, and updating
 `main` with the new version.
@@ -158,8 +238,8 @@ all" command — this is intentional to allow independent versioning.
 
 ## Tag Reference
 
-| Package              | Tag format     | Example        | Workflow      |
-| -------------------- | -------------- | -------------- | ------------- |
-| `@pluma-flags/sdk`   | `sdk/v*.*.*`   | `sdk/v1.0.0`   | `release.yml` |
-| `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `release.yml` |
-| Docker (API + App)   | `v*.*.*`       | `v1.0.0`       | `release.yml` |
+| Package              | Tag format     | Example        | Workflow           |
+| -------------------- | -------------- | -------------- | ------------------ |
+| `@pluma-flags/sdk`   | `sdk/v*.*.*`   | `sdk/v1.0.0`   | `auto-release.yml` / `release.yml` |
+| `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `auto-release.yml` / `release.yml` |
+| Docker (API + App)   | `v*.*.*`       | `v1.0.0`       | `auto-release.yml` / `release.yml` |

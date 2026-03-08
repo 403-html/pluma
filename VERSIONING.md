@@ -6,6 +6,14 @@ Pluma is a monorepo with multiple independently versioned packages. Each
 published package and deployable artifact follows its own release cadence while
 sharing a common Semantic Versioning contract.
 
+> **Releases are automated.** Every merge to `main` that passes CI triggers the
+> [`auto-release.yml`](.github/workflows/auto-release.yml) workflow, which
+> detects which package groups changed, determines the correct semver bump from
+> the conventional commit history, and releases only the affected packages. No
+> manual tagging is required for normal development. See
+> [RELEASE.md](RELEASE.md) for the full automated-release reference and the
+> manual/hotfix escape hatch.
+
 ## Semver Adherence
 
 Pluma follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)

@@ -1,0 +1,564 @@
+# Automated release workflow for Pluma.
+#
+# Trigger: fires via workflow_run after the "CI" workflow completes successfully
+#          on the main branch. This ensures broken builds are never released.
+#
+# Release groups:
+#   types/v*   → publish @pluma-flags/types to npm
+#   sdk/v*     → publish @pluma-flags/sdk to npm (waits for types if also releasing)
+#   v*         → build & push Docker images to GHCR (pluma-api + pluma-app)
+#
+# Skip-release guard: if the HEAD commit subject matches ^chore\(release\):
+#   the workflow exits immediately to break the version-bump → CI → release loop.
+#
+# After a successful publish the update-main job commits version bumps to main
+# with "chore(release): bump versions [skip ci]" — the [skip ci] flag is an
+# additional safety net, but the ^chore\(release\): prefix is the primary guard.
+#
+# Required secrets:
+#   - NPM_TOKEN: npm publish authentication (types + sdk jobs)
+#   - GITHUB_TOKEN: auto-provided — GHCR push + tag push + main update
+
+name: Auto Release
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "20"
+
+permissions:
+  contents: write   # push tags, push to main, create GitHub Releases
+  packages: write   # push Docker images to GHCR
+  id-token: write   # npm provenance for SDK publish
+
+jobs:
+  # ------------------------------------------------------------------ detect
+  detect:
+    name: Detect changes and compute versions
+    runs-on: ubuntu-latest
+    # Only proceed when the triggering CI run was successful
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      sha:            ${{ steps.info.outputs.sha }}
+      release_types:  ${{ steps.detect.outputs.release_types }}
+      release_sdk:    ${{ steps.detect.outputs.release_sdk }}
+      release_docker: ${{ steps.detect.outputs.release_docker }}
+      types_version:  ${{ steps.detect.outputs.types_version }}
+      sdk_version:    ${{ steps.detect.outputs.sdk_version }}
+      docker_version: ${{ steps.detect.outputs.docker_version }}
+      docker_major:   ${{ steps.detect.outputs.docker_major }}
+      docker_minor:   ${{ steps.detect.outputs.docker_minor }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Pin to the exact SHA the CI run validated — avoids race conditions
+          # with commits pushed after CI started.
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0   # full history + all tags needed for git log / git tag
+
+      - name: Set SHA output
+        id: info
+        run: echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+
+      # ---- Skip-release guard ----------------------------------------
+      # If the HEAD commit was itself a version-bump commit we exit early to
+      # prevent an infinite loop (bump commit → CI → auto-release → bump …).
+      - name: Check skip-release guard
+        id: guard
+        run: |
+          SUBJECT=$(git log -1 --format="%s")
+          echo "HEAD commit subject: ${SUBJECT}"
+          if [[ "${SUBJECT}" =~ ^chore\(release\): ]]; then
+            echo "::notice::Skip-release guard matched — exiting without release"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ---- Path-based change detection + conventional-commit bumps ----
+      - name: Detect changes and compute versions
+        id: detect
+        if: steps.guard.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # --- helpers ---
+
+          # Return the newest tag matching a glob pattern (semver-sorted).
+          get_last_tag() {
+            git tag -l "$1" --sort=-version:refname | head -1
+          }
+
+          # The very first commit in the repo — used as base when no tag exists.
+          # head -1 guards against repos with multiple root commits.
+          INITIAL_COMMIT=$(git rev-list --max-parents=0 | head -1)
+
+          # Determine bump type from a block of commit message text.
+          # Precedence: BREAKING CHANGE / bang-commits → major, feat → minor, else patch.
+          # "BREAKING CHANGE" is matched at the start of a line (conventional commits
+          # footer syntax) to avoid false positives in prose descriptions.
+          # Regex patterns are stored in variables to prevent bash from
+          # misinterpreting special characters (e.g. '(' in character classes).
+          BREAKING_RE='^BREAKING[[:space:]]CHANGE'
+          BANG_RE='^(feat|fix|build|chore|ci|docs|style|refactor|perf|test)!:'
+          FEAT_COLON_RE='^feat:'
+          FEAT_SCOPE_RE='^feat\('
+
+          get_bump_type() {
+            local MESSAGES="${1}"
+            local BUMP="patch"
+            while IFS= read -r line; do
+              if [[ "${line}" =~ $BREAKING_RE ]]; then
+                BUMP="major"; break
+              fi
+              if [[ "${line}" =~ $BANG_RE ]]; then
+                BUMP="major"; break
+              fi
+              if { [[ "${line}" =~ $FEAT_COLON_RE ]] || [[ "${line}" =~ $FEAT_SCOPE_RE ]]; } \
+                 && [[ "${BUMP}" != "major" ]]; then
+                BUMP="minor"
+              fi
+            done <<< "${MESSAGES}"
+            echo "${BUMP}"
+          }
+
+          # Apply a semver bump to a version string (must be X.Y.Z).
+          bump_version() {
+            local V="${1}" BUMP="${2}"
+            local MAJOR REST MINOR PATCH
+            # Validate inputs
+            if [[ ! "${V}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Invalid semver: '${V}'" >&2; return 1
+            fi
+            if [[ ! "${BUMP}" =~ ^(major|minor|patch)$ ]]; then
+              echo "::error::Invalid bump type: '${BUMP}'" >&2; return 1
+            fi
+            MAJOR="${V%%.*}"
+            REST="${V#*.}"
+            MINOR="${REST%%.*}"
+            PATCH="${REST#*.}"
+            case "${BUMP}" in
+              major) echo "$((MAJOR+1)).0.0" ;;
+              minor) echo "${MAJOR}.$((MINOR+1)).0" ;;
+              *)     echo "${MAJOR}.${MINOR}.$((PATCH+1))" ;;
+            esac
+          }
+
+          # --- Types ---
+
+          LAST_TYPES_TAG=$(get_last_tag "types/v*.*.*")
+          TYPES_BASE="${LAST_TYPES_TAG:-${INITIAL_COMMIT}}"
+          TYPES_FILES=$(git diff --name-only "${TYPES_BASE}..HEAD" -- packages/types/ | wc -l)
+
+          if [[ "${TYPES_FILES}" -gt 0 ]]; then
+            TYPES_MSGS=$(git log "${TYPES_BASE}..HEAD" --format="%s%n%b" -- packages/types/)
+            TYPES_BUMP=$(get_bump_type "${TYPES_MSGS}")
+            CURRENT=$(jq -r '.version' packages/types/package.json)
+            NEW_VER=$(bump_version "${CURRENT}" "${TYPES_BUMP}")
+            if git rev-parse --verify "refs/tags/types/v${NEW_VER}" >/dev/null 2>&1; then
+              echo "::notice::types/v${NEW_VER} already tagged — skipping"
+              echo "release_types=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "Detected types change: ${CURRENT} → ${NEW_VER} (${TYPES_BUMP})"
+              echo "release_types=true"    >> "$GITHUB_OUTPUT"
+              echo "types_version=${NEW_VER}" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "No types changes detected"
+            echo "release_types=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # --- SDK ---
+
+          LAST_SDK_TAG=$(get_last_tag "sdk/v*.*.*")
+          SDK_BASE="${LAST_SDK_TAG:-${INITIAL_COMMIT}}"
+          SDK_FILES=$(git diff --name-only "${SDK_BASE}..HEAD" -- packages/sdk/ | wc -l)
+
+          if [[ "${SDK_FILES}" -gt 0 ]]; then
+            SDK_MSGS=$(git log "${SDK_BASE}..HEAD" --format="%s%n%b" -- packages/sdk/)
+            SDK_BUMP=$(get_bump_type "${SDK_MSGS}")
+            CURRENT=$(jq -r '.version' packages/sdk/package.json)
+            NEW_VER=$(bump_version "${CURRENT}" "${SDK_BUMP}")
+            if git rev-parse --verify "refs/tags/sdk/v${NEW_VER}" >/dev/null 2>&1; then
+              echo "::notice::sdk/v${NEW_VER} already tagged — skipping"
+              echo "release_sdk=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "Detected SDK change: ${CURRENT} → ${NEW_VER} (${SDK_BUMP})"
+              echo "release_sdk=true"     >> "$GITHUB_OUTPUT"
+              echo "sdk_version=${NEW_VER}" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "No SDK changes detected"
+            echo "release_sdk=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # --- Docker (api / app / db) ---
+
+          LAST_DOCKER_TAG=$(get_last_tag "v*.*.*")
+          DOCKER_BASE="${LAST_DOCKER_TAG:-${INITIAL_COMMIT}}"
+          DOCKER_FILES=$(git diff --name-only "${DOCKER_BASE}..HEAD" -- apps/api/ apps/app/ packages/db/ | wc -l)
+
+          if [[ "${DOCKER_FILES}" -gt 0 ]]; then
+            DOCKER_MSGS=$(git log "${DOCKER_BASE}..HEAD" --format="%s%n%b" -- apps/api/ apps/app/ packages/db/)
+            DOCKER_BUMP=$(get_bump_type "${DOCKER_MSGS}")
+            CURRENT=$(jq -r '.version' apps/api/package.json)
+            NEW_VER=$(bump_version "${CURRENT}" "${DOCKER_BUMP}")
+            if git rev-parse --verify "refs/tags/v${NEW_VER}" >/dev/null 2>&1; then
+              echo "::notice::v${NEW_VER} already tagged — skipping"
+              echo "release_docker=false" >> "$GITHUB_OUTPUT"
+            else
+              DMAJOR="${NEW_VER%%.*}"
+              DMINOR="${NEW_VER#*.}"
+              DMINOR="${DMINOR%%.*}"
+              echo "Detected Docker change: ${CURRENT} → ${NEW_VER} (${DOCKER_BUMP})"
+              echo "release_docker=true"       >> "$GITHUB_OUTPUT"
+              echo "docker_version=${NEW_VER}" >> "$GITHUB_OUTPUT"
+              echo "docker_major=${DMAJOR}"    >> "$GITHUB_OUTPUT"
+              echo "docker_minor=${DMINOR}"    >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "No Docker changes detected"
+            echo "release_docker=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ----------------------------------------------------------- release-types
+  release-types:
+    name: Release types to npm
+    needs: detect
+    if: needs.detect.outputs.release_types == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bump version
+        run: cd packages/types && npm pkg set version="${{ needs.detect.outputs.types_version }}"
+
+      - name: Build types
+        run: pnpm --filter @pluma-flags/types build
+
+      - name: Publish to npm
+        run: pnpm --filter @pluma-flags/types publish --no-git-checks --access public --tag latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create and push git tag
+        run: |
+          VERSION="${{ needs.detect.outputs.types_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "types/v${VERSION}"
+          git push origin "types/v${VERSION}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.detect.outputs.types_version }}"
+          gh release create "types/v${VERSION}" \
+            --title "types v${VERSION}" \
+            --notes "Auto-release: types v${VERSION}" \
+            --latest=false
+
+  # ------------------------------------------------------------- release-sdk
+  # Always listed after release-types so that if types is also being released
+  # this job waits and can sync the freshly-published version from npm.
+  # The explicit if condition allows release-types to be skipped (not releasing)
+  # without blocking this job.
+  release-sdk:
+    name: Release SDK to npm
+    needs: [detect, release-types]
+    if: >-
+      needs.detect.outputs.release_sdk == 'true' &&
+      needs.release-types.result != 'failure' &&
+      needs.release-types.result != 'cancelled'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync types version from npm
+        run: |
+          # If types was just published in this run, npm view returns it.
+          # If types is not on npm yet (rare first-publish edge case), we fall
+          # back gracefully and keep the local package.json version as-is.
+          # stderr is suppressed intentionally — a non-zero exit (package not found)
+          # is handled by the empty-string check below.
+          TYPES_VERSION=$(npm view @pluma-flags/types version 2>/dev/null || echo "")
+          if [ -n "${TYPES_VERSION}" ]; then
+            echo "Syncing @pluma-flags/types → ${TYPES_VERSION}"
+            cd packages/types && npm pkg set version="${TYPES_VERSION}"
+          else
+            echo "::warning::@pluma-flags/types not found on npm — using local version from package.json"
+          fi
+
+      - name: Bump SDK version
+        run: cd packages/sdk && npm pkg set version="${{ needs.detect.outputs.sdk_version }}"
+
+      - name: Build types
+        run: pnpm --filter @pluma-flags/types build
+
+      - name: Build SDK
+        run: pnpm --filter @pluma-flags/sdk build
+
+      - name: Run SDK tests
+        run: pnpm --filter @pluma-flags/sdk test
+
+      - name: Publish to npm
+        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance --tag latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create and push git tag
+        run: |
+          VERSION="${{ needs.detect.outputs.sdk_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "sdk/v${VERSION}"
+          git push origin "sdk/v${VERSION}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.detect.outputs.sdk_version }}"
+          gh release create "sdk/v${VERSION}" \
+            --title "sdk v${VERSION}" \
+            --notes "Auto-release: sdk v${VERSION}" \
+            --latest=false
+
+  # ------------------------------------------------------------- release-api
+  release-api:
+    name: Release API image
+    needs: detect
+    if: needs.detect.outputs.release_docker == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect.outputs.sha }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pluma-api
+          tags: |
+            type=raw,value=v${{ needs.detect.outputs.docker_version }}
+            type=raw,value=v${{ needs.detect.outputs.docker_major }}.${{ needs.detect.outputs.docker_minor }}
+            type=raw,value=latest
+            type=sha  # short git SHA tag (sha-<7chars>) for traceability
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ------------------------------------------------------------- release-app
+  release-app:
+    name: Release App image
+    needs: detect
+    if: needs.detect.outputs.release_docker == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect.outputs.sha }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pluma-app
+          tags: |
+            type=raw,value=v${{ needs.detect.outputs.docker_version }}
+            type=raw,value=v${{ needs.detect.outputs.docker_major }}.${{ needs.detect.outputs.docker_minor }}
+            type=raw,value=latest
+            type=sha  # short git SHA tag (sha-<7chars>) for traceability
+
+      - name: Build and push App image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/app/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # -------------------------------------------------------------- tag-docker
+  # Runs after both image builds succeed; creates the shared git tag and
+  # the GitHub Release (marked as the repository's latest release).
+  tag-docker:
+    name: Tag Docker release
+    needs: [detect, release-api, release-app]
+    if: needs.detect.outputs.release_docker == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect.outputs.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push git tag
+        run: |
+          VERSION="${{ needs.detect.outputs.docker_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.detect.outputs.docker_version }}"
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes "Auto-release: Docker v${VERSION}" \
+            --latest=true
+
+  # ------------------------------------------------------------ update-main
+  # Commits the version bumps back to main so the repo stays in sync.
+  # Runs after all release jobs (using always() so skipped jobs don't block
+  # it), but only if at least one release succeeded and none failed.
+  update-main:
+    name: Update main with version bumps
+    needs: [detect, release-types, release-sdk, tag-docker]
+    if: >-
+      always() &&
+      needs.detect.result == 'success' &&
+      needs.release-types.result != 'failure' &&
+      needs.release-sdk.result != 'failure' &&
+      needs.tag-docker.result != 'failure' &&
+      (
+        needs.release-types.result == 'success' ||
+        needs.release-sdk.result == 'success' ||
+        needs.tag-docker.result == 'success'
+      )
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply version bumps
+        run: |
+          if [[ "${{ needs.detect.outputs.release_types }}" == "true" ]]; then
+            echo "Bumping types → ${{ needs.detect.outputs.types_version }}"
+            (cd packages/types && npm pkg set version="${{ needs.detect.outputs.types_version }}")
+          fi
+          if [[ "${{ needs.detect.outputs.release_sdk }}" == "true" ]]; then
+            echo "Bumping SDK → ${{ needs.detect.outputs.sdk_version }}"
+            (cd packages/sdk && npm pkg set version="${{ needs.detect.outputs.sdk_version }}")
+          fi
+          if [[ "${{ needs.detect.outputs.release_docker }}" == "true" ]]; then
+            echo "Bumping API + App → ${{ needs.detect.outputs.docker_version }}"
+            (cd apps/api && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
+            (cd apps/app && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
+          fi
+
+      - name: Commit and push to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Check for modifications before staging to keep the working tree clean
+          # if there's nothing to do.
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit — versions already match"
+          else
+            git add -A
+            # The "chore(release):" prefix matches the skip-release guard in the
+            # detect job, breaking the infinite loop.  [skip ci] is an extra safeguard.
+            git commit -m "chore(release): bump versions [skip ci]"
+            git push origin main
+          fi
