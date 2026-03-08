@@ -1,5 +1,5 @@
 # Required PR status check. Add "Label Check / Labels" to branch protection for main.
-# A PR must carry at least one of: api|app|sdk|types : patch|minor|major
+# A PR must carry at least one of: api|app|sdk|types : patch|minor|major  OR  no-release
 name: Label Check
 
 on:
@@ -25,14 +25,20 @@ jobs:
             --json labels -q '.labels[].name')
 
           COUNT=$(echo "${LABELS}" | grep -cE '^(api|app|sdk|types):(patch|minor|major)$' || true)
+          NO_RELEASE=$(echo "${LABELS}" | grep -c '^no-release$' || true)
 
-          if [[ "${COUNT}" -eq 0 ]]; then
-            echo "::error::Add at least one release label before merging:"
+          if [[ "${COUNT}" -eq 0 && "${NO_RELEASE}" -eq 0 ]]; then
+            echo "::error::Add at least one release label or the no-release label before merging:"
             echo "::error::  api:patch  api:minor  api:major"
             echo "::error::  app:patch  app:minor  app:major"
             echo "::error::  sdk:patch  sdk:minor  sdk:major"
             echo "::error::  types:patch  types:minor  types:major"
+            echo "::error::  no-release  (for CI, docs, or chore PRs)"
             exit 1
           fi
 
-          echo "✓ ${COUNT} release label(s)"
+          if [[ "${NO_RELEASE}" -gt 0 ]]; then
+            echo "✓ no-release label present — skipping release label check"
+          else
+            echo "✓ ${COUNT} release label(s)"
+          fi

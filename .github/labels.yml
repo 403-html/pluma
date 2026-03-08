@@ -1,4 +1,4 @@
-# Release labels — every PR needs at least one before it can merge.
+# Release labels — every PR needs at least one (or the no-release label) before it can merge.
 # api/app:* triggers a Docker bump; types:* triggers an npm types bump;
 # sdk:* triggers an npm SDK bump.
 labels:
@@ -14,3 +14,4 @@ labels:
   - { name: "types:patch", color: "0e8a16", description: "Types fix (packages/types)"             }
   - { name: "types:minor", color: "fbca04", description: "Types feature (packages/types)"         }
   - { name: "types:major", color: "d93f0b", description: "Types breaking change (packages/types)" }
+  - { name: "no-release",  color: "ededed", description: "No release required (CI, docs, chore)"   }
