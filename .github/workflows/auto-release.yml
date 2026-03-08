@@ -35,9 +35,10 @@ env:
   NODE_VERSION: "20"
 
 permissions:
-  contents: write   # push tags, push to main, create GitHub Releases
-  packages: write   # push Docker images to GHCR
-  id-token: write   # npm provenance for SDK publish
+  contents: write      # push tags, push to main, create GitHub Releases
+  packages: write      # push Docker images to GHCR
+  id-token: write      # npm provenance for SDK publish
+  pull-requests: read  # read merged PR labels for bump override
 
 jobs:
   # ------------------------------------------------------------------ detect
@@ -69,6 +70,39 @@ jobs:
       - name: Set SHA output
         id: info
         run: echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve bump overrides from PR labels
+        id: pr_bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          PR_LABELS=$(gh api "repos/${{ github.repository }}/commits/${SHA}/pulls" \
+            -H "Accept: application/vnd.github+json" \
+            -q '.[0].labels // [] | .[].name' 2>/dev/null || echo "")
+
+          # Returns major > minor > patch from a newline-separated label list.
+          highest_bump() {
+            local BUMP=""
+            while IFS= read -r lbl; do
+              case "${lbl}" in
+                *:major) echo "major"; return ;;
+                *:minor) BUMP="minor" ;;
+                *:patch) [[ -z "${BUMP}" ]] && BUMP="patch" ;;
+              esac
+            done <<< "${1}"
+            echo "${BUMP}"
+          }
+
+          TYPES_LABELS=$(echo "${PR_LABELS}" | grep '^types:' || true)
+          DOCKER_LABELS=$(echo "${PR_LABELS}" | grep -E '^(api|app):' || true)
+          TYPES_OVERRIDE=$(highest_bump "${TYPES_LABELS}")
+          DOCKER_OVERRIDE=$(highest_bump "${DOCKER_LABELS}")
+
+          echo "types_override=${TYPES_OVERRIDE}" >> "$GITHUB_OUTPUT"
+          echo "docker_override=${DOCKER_OVERRIDE}" >> "$GITHUB_OUTPUT"
+          [[ -n "${TYPES_OVERRIDE}" ]] && echo "types bump override from label: ${TYPES_OVERRIDE}" || true
+          [[ -n "${DOCKER_OVERRIDE}" ]] && echo "docker bump override from label: ${DOCKER_OVERRIDE}" || true
 
       # ---- Skip-release guard ----------------------------------------
       # If the HEAD commit was itself a version-bump commit we exit early to
@@ -166,6 +200,7 @@ jobs:
           if [[ "${TYPES_FILES}" -gt 0 ]]; then
             TYPES_MSGS=$(git log "${TYPES_BASE}..HEAD" --format="%s%n%b" -- packages/types/)
             TYPES_BUMP=$(get_bump_type "${TYPES_MSGS}")
+            [[ -n "${{ steps.pr_bump.outputs.types_override }}" ]] && TYPES_BUMP="${{ steps.pr_bump.outputs.types_override }}"
             CURRENT=$(jq -r '.version' packages/types/package.json)
             NEW_VER=$(bump_version "${CURRENT}" "${TYPES_BUMP}")
             if git rev-parse --verify "refs/tags/types/v${NEW_VER}" >/dev/null 2>&1; then
@@ -214,6 +249,7 @@ jobs:
           if [[ "${DOCKER_FILES}" -gt 0 ]]; then
             DOCKER_MSGS=$(git log "${DOCKER_BASE}..HEAD" --format="%s%n%b" -- apps/api/ apps/app/ packages/db/)
             DOCKER_BUMP=$(get_bump_type "${DOCKER_MSGS}")
+            [[ -n "${{ steps.pr_bump.outputs.docker_override }}" ]] && DOCKER_BUMP="${{ steps.pr_bump.outputs.docker_override }}"
             CURRENT=$(jq -r '.version' apps/api/package.json)
             NEW_VER=$(bump_version "${CURRENT}" "${DOCKER_BUMP}")
             if git rev-parse --verify "refs/tags/v${NEW_VER}" >/dev/null 2>&1; then

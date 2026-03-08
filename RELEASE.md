@@ -51,6 +51,25 @@ that the workflow itself pushes from triggering another release. The
 `update-main` job uses the message `chore(release): bump versions [skip ci]`,
 which matches this pattern.
 
+### Labels and Merge Gate
+
+Every PR targeting `main` must carry at least one release label or it cannot
+merge. Each label encodes the affected package and the semver bump level:
+
+| Label | Triggers | Bump |
+|---|---|---|
+| `api:patch` / `api:minor` / `api:major` | Docker (API + App) | patch / minor / major |
+| `app:patch` / `app:minor` / `app:major` | Docker (API + App) | patch / minor / major |
+| `types:patch` / `types:minor` / `types:major` | npm `@pluma-flags/types` | patch / minor / major |
+
+A PR may have more than one label (e.g. `api:minor` + `types:patch`). When
+multiple `api:*` / `app:*` labels are present, the Docker bump uses the highest
+level. The bump label overrides conventional-commit inference in
+`auto-release.yml`; direct pushes fall back to conventional commits.
+
+To enforce the gate, add **`Label Check / Labels`** to the required status
+checks in the `main` branch protection rule.
+
 ### Job Ordering
 
 ```

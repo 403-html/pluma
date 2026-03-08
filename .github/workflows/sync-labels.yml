@@ -1,0 +1,50 @@
+# Upserts labels from .github/labels.yml to the GitHub repo.
+# Runs automatically when labels.yml changes on main; also dispatchable manually.
+name: Sync Labels
+
+on:
+  push:
+    branches: [main]
+    paths: [".github/labels.yml"]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: pip install pyyaml -q
+
+      - name: Upsert labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - << 'PYEOF'
+          import yaml, subprocess, sys
+
+          with open('.github/labels.yml') as f:
+              cfg = yaml.safe_load(f)
+
+          errors = []
+          for lbl in cfg.get('labels', []):
+              r = subprocess.run(
+                  ['gh', 'label', 'create', lbl['name'],
+                   '--color', lbl['color'],
+                   '--description', lbl.get('description', ''),
+                   '--force'],
+                  capture_output=True, text=True
+              )
+              if r.returncode != 0:
+                  errors.append(f"'{lbl['name']}': {r.stderr.strip()}")
+              else:
+                  print(f"  ✓ {lbl['name']}")
+
+          if errors:
+              for e in errors:
+                  print(f"::error::{e}", file=sys.stderr)
+              sys.exit(1)
+          PYEOF
