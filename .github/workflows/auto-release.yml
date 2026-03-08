@@ -347,9 +347,9 @@ jobs:
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- packages/types/ 2>/dev/null || true)
               echo ""
-              echo "Full changelog: ${PREV_TAG}...${NEW_TAG}"
+              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
-              echo "Full changelog: ${NEW_TAG}"
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
             fi
           } > /tmp/release_notes.md
 
@@ -428,9 +428,9 @@ jobs:
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- packages/sdk/ 2>/dev/null || true)
               echo ""
-              echo "Full changelog: ${PREV_TAG}...${NEW_TAG}"
+              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
-              echo "Full changelog: ${NEW_TAG}"
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
             fi
           } > /tmp/release_notes.md
 
@@ -517,9 +517,9 @@ jobs:
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
               echo ""
-              echo "Full changelog: ${PREV_TAG}...${NEW_TAG}"
+              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
-              echo "Full changelog: ${NEW_TAG}"
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
             fi
           } > /tmp/release_notes.md
 
