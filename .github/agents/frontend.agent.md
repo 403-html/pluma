@@ -84,14 +84,19 @@ Pluma uses self-hosted fonts via [`@fontsource`](https://fontsource.org/) — **
 
 ### How fonts are loaded
 
-Both packages are imported via CSS `@import` at the very top of `apps/app/src/app/globals.css`:
+Both packages are imported as **JS imports at the top of `apps/app/src/app/layout.tsx`**:
 
-```css
-@import "@fontsource/roboto/index.css";
-@import "@fontsource/roboto-mono/index.css";
+```ts
+import '@fontsource/roboto';
+import '@fontsource/roboto-mono';
 ```
 
-Do **not** import fonts in `layout.tsx` — keep all font loading in CSS.
+> **Why JS imports, not CSS `@import`?**
+> Tailwind v4's PostCSS plugin intercepts all CSS `@import` statements before Node's module resolver runs,
+> so bare-specifier `node_modules` imports (e.g. `@import "@fontsource/roboto/index.css"`) fail with
+> `CssSyntaxError: Can't resolve`. Next.js bundles `@fontsource` correctly when they are imported in JS/TS.
+
+Do **not** use CSS `@import` for `@fontsource` packages in `globals.css` — it will fail at build time.
 
 ### CSS variables
 
