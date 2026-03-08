@@ -195,9 +195,10 @@ jobs:
 
           LAST_TYPES_TAG=$(get_last_tag "types/v*.*.*")
           TYPES_BASE="${LAST_TYPES_TAG:-${INITIAL_COMMIT}}"
-          TYPES_FILES=$(git diff --name-only "${TYPES_BASE}..HEAD" -- packages/types/ | wc -l)
+          TYPES_COMMITS=$(git log "${TYPES_BASE}..HEAD" --format="%s" -- packages/types/ \
+            | grep -vc '^chore(release):' || true)
 
-          if [[ "${TYPES_FILES}" -gt 0 ]]; then
+          if [[ "${TYPES_COMMITS}" -gt 0 ]]; then
             TYPES_MSGS=$(git log "${TYPES_BASE}..HEAD" --format="%s%n%b" -- packages/types/)
             TYPES_BUMP=$(get_bump_type "${TYPES_MSGS}")
             [[ -n "${{ steps.pr_bump.outputs.types_override }}" ]] && TYPES_BUMP="${{ steps.pr_bump.outputs.types_override }}"
@@ -220,9 +221,10 @@ jobs:
 
           LAST_SDK_TAG=$(get_last_tag "sdk/v*.*.*")
           SDK_BASE="${LAST_SDK_TAG:-${INITIAL_COMMIT}}"
-          SDK_FILES=$(git diff --name-only "${SDK_BASE}..HEAD" -- packages/sdk/ | wc -l)
+          SDK_COMMITS=$(git log "${SDK_BASE}..HEAD" --format="%s" -- packages/sdk/ \
+            | grep -vc '^chore(release):' || true)
 
-          if [[ "${SDK_FILES}" -gt 0 ]]; then
+          if [[ "${SDK_COMMITS}" -gt 0 ]]; then
             SDK_MSGS=$(git log "${SDK_BASE}..HEAD" --format="%s%n%b" -- packages/sdk/)
             SDK_BUMP=$(get_bump_type "${SDK_MSGS}")
             [[ -n "${{ steps.pr_bump.outputs.sdk_override }}" ]] && SDK_BUMP="${{ steps.pr_bump.outputs.sdk_override }}"
@@ -245,9 +247,10 @@ jobs:
 
           LAST_DOCKER_TAG=$(get_last_tag "v*.*.*")
           DOCKER_BASE="${LAST_DOCKER_TAG:-${INITIAL_COMMIT}}"
-          DOCKER_FILES=$(git diff --name-only "${DOCKER_BASE}..HEAD" -- apps/api/ apps/app/ packages/db/ | wc -l)
+          DOCKER_COMMITS=$(git log "${DOCKER_BASE}..HEAD" --format="%s" -- apps/api/ apps/app/ packages/db/ \
+            | grep -vc '^chore(release):' || true)
 
-          if [[ "${DOCKER_FILES}" -gt 0 ]]; then
+          if [[ "${DOCKER_COMMITS}" -gt 0 ]]; then
             DOCKER_MSGS=$(git log "${DOCKER_BASE}..HEAD" --format="%s%n%b" -- apps/api/ apps/app/ packages/db/)
             DOCKER_BUMP=$(get_bump_type "${DOCKER_MSGS}")
             [[ -n "${{ steps.pr_bump.outputs.docker_override }}" ]] && DOCKER_BUMP="${{ steps.pr_bump.outputs.docker_override }}"
