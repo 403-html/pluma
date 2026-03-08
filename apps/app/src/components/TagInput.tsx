@@ -19,7 +19,7 @@ export function TagInput({
         aria-label={`Remove ${value}`}
         onClick={onRemove}
         disabled={disabled}
-        className="leading-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed"
+        className="p-0 leading-none text-muted-foreground hover:text-foreground disabled:cursor-not-allowed"
       >
         ×
       </button>
