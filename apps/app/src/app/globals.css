@@ -1,3 +1,5 @@
+@import "@fontsource/roboto/index.css";
+@import "@fontsource/roboto-mono/index.css";
 @import "tailwindcss";
 @source "..";
 
@@ -48,7 +50,7 @@ body {
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Roboto', system-ui, sans-serif;
   line-height: 1.6;
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -66,6 +68,9 @@ body {
 
     /* Layout */
     --sidebar-width: 15rem;
+
+    /* Typography */
+    --font-mono: 'Roboto Mono', monospace;
 
     --background: 0 0% 100%;
     --foreground: 201 20% 15%;

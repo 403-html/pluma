@@ -71,6 +71,37 @@ All colors **must** come from semantic tokens — never use hardcoded Tailwind p
 - Reference `--pluma-*` CSS variables directly only in plain CSS or `style` props when no Tailwind utility covers the need.
 - **Never** hardcode raw Tailwind color classes (`blue-*`, `green-*`, `red-*`, etc.) — always map to a semantic token.
 
+## Typography / Fonts
+
+Pluma uses self-hosted fonts via [`@fontsource`](https://fontsource.org/) — **no Google Fonts CDN, no `next/font`**.
+
+### Packages
+
+| Package | Version | Purpose |
+|---|---|---|
+| `@fontsource/roboto` | `5.2.10` | Body / UI text |
+| `@fontsource/roboto-mono` | `5.2.8` | Monospace / code contexts |
+
+### How fonts are loaded
+
+Both packages are imported via CSS `@import` at the very top of `apps/app/src/app/globals.css`:
+
+```css
+@import "@fontsource/roboto/index.css";
+@import "@fontsource/roboto-mono/index.css";
+```
+
+Do **not** import fonts in `layout.tsx` — keep all font loading in CSS.
+
+### CSS variables
+
+| Variable | Value | Use for |
+|---|---|---|
+| _(none, applied directly)_ | `'Roboto', system-ui, sans-serif` | `body` default — covers all UI text |
+| `--font-mono` | `'Roboto Mono', monospace` | Code blocks, API key displays, monospace inputs |
+
+Use `--font-mono` via `font-family: var(--font-mono)` in plain CSS, or via `style={{ fontFamily: 'var(--font-mono)' }}` in React components when no Tailwind utility covers it.
+
 ## Standards
 
 - Handle loading, empty, and error states in every flow.
