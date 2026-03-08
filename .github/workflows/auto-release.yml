@@ -101,12 +101,14 @@ jobs:
           DOCKER_OVERRIDE=$(highest_bump "${DOCKER_LABELS}")
           SDK_OVERRIDE=$(highest_bump "${SDK_LABELS}")
 
-          echo "types_override=${TYPES_OVERRIDE}" >> "$GITHUB_OUTPUT"
-          echo "docker_override=${DOCKER_OVERRIDE}" >> "$GITHUB_OUTPUT"
-          echo "sdk_override=${SDK_OVERRIDE}" >> "$GITHUB_OUTPUT"
-          [[ -n "${TYPES_OVERRIDE}" ]] && echo "types bump override from label: ${TYPES_OVERRIDE}" || true
-          [[ -n "${DOCKER_OVERRIDE}" ]] && echo "docker bump override from label: ${DOCKER_OVERRIDE}" || true
-          [[ -n "${SDK_OVERRIDE}" ]] && echo "sdk bump override from label: ${SDK_OVERRIDE}" || true
+          {
+            echo "types_override=${TYPES_OVERRIDE}"
+            echo "docker_override=${DOCKER_OVERRIDE}"
+            echo "sdk_override=${SDK_OVERRIDE}"
+          } >> "$GITHUB_OUTPUT"
+          if [[ -n "${TYPES_OVERRIDE}" ]]; then echo "types bump override from label: ${TYPES_OVERRIDE}"; fi
+          if [[ -n "${DOCKER_OVERRIDE}" ]]; then echo "docker bump override from label: ${DOCKER_OVERRIDE}"; fi
+          if [[ -n "${SDK_OVERRIDE}" ]]; then echo "sdk bump override from label: ${SDK_OVERRIDE}"; fi
 
       # ---- Skip-release guard ----------------------------------------
       # If the HEAD commit was itself a version-bump commit we exit early to
@@ -265,10 +267,12 @@ jobs:
               DMINOR="${NEW_VER#*.}"
               DMINOR="${DMINOR%%.*}"
               echo "Detected Docker change: ${CURRENT} → ${NEW_VER} (${DOCKER_BUMP})"
-              echo "release_docker=true"       >> "$GITHUB_OUTPUT"
-              echo "docker_version=${NEW_VER}" >> "$GITHUB_OUTPUT"
-              echo "docker_major=${DMAJOR}"    >> "$GITHUB_OUTPUT"
-              echo "docker_minor=${DMINOR}"    >> "$GITHUB_OUTPUT"
+              {
+                echo "release_docker=true"
+                echo "docker_version=${NEW_VER}"
+                echo "docker_major=${DMAJOR}"
+                echo "docker_minor=${DMINOR}"
+              } >> "$GITHUB_OUTPUT"
             fi
           else
             echo "No Docker changes detected"

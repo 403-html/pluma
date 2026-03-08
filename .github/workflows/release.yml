@@ -72,10 +72,12 @@ jobs:
           MINOR="${VERSION#*.}"
           MINOR="${MINOR%%.*}"
 
-          echo "target=$TARGET"   >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "major=$MAJOR"     >> "$GITHUB_OUTPUT"
-          echo "minor=$MINOR"     >> "$GITHUB_OUTPUT"
+          {
+            echo "target=$TARGET"
+            echo "version=$VERSION"
+            echo "major=$MAJOR"
+            echo "minor=$MINOR"
+          } >> "$GITHUB_OUTPUT"
 
   # ----------------------------------------------------------- publish-types
   publish-types:
