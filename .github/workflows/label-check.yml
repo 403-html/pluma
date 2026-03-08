@@ -1,0 +1,39 @@
+# Required PR status check. Add "Label Check / Labels" to branch protection for main.
+# A PR must carry at least one of: api|app|sdk|types : patch|minor|major
+name: Label Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: label-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: read
+
+jobs:
+  Labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check release label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LABELS=$(gh pr view "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --json labels -q '.labels[].name')
+
+          COUNT=$(echo "${LABELS}" | grep -cE '^(api|app|sdk|types):(patch|minor|major)$' || true)
+
+          if [[ "${COUNT}" -eq 0 ]]; then
+            echo "::error::Add at least one release label before merging:"
+            echo "::error::  api:patch  api:minor  api:major"
+            echo "::error::  app:patch  app:minor  app:major"
+            echo "::error::  sdk:patch  sdk:minor  sdk:major"
+            echo "::error::  types:patch  types:minor  types:major"
+            exit 1
+          fi
+
+          echo "✓ ${COUNT} release label(s)"

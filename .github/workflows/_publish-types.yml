@@ -1,0 +1,61 @@
+# Reusable workflow — publish @pluma-flags/types to npm.
+# Called by release.yml (manual hotfix) and auto-release.yml (automated).
+name: _Publish Types
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Semver version to publish (e.g. "1.2.3")
+        required: true
+        type: string
+      ref:
+        description: >
+          Git ref or SHA to checkout. Defaults to the calling workflow's SHA
+          when omitted.
+        required: false
+        type: string
+        default: ""
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  publish:
+    name: Publish types to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bump version
+        run: cd packages/types && npm pkg set version="${{ inputs.version }}"
+
+      - name: Build types
+        run: pnpm --filter @pluma-flags/types build
+
+      - name: Publish to npm
+        run: pnpm --filter @pluma-flags/types publish --no-git-checks --access public --tag latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

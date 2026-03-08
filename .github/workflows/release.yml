@@ -72,189 +72,60 @@ jobs:
           MINOR="${VERSION#*.}"
           MINOR="${MINOR%%.*}"
 
-          echo "target=$TARGET"   >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "major=$MAJOR"     >> "$GITHUB_OUTPUT"
-          echo "minor=$MINOR"     >> "$GITHUB_OUTPUT"
+          {
+            echo "target=$TARGET"
+            echo "version=$VERSION"
+            echo "major=$MAJOR"
+            echo "minor=$MINOR"
+          } >> "$GITHUB_OUTPUT"
 
   # ----------------------------------------------------------- publish-types
   publish-types:
     name: Publish types to npm
     needs: detect
     if: needs.detect.outputs.target == 'types'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Bump version
-        run: (cd packages/types && npm pkg set version="${{ needs.detect.outputs.version }}")
-
-      - name: Build types
-        run: pnpm --filter @pluma-flags/types build
-
-      - name: Publish to npm
-        run: pnpm --filter @pluma-flags/types publish --no-git-checks --access public --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    uses: ./.github/workflows/_publish-types.yml
+    with:
+      version: ${{ needs.detect.outputs.version }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ------------------------------------------------------------- publish-sdk
   publish-sdk:
     name: Publish SDK to npm
     needs: detect
     if: needs.detect.outputs.target == 'sdk'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Sync types version from npm
-        run: |
-          TYPES_VERSION=$(npm view @pluma-flags/types version 2>/dev/null) || true
-          if [ -z "$TYPES_VERSION" ]; then
-            echo "::error::Failed to fetch @pluma-flags/types version from npm — is the package published?"
-            exit 1
-          fi
-          (cd packages/types && npm pkg set version="$TYPES_VERSION")
-
-      - name: Bump version
-        run: (cd packages/sdk && npm pkg set version="${{ needs.detect.outputs.version }}")
-
-      - name: Build types
-        run: pnpm --filter @pluma-flags/types build
-
-      - name: Build SDK
-        run: pnpm --filter @pluma-flags/sdk build
-
-      - name: Run SDK tests
-        run: pnpm --filter @pluma-flags/sdk test
-
-      - name: Publish to npm
-        run: pnpm --filter @pluma-flags/sdk publish --no-git-checks --access public --provenance --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    uses: ./.github/workflows/_publish-sdk.yml
+    with:
+      version: ${{ needs.detect.outputs.version }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ------------------------------------------------------------- release-api
   release-api:
     name: Release API image
     needs: detect
     if: needs.detect.outputs.target == 'docker'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/pluma-api
-          tags: |
-            type=raw,value=v${{ needs.detect.outputs.version }}
-            type=raw,value=v${{ needs.detect.outputs.major }}.${{ needs.detect.outputs.minor }}
-            type=raw,value=latest
-            type=sha
-
-      - name: Build and push API image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/api/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: ./.github/workflows/_build-docker.yml
+    with:
+      image: api
+      dockerfile: apps/api/Dockerfile
+      version: ${{ needs.detect.outputs.version }}
+      major: ${{ needs.detect.outputs.major }}
+      minor: ${{ needs.detect.outputs.minor }}
 
   # ------------------------------------------------------------- release-app
   release-app:
     name: Release App image
     needs: detect
     if: needs.detect.outputs.target == 'docker'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/pluma-app
-          tags: |
-            type=raw,value=v${{ needs.detect.outputs.version }}
-            type=raw,value=v${{ needs.detect.outputs.major }}.${{ needs.detect.outputs.minor }}
-            type=raw,value=latest
-            type=sha
-
-      - name: Build and push App image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/app/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: ./.github/workflows/_build-docker.yml
+    with:
+      image: app
+      dockerfile: apps/app/Dockerfile
+      version: ${{ needs.detect.outputs.version }}
+      major: ${{ needs.detect.outputs.major }}
+      minor: ${{ needs.detect.outputs.minor }}
 
   # ------------------------------------------------------------ update-main
   update-main:
