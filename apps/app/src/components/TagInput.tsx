@@ -12,7 +12,7 @@ export function TagInput({
   pending?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${pending ? 'bg-destructive/15 text-destructive ring-1 ring-destructive/40' : 'bg-muted text-foreground'}`}>
+    <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium leading-none ${pending ? 'bg-destructive/15 text-destructive ring-1 ring-destructive/40' : 'bg-muted text-foreground'}`}>
       {value}
       <button
         type="button"
