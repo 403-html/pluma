@@ -416,8 +416,10 @@ jobs:
   tag-docker:
     name: Tag Docker release
     needs: [detect, release-api, release-app]
-    if: needs.detect.outputs.release_docker == 'true'
+    if: needs.detect.outputs.release_docker == 'true' && needs.release-api.result == 'success' && needs.release-app.result == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
