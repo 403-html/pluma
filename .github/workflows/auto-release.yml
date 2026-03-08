@@ -299,11 +299,13 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ------------------------------------------------------------ tag-types
-  # Creates the git tag and GitHub Release for types after a successful publish.
+  # Creates the git tag and GitHub Release for types after a successful publish
+  # AND after update-main has committed the version bump, so the tag points to
+  # the post-bump commit.
   tag-types:
     name: Tag types release
-    needs: [detect, release-types]
-    if: needs.release-types.result == 'success'
+    needs: [detect, release-types, update-main]
+    if: needs.release-types.result == 'success' && needs.update-main.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -312,7 +314,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.detect.outputs.sha }}
+          ref: ${{ needs.update-main.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -331,32 +333,19 @@ jobs:
           VERSION="${{ needs.detect.outputs.types_version }}"
           PREV_TAG="${{ needs.detect.outputs.last_types_tag }}"
           NEW_TAG="types/v${VERSION}"
-          REPO="${{ github.repository }}"
 
-          {
-            echo "# Changes"
-            echo ""
-            if [ -n "${PREV_TAG}" ]; then
-              # Only commits with a trailing "(#NNN)" PR reference are listed;
-              # direct pushes and bot commits without a PR number are skipped.
-              while IFS= read -r SUBJECT; do
-                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
-                  PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT% (#${PR_NUM})}"
-                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
-                fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/types/ 2>/dev/null || true)
-              echo ""
-              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
-            else
-              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
-            fi
-          } > /tmp/release_notes.md
-
-          gh release create "${NEW_TAG}" \
-            --title "Types v${VERSION}" \
-            --notes-file /tmp/release_notes.md \
-            --latest=false
+          if [ -n "${PREV_TAG}" ]; then
+            gh release create "${NEW_TAG}" \
+              --title "Types v${VERSION}" \
+              --generate-notes \
+              --notes-start-tag "${PREV_TAG}" \
+              --latest=false
+          else
+            gh release create "${NEW_TAG}" \
+              --title "Types v${VERSION}" \
+              --generate-notes \
+              --latest=false
+          fi
 
   # ------------------------------------------------------------- release-sdk
   # Always listed after release-types so that if types is also being released
@@ -380,11 +369,13 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # -------------------------------------------------------------- tag-sdk
-  # Creates the git tag and GitHub Release for the SDK after a successful publish.
+  # Creates the git tag and GitHub Release for the SDK after a successful publish
+  # AND after update-main has committed the version bump, so the tag points to
+  # the post-bump commit.
   tag-sdk:
     name: Tag SDK release
-    needs: [detect, release-sdk]
-    if: needs.release-sdk.result == 'success'
+    needs: [detect, release-sdk, update-main]
+    if: needs.release-sdk.result == 'success' && needs.update-main.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -393,7 +384,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.detect.outputs.sha }}
+          ref: ${{ needs.update-main.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -412,32 +403,19 @@ jobs:
           VERSION="${{ needs.detect.outputs.sdk_version }}"
           PREV_TAG="${{ needs.detect.outputs.last_sdk_tag }}"
           NEW_TAG="sdk/v${VERSION}"
-          REPO="${{ github.repository }}"
 
-          {
-            echo "# Changes"
-            echo ""
-            if [ -n "${PREV_TAG}" ]; then
-              # Only commits with a trailing "(#NNN)" PR reference are listed;
-              # direct pushes and bot commits without a PR number are skipped.
-              while IFS= read -r SUBJECT; do
-                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
-                  PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT% (#${PR_NUM})}"
-                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
-                fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/sdk/ 2>/dev/null || true)
-              echo ""
-              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
-            else
-              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
-            fi
-          } > /tmp/release_notes.md
-
-          gh release create "${NEW_TAG}" \
-            --title "SDK v${VERSION}" \
-            --notes-file /tmp/release_notes.md \
-            --latest=false
+          if [ -n "${PREV_TAG}" ]; then
+            gh release create "${NEW_TAG}" \
+              --title "SDK v${VERSION}" \
+              --generate-notes \
+              --notes-start-tag "${PREV_TAG}" \
+              --latest=false
+          else
+            gh release create "${NEW_TAG}" \
+              --title "SDK v${VERSION}" \
+              --generate-notes \
+              --latest=false
+          fi
 
   # ------------------------------------------------------------- release-api
   release-api:
@@ -468,12 +446,13 @@ jobs:
       ref: ${{ needs.detect.outputs.sha }}
 
   # -------------------------------------------------------------- tag-docker
-  # Runs after both image builds succeed; creates the shared git tag and
-  # the GitHub Release (marked as the repository's latest release).
+  # Runs after both image builds AND update-main succeed; creates the shared
+  # git tag and the GitHub Release (marked as the repository's latest release).
+  # Tagging after update-main ensures the tag points to the post-bump commit.
   tag-docker:
     name: Tag Docker release
-    needs: [detect, release-api, release-app]
-    if: needs.detect.outputs.release_docker == 'true' && needs.release-api.result == 'success' && needs.release-app.result == 'success'
+    needs: [detect, release-api, release-app, update-main]
+    if: needs.detect.outputs.release_docker == 'true' && needs.release-api.result == 'success' && needs.release-app.result == 'success' && needs.update-main.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -482,7 +461,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.detect.outputs.sha }}
+          ref: ${{ needs.update-main.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -501,52 +480,43 @@ jobs:
           VERSION="${{ needs.detect.outputs.docker_version }}"
           PREV_TAG="${{ needs.detect.outputs.last_docker_tag }}"
           NEW_TAG="v${VERSION}"
-          REPO="${{ github.repository }}"
 
-          {
-            echo "# Changes"
-            echo ""
-            if [ -n "${PREV_TAG}" ]; then
-              # Only commits with a trailing "(#NNN)" PR reference are listed;
-              # direct pushes and bot commits without a PR number are skipped.
-              while IFS= read -r SUBJECT; do
-                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
-                  PR_NUM="${BASH_REMATCH[1]}"
-                  TITLE="${SUBJECT% (#${PR_NUM})}"
-                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
-                fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
-              echo ""
-              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
-            else
-              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
-            fi
-          } > /tmp/release_notes.md
-
-          gh release create "${NEW_TAG}" \
-            --title "Docker v${VERSION}" \
-            --notes-file /tmp/release_notes.md \
-            --latest=true
+          if [ -n "${PREV_TAG}" ]; then
+            gh release create "${NEW_TAG}" \
+              --title "Docker v${VERSION}" \
+              --generate-notes \
+              --notes-start-tag "${PREV_TAG}" \
+              --latest=true
+          else
+            gh release create "${NEW_TAG}" \
+              --title "Docker v${VERSION}" \
+              --generate-notes \
+              --latest=true
+          fi
 
   # ------------------------------------------------------------ update-main
-  # Commits the version bumps back to main so the repo stays in sync.
-  # Runs after all release jobs (using always() so skipped jobs don't block
-  # it), but only if at least one release succeeded and none failed.
+  # Commits the version bumps back to main BEFORE tagging so that git tags
+  # point to the post-bump commit (package.json reflects the new version).
+  # Runs after all publish/build jobs (using always() so skipped jobs don't
+  # block it), but only if at least one release succeeded and none failed.
   update-main:
     name: Update main with version bumps
-    needs: [detect, tag-types, tag-sdk, tag-docker]
+    needs: [detect, release-types, release-sdk, release-api, release-app]
     if: >-
       always() &&
       needs.detect.result == 'success' &&
-      needs.tag-types.result != 'failure' &&
-      needs.tag-sdk.result != 'failure' &&
-      needs.tag-docker.result != 'failure' &&
+      needs.release-types.result != 'failure' &&
+      needs.release-sdk.result != 'failure' &&
+      needs.release-api.result != 'failure' &&
+      needs.release-app.result != 'failure' &&
       (
-        needs.tag-types.result == 'success' ||
-        needs.tag-sdk.result == 'success' ||
-        needs.tag-docker.result == 'success'
+        needs.release-types.result == 'success' ||
+        needs.release-sdk.result == 'success' ||
+        (needs.release-api.result == 'success' && needs.release-app.result == 'success')
       )
     runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
 
     steps:
       - name: Checkout main branch
@@ -557,19 +527,23 @@ jobs:
 
       - name: Apply version bumps
         run: |
-          # Only apply bumps for packages whose tag jobs actually succeeded.
-          # tag-types/tag-sdk succeed only after publish + tag + GH Release all
-          # passed, so checking them (rather than the publish jobs) ensures we
-          # never bump package.json for a partially-succeeded release.
-          if [[ "${{ needs.tag-types.result }}" == "success" ]]; then
+          # Only apply bumps for packages whose publish jobs actually succeeded.
+          # Checking the publish/build jobs directly ensures we never bump
+          # package.json for a partially-succeeded release.
+          if [[ "${{ needs.release-types.result }}" == "success" ]]; then
             echo "Bumping types → ${{ needs.detect.outputs.types_version }}"
             (cd packages/types && npm pkg set version="${{ needs.detect.outputs.types_version }}")
           fi
-          if [[ "${{ needs.tag-sdk.result }}" == "success" ]]; then
+          if [[ "${{ needs.release-sdk.result }}" == "success" ]]; then
             echo "Bumping SDK → ${{ needs.detect.outputs.sdk_version }}"
             (cd packages/sdk && npm pkg set version="${{ needs.detect.outputs.sdk_version }}")
           fi
-          if [[ "${{ needs.tag-docker.result }}" == "success" ]]; then
+          # Both api AND app must succeed for a coherent docker release (both
+          # images are versioned together).  The job-level `if` prevents
+          # update-main from running at all unless at least one publish
+          # succeeded; this step-level check selects which package.json files
+          # to update when multiple releases run in the same workflow.
+          if [[ "${{ needs.release-api.result }}" == "success" && "${{ needs.release-app.result }}" == "success" ]]; then
             echo "Bumping API + App → ${{ needs.detect.outputs.docker_version }}"
             (cd apps/api && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
             (cd apps/app && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
@@ -590,3 +564,12 @@ jobs:
             git commit -m "chore(release): bump versions [skip ci]"
             git push origin main
           fi
+
+      - name: Output post-bump SHA
+        id: commit
+        # Runs only if the previous step succeeded, capturing the HEAD SHA
+        # (which is the new bump commit when one was created, or the original
+        # HEAD when there was nothing to commit).  Downstream tag-* jobs are
+        # already gated on update-main.result == 'success', so an undefined
+        # output is never consumed if this step is skipped due to failure.
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
