@@ -345,7 +345,7 @@ jobs:
                   TITLE="${SUBJECT% (#${PR_NUM})}"
                   echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
                 fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges 2>/dev/null || true)
+              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/types/ 2>/dev/null || true)
               echo ""
               echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
@@ -426,7 +426,7 @@ jobs:
                   TITLE="${SUBJECT% (#${PR_NUM})}"
                   echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
                 fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges 2>/dev/null || true)
+              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/sdk/ 2>/dev/null || true)
               echo ""
               echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
@@ -515,7 +515,7 @@ jobs:
                   TITLE="${SUBJECT% (#${PR_NUM})}"
                   echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
                 fi
-              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges 2>/dev/null || true)
+              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
               echo ""
               echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
             else
