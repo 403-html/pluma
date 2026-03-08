@@ -147,12 +147,9 @@ jobs:
           INITIAL_COMMIT=$(git rev-list --max-parents=0 HEAD | head -1)
 
           # Determine bump type from a block of commit message text.
-          # Precedence: BREAKING CHANGE / bang-commits → major, feat → minor, else patch.
-          # "BREAKING CHANGE" is matched at the start of a line (conventional commits
-          # footer syntax) to avoid false positives in prose descriptions.
+          # Precedence: bang-commits (feat!) → major, feat → minor, else patch.
           # Regex patterns are stored in variables to prevent bash from
           # misinterpreting special characters (e.g. '(' in character classes).
-          BREAKING_RE='^BREAKING[[:space:]]CHANGE'
           BANG_RE='^(feat|fix|build|chore|ci|docs|style|refactor|perf|test)!:'
           FEAT_COLON_RE='^feat:'
           FEAT_SCOPE_RE='^feat\('
@@ -161,9 +158,6 @@ jobs:
             local MESSAGES="${1}"
             local BUMP="patch"
             while IFS= read -r line; do
-              if [[ "${line}" =~ $BREAKING_RE ]]; then
-                BUMP="major"; break
-              fi
               if [[ "${line}" =~ $BANG_RE ]]; then
                 BUMP="major"; break
               fi

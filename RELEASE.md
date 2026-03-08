@@ -15,7 +15,7 @@ package group is released independently when its paths changed.
 | `types:patch/minor/major`                         | npm `@pluma-flags/types` | patch / minor / major |
 
 Multiple labels are allowed. For direct pushes (no label) the bump falls back to
-conventional-commit inference (`feat:` → minor, `BREAKING CHANGE` line → major,
+conventional-commit inference (`feat:` → minor, `feat!:` / `fix!:` etc → major,
 else patch).
 
 Job order: `detect → release-types → tag-types`,
