@@ -11,6 +11,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "@fontsource/roboto": "5.2.10",
+    "@fontsource/roboto-mono": "5.2.8",
     "@pluma-flags/types": "workspace:*",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",

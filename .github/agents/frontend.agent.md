@@ -71,6 +71,42 @@ All colors **must** come from semantic tokens — never use hardcoded Tailwind p
 - Reference `--pluma-*` CSS variables directly only in plain CSS or `style` props when no Tailwind utility covers the need.
 - **Never** hardcode raw Tailwind color classes (`blue-*`, `green-*`, `red-*`, etc.) — always map to a semantic token.
 
+## Typography / Fonts
+
+Pluma uses self-hosted fonts via [`@fontsource`](https://fontsource.org/) — **no Google Fonts CDN, no `next/font`**.
+
+### Packages
+
+| Package | Version | Purpose |
+|---|---|---|
+| `@fontsource/roboto` | `5.2.10` | Body / UI text |
+| `@fontsource/roboto-mono` | `5.2.8` | Monospace / code contexts |
+
+### How fonts are loaded
+
+Both packages are imported as **JS imports at the top of `apps/app/src/app/layout.tsx`**:
+
+```ts
+import '@fontsource/roboto';
+import '@fontsource/roboto-mono';
+```
+
+> **Why JS imports, not CSS `@import`?**
+> Tailwind v4's PostCSS plugin intercepts all CSS `@import` statements before Node's module resolver runs,
+> so bare-specifier `node_modules` imports (e.g. `@import "@fontsource/roboto/index.css"`) fail with
+> `CssSyntaxError: Can't resolve`. Next.js bundles `@fontsource` correctly when they are imported in JS/TS.
+
+Do **not** use CSS `@import` for `@fontsource` packages in `globals.css` — it will fail at build time.
+
+### CSS variables
+
+| Variable | Value | Use for |
+|---|---|---|
+| _(none, applied directly)_ | `'Roboto', system-ui, sans-serif` | `body` default — covers all UI text |
+| `--font-mono` | `'Roboto Mono', monospace` | Code blocks, API key displays, monospace inputs |
+
+Use `--font-mono` via `font-family: var(--font-mono)` in plain CSS, or via `style={{ fontFamily: 'var(--font-mono)' }}` in React components when no Tailwind utility covers it.
+
 ## Standards
 
 - Handle loading, empty, and error states in every flow.

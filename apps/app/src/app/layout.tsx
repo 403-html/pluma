@@ -1,3 +1,5 @@
+import '@fontsource/roboto';
+import '@fontsource/roboto-mono';
 import './globals.css';
 import { cookies } from 'next/headers';
 import { THEME_COOKIE_NAME } from '@/lib/constants';
