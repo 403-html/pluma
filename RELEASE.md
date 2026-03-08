@@ -3,8 +3,8 @@
 ## Automated Releases
 
 Releases are fully automated on push to `main`. The
-[`auto-release.yml`](.github/workflows/auto-release.yml) workflow fires after
-CI passes and independently releases each package group that has new commits.
+[`auto-release.yml`](.github/workflows/auto-release.yml) workflow fires after CI
+passes and independently releases each package group that has new commits.
 
 ### What Triggers an Automated Release
 
@@ -20,26 +20,34 @@ what actually changed.
 For each release group, the workflow compares the commit range from the last
 release tag for that group to the current `HEAD`:
 
-| Release group | Watched paths | Last-tag pattern |
-|---|---|---|
-| Types | `packages/types/**` | `types/v*.*.*` |
-| SDK | `packages/sdk/**` | `sdk/v*.*.*` |
-| Docker | `apps/api/**`, `apps/app/**`, `packages/db/**` | `v*.*.*` |
+| Release group | Watched paths                                  | Last-tag pattern |
+| ------------- | ---------------------------------------------- | ---------------- |
+| Types         | `packages/types/**`                            | `types/v*.*.*`   |
+| SDK           | `packages/sdk/**`                              | `sdk/v*.*.*`     |
+| Docker        | `apps/api/**`, `apps/app/**`, `packages/db/**` | `v*.*.*`         |
 
 If no matching tag exists yet (first release), the diff goes back to the
 repository's initial commit.
 
 ### How the Bump Type Is Determined
 
-For each release group the workflow inspects **only the commits that touched
-that group's paths** since the last tag:
+The bump level is resolved in two stages:
 
-| Commit signal | Bump |
-|---|---|
-| `BREAKING CHANGE` anywhere in message body | **major** |
-| Subject matches `^[a-z]+!:` (e.g. `feat!:`) | **major** |
-| Subject starts with `feat(` or `feat:` | **minor** |
-| Everything else (`fix`, `chore`, `refactor`, …) | **patch** |
+**Stage 1 — PR label (primary).** When a PR is merged the workflow reads the
+PR's release label. The label encodes both the package group and the semver bump
+level (see [Labels and Merge Gate](#labels-and-merge-gate) below). A label
+always takes priority over any commit signals.
+
+**Stage 2 — Conventional commits (fallback).** For direct pushes to `main`
+(where no PR label is available), the workflow inspects **only the commits that
+touched that group's paths** since the last tag:
+
+| Commit signal                                                | Bump      |
+| ------------------------------------------------------------ | --------- |
+| `BREAKING CHANGE` at the start of a line in the message body | **major** |
+| Subject matches `^[a-z]+!:` (e.g. `feat!:`)                  | **major** |
+| Subject starts with `feat(` or `feat:`                       | **minor** |
+| Everything else (`fix`, `chore`, `refactor`, …)              | **patch** |
 
 If no commits are found for a group's paths the default is **patch**.
 
@@ -56,11 +64,11 @@ which matches this pattern.
 Every PR targeting `main` must carry at least one release label or it cannot
 merge. Each label encodes the affected package and the semver bump level:
 
-| Label | Triggers | Bump |
-|---|---|---|
-| `api:patch` / `api:minor` / `api:major` | Docker (API + App) | patch / minor / major |
-| `app:patch` / `app:minor` / `app:major` | Docker (API + App) | patch / minor / major |
-| `sdk:patch` / `sdk:minor` / `sdk:major` | npm `@pluma-flags/sdk` | patch / minor / major |
+| Label                                         | Triggers                 | Bump                  |
+| --------------------------------------------- | ------------------------ | --------------------- |
+| `api:patch` / `api:minor` / `api:major`       | Docker (API + App)       | patch / minor / major |
+| `app:patch` / `app:minor` / `app:major`       | Docker (API + App)       | patch / minor / major |
+| `sdk:patch` / `sdk:minor` / `sdk:major`       | npm `@pluma-flags/sdk`   | patch / minor / major |
 | `types:patch` / `types:minor` / `types:major` | npm `@pluma-flags/types` | patch / minor / major |
 
 A PR may have more than one label (e.g. `api:minor` + `types:patch`). When
@@ -95,10 +103,10 @@ detect
 
 ## Manual / Hotfix Release
 
-The [`release.yml`](.github/workflows/release.yml) workflow remains available
-as an escape hatch for hotfixes and out-of-band releases. Use it whenever you
-need to release without going through the automated path (e.g. a critical
-production fix that can't wait for a PR merge).
+The [`release.yml`](.github/workflows/release.yml) workflow remains available as
+an escape hatch for hotfixes and out-of-band releases. Use it whenever you need
+to release without going through the automated path (e.g. a critical production
+fix that can't wait for a PR merge).
 
 ## Prerequisites
 
@@ -110,10 +118,10 @@ Before starting any release:
 
 ## How Releases Work (Manual / Hotfix)
 
-All **manual** releases are triggered through the **GitHub Release UI**. There are no local
-release scripts — a single [`release.yml`](.github/workflows/release.yml)
-workflow handles validation, version bumping, building, publishing, and updating
-`main` with the new version.
+All **manual** releases are triggered through the **GitHub Release UI**. There
+are no local release scripts — a single
+[`release.yml`](.github/workflows/release.yml) workflow handles validation,
+version bumping, building, publishing, and updating `main` with the new version.
 
 To start a release:
 
@@ -258,8 +266,8 @@ all" command — this is intentional to allow independent versioning.
 
 ## Tag Reference
 
-| Package              | Tag format     | Example        | Workflow           |
-| -------------------- | -------------- | -------------- | ------------------ |
+| Package              | Tag format     | Example        | Workflow                           |
+| -------------------- | -------------- | -------------- | ---------------------------------- |
 | `@pluma-flags/sdk`   | `sdk/v*.*.*`   | `sdk/v1.0.0`   | `auto-release.yml` / `release.yml` |
 | `@pluma-flags/types` | `types/v*.*.*` | `types/v1.0.0` | `auto-release.yml` / `release.yml` |
 | Docker (API + App)   | `v*.*.*`       | `v1.0.0`       | `auto-release.yml` / `release.yml` |
