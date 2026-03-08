@@ -100,9 +100,11 @@ jobs:
             git tag -l "$1" --sort=-version:refname | head -1
           }
 
-          # The very first commit in the repo — used as base when no tag exists.
-          # head -1 guards against repos with multiple root commits.
-          INITIAL_COMMIT=$(git rev-list --max-parents=0 | head -1)
+          # The very first commit reachable from HEAD — used as base when no tag
+          # exists yet.  Specifying HEAD ensures the root is on the current
+          # branch even in repos with multiple root commits or grafts.
+          # head -1 takes only the first result, which is sufficient here.
+          INITIAL_COMMIT=$(git rev-list --max-parents=0 HEAD | head -1)
 
           # Determine bump type from a block of commit message text.
           # Precedence: BREAKING CHANGE / bang-commits → major, feat → minor, else patch.
@@ -297,6 +299,8 @@ jobs:
     name: Release SDK to npm
     needs: [detect, release-types]
     if: >-
+      always() &&
+      needs.detect.result == 'success' &&
       needs.detect.outputs.release_sdk == 'true' &&
       needs.release-types.result != 'failure' &&
       needs.release-types.result != 'cancelled'
@@ -334,7 +338,7 @@ jobs:
             echo "Syncing @pluma-flags/types → ${TYPES_VERSION}"
             cd packages/types && npm pkg set version="${TYPES_VERSION}"
           else
-            echo "::warning::@pluma-flags/types not found on npm — using local version from package.json"
+            echo "::warning::@pluma-flags/types not found on npm — SDK will be built against the local types version from package.json"
           fi
 
       - name: Bump SDK version
@@ -533,15 +537,20 @@ jobs:
 
       - name: Apply version bumps
         run: |
-          if [[ "${{ needs.detect.outputs.release_types }}" == "true" ]]; then
+          # Only apply bumps for packages whose release jobs actually succeeded.
+          # Using job result rather than the detect flag prevents a version-number
+          # gap when, e.g., a Docker image build fails mid-run: skipped or failed
+          # jobs report a non-'success' result, leaving package.json untouched so
+          # the next auto-release attempt computes the same target version.
+          if [[ "${{ needs.release-types.result }}" == "success" ]]; then
             echo "Bumping types → ${{ needs.detect.outputs.types_version }}"
             (cd packages/types && npm pkg set version="${{ needs.detect.outputs.types_version }}")
           fi
-          if [[ "${{ needs.detect.outputs.release_sdk }}" == "true" ]]; then
+          if [[ "${{ needs.release-sdk.result }}" == "success" ]]; then
             echo "Bumping SDK → ${{ needs.detect.outputs.sdk_version }}"
             (cd packages/sdk && npm pkg set version="${{ needs.detect.outputs.sdk_version }}")
           fi
-          if [[ "${{ needs.detect.outputs.release_docker }}" == "true" ]]; then
+          if [[ "${{ needs.tag-docker.result }}" == "success" ]]; then
             echo "Bumping API + App → ${{ needs.detect.outputs.docker_version }}"
             (cd apps/api && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
             (cd apps/app && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
