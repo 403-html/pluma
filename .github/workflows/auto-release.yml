@@ -57,6 +57,9 @@ jobs:
       docker_version: ${{ steps.detect.outputs.docker_version }}
       docker_major:   ${{ steps.detect.outputs.docker_major }}
       docker_minor:   ${{ steps.detect.outputs.docker_minor }}
+      last_types_tag:  ${{ steps.detect.outputs.last_types_tag }}
+      last_sdk_tag:    ${{ steps.detect.outputs.last_sdk_tag }}
+      last_docker_tag: ${{ steps.detect.outputs.last_docker_tag }}
 
     steps:
       - name: Checkout repository
@@ -276,6 +279,13 @@ jobs:
             echo "release_docker=false" >> "$GITHUB_OUTPUT"
           fi
 
+          # Output last known tags for changelog generation
+          {
+            echo "last_types_tag=${LAST_TYPES_TAG}"
+            echo "last_sdk_tag=${LAST_SDK_TAG}"
+            echo "last_docker_tag=${LAST_DOCKER_TAG}"
+          } >> "$GITHUB_OUTPUT"
+
   # ----------------------------------------------------------- release-types
   release-types:
     name: Publish types to npm
@@ -304,6 +314,7 @@ jobs:
         with:
           ref: ${{ needs.detect.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Create and push git tag
         run: |
@@ -318,9 +329,33 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.detect.outputs.types_version }}"
-          gh release create "types/v${VERSION}" \
-            --title "types v${VERSION}" \
-            --notes "Auto-release: types v${VERSION}" \
+          PREV_TAG="${{ needs.detect.outputs.last_types_tag }}"
+          NEW_TAG="types/v${VERSION}"
+          REPO="${{ github.repository }}"
+
+          {
+            echo "# Changes"
+            echo ""
+            if [ -n "${PREV_TAG}" ]; then
+              # Only commits with a trailing "(#NNN)" PR reference are listed;
+              # direct pushes and bot commits without a PR number are skipped.
+              while IFS= read -r SUBJECT; do
+                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
+                  PR_NUM="${BASH_REMATCH[1]}"
+                  TITLE="${SUBJECT% (#${PR_NUM})}"
+                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
+                fi
+              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/types/ 2>/dev/null || true)
+              echo ""
+              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
+            else
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
+            fi
+          } > /tmp/release_notes.md
+
+          gh release create "${NEW_TAG}" \
+            --title "Types v${VERSION}" \
+            --notes-file /tmp/release_notes.md \
             --latest=false
 
   # ------------------------------------------------------------- release-sdk
@@ -360,6 +395,7 @@ jobs:
         with:
           ref: ${{ needs.detect.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Create and push git tag
         run: |
@@ -374,9 +410,33 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.detect.outputs.sdk_version }}"
-          gh release create "sdk/v${VERSION}" \
-            --title "sdk v${VERSION}" \
-            --notes "Auto-release: sdk v${VERSION}" \
+          PREV_TAG="${{ needs.detect.outputs.last_sdk_tag }}"
+          NEW_TAG="sdk/v${VERSION}"
+          REPO="${{ github.repository }}"
+
+          {
+            echo "# Changes"
+            echo ""
+            if [ -n "${PREV_TAG}" ]; then
+              # Only commits with a trailing "(#NNN)" PR reference are listed;
+              # direct pushes and bot commits without a PR number are skipped.
+              while IFS= read -r SUBJECT; do
+                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
+                  PR_NUM="${BASH_REMATCH[1]}"
+                  TITLE="${SUBJECT% (#${PR_NUM})}"
+                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
+                fi
+              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- packages/sdk/ 2>/dev/null || true)
+              echo ""
+              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
+            else
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
+            fi
+          } > /tmp/release_notes.md
+
+          gh release create "${NEW_TAG}" \
+            --title "SDK v${VERSION}" \
+            --notes-file /tmp/release_notes.md \
             --latest=false
 
   # ------------------------------------------------------------- release-api
@@ -424,6 +484,7 @@ jobs:
         with:
           ref: ${{ needs.detect.outputs.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Create and push git tag
         run: |
@@ -438,9 +499,33 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.detect.outputs.docker_version }}"
-          gh release create "v${VERSION}" \
-            --title "v${VERSION}" \
-            --notes "Auto-release: Docker v${VERSION}" \
+          PREV_TAG="${{ needs.detect.outputs.last_docker_tag }}"
+          NEW_TAG="v${VERSION}"
+          REPO="${{ github.repository }}"
+
+          {
+            echo "# Changes"
+            echo ""
+            if [ -n "${PREV_TAG}" ]; then
+              # Only commits with a trailing "(#NNN)" PR reference are listed;
+              # direct pushes and bot commits without a PR number are skipped.
+              while IFS= read -r SUBJECT; do
+                if [[ "${SUBJECT}" =~ \(#([0-9]+)\)$ ]]; then
+                  PR_NUM="${BASH_REMATCH[1]}"
+                  TITLE="${SUBJECT% (#${PR_NUM})}"
+                  echo "- ${TITLE} [#${PR_NUM}](https://github.com/${REPO}/pull/${PR_NUM})"
+                fi
+              done < <(git log "${PREV_TAG}..HEAD" --format="%s" --no-merges -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
+              echo ""
+              echo "**Full Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/${REPO}/compare/${PREV_TAG}...${NEW_TAG})"
+            else
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${NEW_TAG}"
+            fi
+          } > /tmp/release_notes.md
+
+          gh release create "${NEW_TAG}" \
+            --title "Docker v${VERSION}" \
+            --notes-file /tmp/release_notes.md \
             --latest=true
 
   # ------------------------------------------------------------ update-main
