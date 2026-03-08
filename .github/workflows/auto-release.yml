@@ -343,7 +343,7 @@ jobs:
                 if [[ "${SUBJ}" =~ ^Merge\ pull\ request\ #([0-9]+)\ from ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
                   TITLE=$(git log -1 --format="%b" "${SHA}" | grep -m1 '.' | xargs)
-                  [[ -n "${TITLE}" ]] && echo "- ${TITLE}[#${PR_NUM}]"
+                  [[ -n "${TITLE}" ]] && echo "- ${TITLE} [#${PR_NUM}]"
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- packages/types/ 2>/dev/null || true)
               echo ""
@@ -424,7 +424,7 @@ jobs:
                 if [[ "${SUBJ}" =~ ^Merge\ pull\ request\ #([0-9]+)\ from ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
                   TITLE=$(git log -1 --format="%b" "${SHA}" | grep -m1 '.' | xargs)
-                  [[ -n "${TITLE}" ]] && echo "- ${TITLE}[#${PR_NUM}]"
+                  [[ -n "${TITLE}" ]] && echo "- ${TITLE} [#${PR_NUM}]"
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- packages/sdk/ 2>/dev/null || true)
               echo ""
@@ -513,7 +513,7 @@ jobs:
                 if [[ "${SUBJ}" =~ ^Merge\ pull\ request\ #([0-9]+)\ from ]]; then
                   PR_NUM="${BASH_REMATCH[1]}"
                   TITLE=$(git log -1 --format="%b" "${SHA}" | grep -m1 '.' | xargs)
-                  [[ -n "${TITLE}" ]] && echo "- ${TITLE}[#${PR_NUM}]"
+                  [[ -n "${TITLE}" ]] && echo "- ${TITLE} [#${PR_NUM}]"
                 fi
               done < <(git log "${PREV_TAG}..HEAD" --merges -m --format="%H" -- apps/api/ apps/app/ packages/db/ 2>/dev/null || true)
               echo ""
