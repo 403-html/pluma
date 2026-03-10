@@ -92,10 +92,10 @@ function StaleRolloutsWidget({ staleRollouts, labels }: StaleRolloutsWidgetProps
         <table className="w-full text-sm">
           <thead>
             <tr className="text-xs text-muted-foreground font-medium uppercase tracking-wide border-b border-border">
-              <th className="text-left pb-2 pr-4">{labels.staleRolloutsColFlag}</th>
-              <th className="text-left pb-2 pr-4">{labels.staleRolloutsColEnvironment}</th>
-              <th className="text-left pb-2 pr-4">{labels.staleRolloutsColProject}</th>
-              <th className="text-left pb-2">{labels.staleRolloutsColRollout}</th>
+              <th scope="col" className="text-left pb-2 pr-4">{labels.staleRolloutsColFlag}</th>
+              <th scope="col" className="text-left pb-2 pr-4">{labels.staleRolloutsColEnvironment}</th>
+              <th scope="col" className="text-left pb-2 pr-4">{labels.staleRolloutsColProject}</th>
+              <th scope="col" className="text-left pb-2">{labels.staleRolloutsColRollout}</th>
             </tr>
           </thead>
           <tbody>

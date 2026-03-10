@@ -53,7 +53,7 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
 type RollingOutConfig = {
   flagId: string;
   envId: string;
-  rolloutPercentage: number | null;
+  rolloutPercentage: number;
   flag: { id: string; key: string; name: string; project: { id: string; key: string; name: string } };
   environment: { id: string; key: string; name: string };
 };
@@ -82,7 +82,7 @@ function buildStaleRollouts(
       projectId: c.flag.project.id,
       projectKey: c.flag.project.key,
       projectName: c.flag.project.name,
-      rolloutPercentage: c.rolloutPercentage as number,
+      rolloutPercentage: c.rolloutPercentage,
     }));
 }
 
@@ -96,7 +96,13 @@ function buildStaleRollouts(
  *     Response: {
  *       projects, environments, activeFlags, targetedFlags,
  *       rollingOutFlags, recentChanges,
- *       dailyChanges: Array<{ date: string; count: number }>
+ *       dailyChanges: Array<{ date: string; count: number }>,
+ *       staleRollouts: Array<{
+ *         flagId, flagKey, flagName,
+ *         envId, envKey, envName,
+ *         projectId, projectKey, projectName,
+ *         rolloutPercentage: number
+ *       }>
  *     }
  */
 export async function registerDashboardRoutes(fastify: FastifyInstance) {
@@ -140,7 +146,9 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
         take:    MAX_AUDIT_LOGS,
       }),
       prisma.flagConfig.findMany({
-        where: { rolloutPercentage: { not: null, lt: ROLLOUT_FULL_PERCENT } },
+        where:   { rolloutPercentage: { not: null, lt: ROLLOUT_FULL_PERCENT } },
+        orderBy: { createdAt: 'asc' },
+        take:    MAX_STALE_ROLLOUTS * 4,
         select: {
           flagId: true,
           envId: true,
@@ -163,7 +171,9 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
           flagId:     { not: null },
           envId:      { not: null },
         },
-        select: { flagId: true, envId: true },
+        select:   { flagId: true, envId: true },
+        distinct: ['flagId', 'envId'],
+        take:     MAX_STALE_ROLLOUTS * 5,
       }),
     ]);
 

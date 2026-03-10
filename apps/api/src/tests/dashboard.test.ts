@@ -318,7 +318,9 @@ describe('Dashboard routes', () => {
           flagId:     { not: null },
           envId:      { not: null },
         },
-        select: { flagId: true, envId: true },
+        select:   { flagId: true, envId: true },
+        distinct: ['flagId', 'envId'],
+        take:     MAX_STALE_ROLLOUTS * 5,
       });
     });
 
