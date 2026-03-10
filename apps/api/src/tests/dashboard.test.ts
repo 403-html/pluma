@@ -347,7 +347,7 @@ describe('Dashboard routes', () => {
       );
     });
 
-    it('response includes staleRolloutsMeta with page/pageSize/hasMore', async () => {
+    it('response includes meta with page/pageSize/hasMore', async () => {
       prismaMock.project.count.mockResolvedValue(0);
       prismaMock.environment.count.mockResolvedValue(0);
       prismaMock.flagConfig.count.mockResolvedValue(0);
@@ -363,7 +363,7 @@ describe('Dashboard routes', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.staleRolloutsMeta).toMatchObject({
+      expect(body.meta).toMatchObject({
         page:     1,
         pageSize: MAX_STALE_ROLLOUTS,
         hasMore:  false,
@@ -391,14 +391,14 @@ describe('Dashboard routes', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/dashboard?staleRolloutsPage=2&staleRolloutsPageSize=${MAX_STALE_ROLLOUTS}`,
+        url: `/api/v1/dashboard?page=2&pageSize=${MAX_STALE_ROLLOUTS}`,
         headers: { cookie: AUTH_COOKIE },
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.staleRollouts).toHaveLength(5); // MAX_STALE_ROLLOUTS + 5 total, page 2 has 5
-      expect(body.staleRolloutsMeta).toMatchObject({ page: 2, pageSize: MAX_STALE_ROLLOUTS, hasMore: false });
+      expect(body.meta).toMatchObject({ page: 2, pageSize: MAX_STALE_ROLLOUTS, hasMore: false });
     });
 
     it(`staleRollouts caps at MAX_STALE_ROLLOUTS (${MAX_STALE_ROLLOUTS})`, async () => {

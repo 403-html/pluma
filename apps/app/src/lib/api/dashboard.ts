@@ -13,7 +13,7 @@ export type StaleRollout = {
   rolloutPercentage: number;
 };
 
-export type StaleRolloutsMeta = {
+export type PaginationMeta = {
   page: number;
   pageSize: number;
   hasMore: boolean;
@@ -28,7 +28,7 @@ export type DashboardData = {
   recentChanges: number;
   dailyChanges: DailyChange[];
   staleRollouts: StaleRollout[];
-  staleRolloutsMeta: StaleRolloutsMeta;
+  meta: PaginationMeta;
 };
 
 export const EMPTY_DASHBOARD: DashboardData = {
@@ -40,7 +40,7 @@ export const EMPTY_DASHBOARD: DashboardData = {
   recentChanges: 0,
   dailyChanges: [],
   staleRollouts: [],
-  staleRolloutsMeta: { page: 1, pageSize: 50, hasMore: false },
+  meta: { page: 1, pageSize: 50, hasMore: false },
 };
 
 /**

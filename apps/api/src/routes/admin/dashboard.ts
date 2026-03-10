@@ -25,8 +25,8 @@ export const STALE_ROLLOUT_DAYS = 7;
 export const MAX_STALE_ROLLOUTS = 50;
 
 const dashboardQuerySchema = z.object({
-  staleRolloutsPage:     z.coerce.number().int().min(1).default(1),
-  staleRolloutsPageSize: z.coerce.number().int().min(1).max(MAX_STALE_ROLLOUTS).default(MAX_STALE_ROLLOUTS),
+  page:     z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(MAX_STALE_ROLLOUTS).default(MAX_STALE_ROLLOUTS),
 });
 
 /**
@@ -100,8 +100,8 @@ function buildStaleRollouts(
  *     Returns aggregate counts for the admin dashboard.
  *
  *     Query params (optional):
- *       staleRolloutsPage     - 1-indexed page number (default: 1)
- *       staleRolloutsPageSize - items per page, 1–MAX_STALE_ROLLOUTS (default: MAX_STALE_ROLLOUTS)
+ *       page     - 1-indexed page number (default: 1)
+ *       pageSize - items per page, 1–MAX_STALE_ROLLOUTS (default: MAX_STALE_ROLLOUTS)
  *
  *     Response: {
  *       projects, environments, activeFlags, targetedFlags,
@@ -113,14 +113,14 @@ function buildStaleRollouts(
  *         projectId, projectKey, projectName,
  *         rolloutPercentage: number
  *       }>,
- *       staleRolloutsMeta: { page: number; pageSize: number; hasMore: boolean }
+ *       meta: { page: number; pageSize: number; hasMore: boolean }
  *     }
  */
 export async function registerDashboardRoutes(fastify: FastifyInstance) {
   fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (request, _reply) => {
     const parsedQuery = dashboardQuerySchema.safeParse(request.query);
-    const page     = parsedQuery.success ? parsedQuery.data.staleRolloutsPage     : 1;
-    const pageSize = parsedQuery.success ? parsedQuery.data.staleRolloutsPageSize : MAX_STALE_ROLLOUTS;
+    const page     = parsedQuery.success ? parsedQuery.data.page     : 1;
+    const pageSize = parsedQuery.success ? parsedQuery.data.pageSize : MAX_STALE_ROLLOUTS;
 
     const since7Days      = new Date(Date.now() - (CHART_DAYS - 1) * MS_PER_DAY);
     const since24h        = new Date(Date.now() - MS_PER_DAY);
@@ -211,7 +211,7 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       recentChanges,
       dailyChanges,
       staleRollouts,
-      staleRolloutsMeta: {
+      meta: {
         page,
         pageSize,
         hasMore: allStaleRollouts.length > page * pageSize,
