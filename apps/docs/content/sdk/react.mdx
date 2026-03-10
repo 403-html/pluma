@@ -26,15 +26,23 @@ export const plumaClient = PlumaSnapshotCache.create({
 
 ```tsx
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { plumaClient } from '@/lib/pluma'
 
-export function FeatureGate({ flag, userId, children }) {
+interface FeatureGateProps {
+  flag: string
+  userId: string
+  children: ReactNode
+}
+
+export function FeatureGate({ flag, userId, children }: FeatureGateProps) {
   const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
     plumaClient
       .evaluator({ subjectKey: userId })
       .then((ev) => setEnabled(ev.isEnabled(flag)))
+      .catch((err: unknown) => console.error('Pluma evaluation failed', err))
   }, [flag, userId])
 
   return enabled ? children : null

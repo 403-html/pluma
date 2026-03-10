@@ -11,7 +11,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Layout
           navbar={
             <Navbar
-              logo={<span>Pluma</span>}
+              logo={<span aria-label="Pluma documentation">Pluma</span>}
               projectLink="https://github.com/403-html/pluma"
             />
           }

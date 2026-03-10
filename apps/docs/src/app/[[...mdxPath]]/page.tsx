@@ -1,5 +1,5 @@
 import { generateStaticParamsFor, importPage } from 'nextra/pages'
-import { useMDXComponents } from '../../mdx-components'
+import { useMDXComponents as getMDXComponents } from '../../mdx-components'
 
 export const generateStaticParams = generateStaticParamsFor('mdxPath')
 
@@ -9,8 +9,7 @@ export async function generateMetadata(props: { params: Promise<{ mdxPath: strin
   return metadata
 }
 
-// eslint-disable-next-line react-hooks/rules-of-hooks -- useMDXComponents is a Nextra v4 module-level registry, not a React hook
-const Wrapper = useMDXComponents().wrapper
+const Wrapper = getMDXComponents().wrapper
 
 export default async function Page(props: { params: Promise<{ mdxPath: string[] }> }) {
   const params = await props.params
