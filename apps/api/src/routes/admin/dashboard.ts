@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
 import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
@@ -22,6 +23,11 @@ export const STALE_ROLLOUT_DAYS = 7;
 
 /** Maximum number of stale rollouts returned in the dashboard response. */
 export const MAX_STALE_ROLLOUTS = 50;
+
+const dashboardQuerySchema = z.object({
+  staleRolloutsPage:     z.coerce.number().int().min(1).default(1),
+  staleRolloutsPageSize: z.coerce.number().int().min(1).max(MAX_STALE_ROLLOUTS).default(MAX_STALE_ROLLOUTS),
+});
 
 /**
  * Builds an array of CHART_DAYS consecutive UTC date strings (YYYY-MM-DD) ending today.
@@ -53,7 +59,7 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
 type RollingOutConfig = {
   flagId: string;
   envId: string;
-  rolloutPercentage: number;
+  rolloutPercentage: number | null;
   flag: { id: string; key: string; name: string; project: { id: string; key: string; name: string } };
   environment: { id: string; key: string; name: string };
 };
@@ -71,7 +77,7 @@ function buildStaleRollouts(
   );
   return rollingOutConfigs
     .filter((c) => !recentActivitySet.has(`${c.flagId}:${c.envId}`))
-    .slice(0, MAX_STALE_ROLLOUTS)
+    .filter((c): c is RollingOutConfig & { rolloutPercentage: number } => c.rolloutPercentage != null)
     .map((c) => ({
       flagId: c.flag.id,
       flagKey: c.flag.key,
@@ -93,6 +99,10 @@ function buildStaleRollouts(
  *   GET /dashboard
  *     Returns aggregate counts for the admin dashboard.
  *
+ *     Query params (optional):
+ *       staleRolloutsPage     - 1-indexed page number (default: 1)
+ *       staleRolloutsPageSize - items per page, 1–MAX_STALE_ROLLOUTS (default: MAX_STALE_ROLLOUTS)
+ *
  *     Response: {
  *       projects, environments, activeFlags, targetedFlags,
  *       rollingOutFlags, recentChanges,
@@ -102,11 +112,16 @@ function buildStaleRollouts(
  *         envId, envKey, envName,
  *         projectId, projectKey, projectName,
  *         rolloutPercentage: number
- *       }>
+ *       }>,
+ *       staleRolloutsMeta: { page: number; pageSize: number; hasMore: boolean }
  *     }
  */
 export async function registerDashboardRoutes(fastify: FastifyInstance) {
-  fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (_request, _reply) => {
+  fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (request, _reply) => {
+    const parsedQuery = dashboardQuerySchema.safeParse(request.query);
+    const page     = parsedQuery.success ? parsedQuery.data.staleRolloutsPage     : 1;
+    const pageSize = parsedQuery.success ? parsedQuery.data.staleRolloutsPageSize : MAX_STALE_ROLLOUTS;
+
     const since7Days      = new Date(Date.now() - (CHART_DAYS - 1) * MS_PER_DAY);
     const since24h        = new Date(Date.now() - MS_PER_DAY);
     const since7DaysStale = new Date(Date.now() - STALE_ROLLOUT_DAYS * MS_PER_DAY);
@@ -147,7 +162,7 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       }),
       prisma.flagConfig.findMany({
         where:   { rolloutPercentage: { not: null, lt: ROLLOUT_FULL_PERCENT } },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { environment: { updatedAt: 'desc' } },
         take:    MAX_STALE_ROLLOUTS * 4,
         select: {
           flagId: true,
@@ -184,7 +199,8 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       count: countsByDate.get(date) ?? 0,
     }));
 
-    const staleRollouts = buildStaleRollouts(rollingOutConfigs, recentFlagConfigActivity);
+    const allStaleRollouts = buildStaleRollouts(rollingOutConfigs, recentFlagConfigActivity);
+    const staleRollouts    = allStaleRollouts.slice((page - 1) * pageSize, page * pageSize);
 
     return {
       projects,
@@ -195,6 +211,11 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       recentChanges,
       dailyChanges,
       staleRollouts,
+      staleRolloutsMeta: {
+        page,
+        pageSize,
+        hasMore: allStaleRollouts.length > page * pageSize,
+      },
     };
   });
 }
