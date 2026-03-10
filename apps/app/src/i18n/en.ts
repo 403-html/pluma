@@ -273,6 +273,13 @@ export const en = {
     chartDayLabel: 'Day',
     chartCountLabel: 'Changes',
     loadingError: 'Failed to load dashboard data',
+    staleRolloutsTitle: 'Stale Rollouts',
+    staleRolloutsSubtitle: 'Rollouts at <100% with no changes in 7+ days',
+    staleRolloutsEmpty: 'No stale rollouts',
+    staleRolloutsColFlag: 'Flag',
+    staleRolloutsColEnvironment: 'Environment',
+    staleRolloutsColProject: 'Project',
+    staleRolloutsColRollout: 'Rollout',
   },
   flags: {
     title: 'Flags',
