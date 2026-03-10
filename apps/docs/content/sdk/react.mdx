@@ -1,0 +1,63 @@
+# React
+
+Integrate Pluma feature flags into your React application.
+
+## Installation
+
+```bash
+npm install @pluma-flags/sdk
+```
+
+## Setup
+
+Create a shared client instance (e.g. in `lib/pluma.ts`):
+
+```ts
+import { PlumaSnapshotCache } from '@pluma-flags/sdk'
+
+export const plumaClient = PlumaSnapshotCache.create({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:2137',
+  token: process.env.NEXT_PUBLIC_PLUMA_TOKEN ?? '',
+  ttlMs: 30_000,
+})
+```
+
+## Using in a Component
+
+```tsx
+import { useEffect, useState } from 'react'
+import { plumaClient } from '@/lib/pluma'
+
+export function FeatureGate({ flag, userId, children }) {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    plumaClient
+      .evaluator({ subjectKey: userId })
+      .then((ev) => setEnabled(ev.isEnabled(flag)))
+  }, [flag, userId])
+
+  return enabled ? children : null
+}
+```
+
+## Usage
+
+```tsx
+<FeatureGate flag="new-dashboard" userId={user.id}>
+  <NewDashboard />
+</FeatureGate>
+```
+
+## Server Components (Next.js App Router)
+
+```tsx
+import { plumaClient } from '@/lib/pluma'
+
+export default async function Page({ userId }: { userId: string }) {
+  const evaluator = await plumaClient.evaluator({ subjectKey: userId })
+  const showBeta = evaluator.isEnabled('beta-ui')
+
+  return showBeta ? <BetaUI /> : <StableUI />
+}
+```

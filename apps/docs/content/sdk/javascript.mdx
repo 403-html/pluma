@@ -1,0 +1,44 @@
+# JavaScript / Node.js
+
+Use the Pluma SDK in any Node.js or JavaScript environment.
+
+## Installation
+
+```bash
+npm install @pluma-flags/sdk
+```
+
+## Basic Usage
+
+```ts
+import { PlumaSnapshotCache } from '@pluma-flags/sdk'
+
+const client = PlumaSnapshotCache.create({
+  baseUrl: 'http://localhost:2137',
+  token: 'sdk_your_token_here',
+  ttlMs: 30_000,
+})
+
+// Evaluate a flag for a specific subject
+const evaluator = await client.evaluator({ subjectKey: 'user-123' })
+
+if (evaluator.isEnabled('dark-mode')) {
+  console.log('Dark mode is enabled for user-123')
+}
+```
+
+## Caching
+
+`PlumaSnapshotCache` fetches all flags for the project once and caches them locally for `ttlMs` milliseconds. Subsequent `evaluator()` calls within the TTL window use the cached snapshot — no extra network requests.
+
+## Multiple Subjects
+
+```ts
+const [evaluatorA, evaluatorB] = await Promise.all([
+  client.evaluator({ subjectKey: 'user-a' }),
+  client.evaluator({ subjectKey: 'user-b' }),
+])
+
+evaluatorA.isEnabled('new-checkout') // true or false
+evaluatorB.isEnabled('new-checkout') // may differ per subject
+```

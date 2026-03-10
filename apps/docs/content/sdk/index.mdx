@@ -1,0 +1,38 @@
+# SDK Integration
+
+The `@pluma-flags/sdk` package lets you evaluate feature flags in your application.
+
+## Installation
+
+```bash
+npm install @pluma-flags/sdk
+# or
+pnpm add @pluma-flags/sdk
+```
+
+## SDK Tokens
+
+SDK tokens are created in the Pluma UI under **Organisation → API Keys**. Each token is scoped to a project and environment.
+
+## Quick Example
+
+```ts
+import { PlumaSnapshotCache } from '@pluma-flags/sdk'
+
+const client = PlumaSnapshotCache.create({
+  baseUrl: 'http://localhost:2137',
+  token: 'sdk_your_token_here',
+  ttlMs: 30_000, // optional; defaults to 30 s
+})
+
+const evaluator = await client.evaluator({ subjectKey: 'user-123' })
+
+if (evaluator.isEnabled('my-feature-flag')) {
+  // feature is enabled for this subject
+}
+```
+
+## Guides
+
+- [JavaScript / Node.js](./javascript)
+- [React](./react)

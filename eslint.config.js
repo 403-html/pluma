@@ -13,5 +13,7 @@ export default [{
     "**/node_modules",
     "**/dist",
     "**/.next",
+    "apps/docs/out",
+    "apps/docs/next-env.d.ts",
   ],
 }, ...base, ...storybook.configs["flat/recommended"]];

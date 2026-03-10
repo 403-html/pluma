@@ -1,0 +1,38 @@
+# Configuration
+
+Pluma is configured through environment variables.
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_USER` | `pluma` | PostgreSQL username |
+| `DB_PASSWORD` | `pluma` | PostgreSQL password |
+| `DB_NAME` | `pluma` | PostgreSQL database name |
+| `API_URL` | `http://api:2137` | API base URL (used by the UI) |
+| `PORT` | `2137` (api) / `3000` (app) | Port to listen on |
+| `NODE_ENV` | `production` | Node environment |
+
+## Security Recommendations
+
+**Before going to production:**
+
+1. Change `DB_PASSWORD` to a strong, randomly generated value.
+2. Place the API and UI behind a reverse proxy with TLS.
+3. Restrict port `5432` — PostgreSQL should not be publicly accessible.
+
+## Using an `.env` File
+
+```bash
+# .env
+DB_USER=pluma
+DB_PASSWORD=change_me_in_production
+DB_NAME=pluma
+API_URL=https://api.example.com
+```
+
+Then reference it in your compose file or pass it to `docker compose`:
+
+```bash
+docker compose --env-file .env up -d
+```

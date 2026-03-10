@@ -1,0 +1,18 @@
+# Self-Hosting Setup
+
+Pluma is designed to be self-hosted. It ships as pre-built Docker images — no build step required.
+
+## Architecture
+
+| Service | Image | Default Port |
+|---------|-------|-------------|
+| PostgreSQL | `postgres:16` | `5432` |
+| API | `ghcr.io/403-html/pluma-api:latest` | `2137` |
+| UI | `ghcr.io/403-html/pluma-app:latest` | `3000` |
+
+The API is stateless and can be scaled horizontally.
+
+## Guides
+
+- [Docker Compose](./docker) — full compose setup
+- [Configuration](./configuration) — environment variables reference
