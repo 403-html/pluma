@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             />
           }
           footer={<Footer>Pluma Documentation</Footer>}
-          docsRepositoryBase="https://github.com/403-html/pluma"
+          docsRepositoryBase="https://github.com/403-html/pluma/blob/main/apps/docs"
           pageMap={pageMap}
         >
           {children}
