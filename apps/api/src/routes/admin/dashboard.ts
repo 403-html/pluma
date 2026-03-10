@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
 import { prisma } from '@pluma-flags/db';
 import { adminAuthHook } from '../../hooks/adminAuth';
 
@@ -16,6 +17,17 @@ export const ROLLOUT_FULL_PERCENT = 100;
 
 /** Safety cap on rows fetched for daily-change grouping. */
 export const MAX_AUDIT_LOGS = 10_000;
+
+/** Number of days without activity before a rollout is considered stale. */
+export const STALE_ROLLOUT_DAYS = 7;
+
+/** Maximum number of stale rollouts returned in the dashboard response. */
+export const MAX_STALE_ROLLOUTS = 50;
+
+const dashboardQuerySchema = z.object({
+  page:     z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(MAX_STALE_ROLLOUTS).default(MAX_STALE_ROLLOUTS),
+});
 
 /**
  * Builds an array of CHART_DAYS consecutive UTC date strings (YYYY-MM-DD) ending today.
@@ -44,6 +56,42 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
   return counts;
 }
 
+type RollingOutConfig = {
+  flagId: string;
+  envId: string;
+  rolloutPercentage: number | null;
+  flag: { id: string; key: string; name: string; project: { id: string; key: string; name: string } };
+  environment: { id: string; key: string; name: string };
+};
+
+type RecentActivity = { flagId: string | null; envId: string | null };
+
+function buildStaleRollouts(
+  rollingOutConfigs: RollingOutConfig[],
+  recentActivity: RecentActivity[],
+) {
+  const recentActivitySet = new Set(
+    recentActivity
+      .filter((a): a is { flagId: string; envId: string } => a.flagId != null && a.envId != null)
+      .map((a) => `${a.flagId}:${a.envId}`),
+  );
+  return rollingOutConfigs
+    .filter((c) => !recentActivitySet.has(`${c.flagId}:${c.envId}`))
+    .filter((c): c is RollingOutConfig & { rolloutPercentage: number } => c.rolloutPercentage != null)
+    .map((c) => ({
+      flagId: c.flag.id,
+      flagKey: c.flag.key,
+      flagName: c.flag.name,
+      envId: c.environment.id,
+      envKey: c.environment.key,
+      envName: c.environment.name,
+      projectId: c.flag.project.id,
+      projectKey: c.flag.project.key,
+      projectName: c.flag.project.name,
+      rolloutPercentage: c.rolloutPercentage,
+    }));
+}
+
 /**
  * Registers dashboard summary routes on the given Fastify instance.
  *
@@ -51,16 +99,32 @@ function groupAuditLogsByDay(logs: Array<{ createdAt: Date }>): Map<string, numb
  *   GET /dashboard
  *     Returns aggregate counts for the admin dashboard.
  *
+ *     Query params (optional):
+ *       page     - 1-indexed page number (default: 1)
+ *       pageSize - items per page, 1–MAX_STALE_ROLLOUTS (default: MAX_STALE_ROLLOUTS)
+ *
  *     Response: {
  *       projects, environments, activeFlags, targetedFlags,
  *       rollingOutFlags, recentChanges,
- *       dailyChanges: Array<{ date: string; count: number }>
+ *       dailyChanges: Array<{ date: string; count: number }>,
+ *       staleRollouts: Array<{
+ *         flagId, flagKey, flagName,
+ *         envId, envKey, envName,
+ *         projectId, projectKey, projectName,
+ *         rolloutPercentage: number
+ *       }>,
+ *       meta: { page: number; pageSize: number; hasMore: boolean }
  *     }
  */
 export async function registerDashboardRoutes(fastify: FastifyInstance) {
-  fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (_request, _reply) => {
-    const since7Days = new Date(Date.now() - (CHART_DAYS - 1) * MS_PER_DAY);
-    const since24h   = new Date(Date.now() - MS_PER_DAY);
+  fastify.get('/dashboard', { preHandler: [adminAuthHook] }, async (request, _reply) => {
+    const parsedQuery = dashboardQuerySchema.safeParse(request.query);
+    const page     = parsedQuery.success ? parsedQuery.data.page     : 1;
+    const pageSize = parsedQuery.success ? parsedQuery.data.pageSize : MAX_STALE_ROLLOUTS;
+
+    const since7Days      = new Date(Date.now() - (CHART_DAYS - 1) * MS_PER_DAY);
+    const since24h        = new Date(Date.now() - MS_PER_DAY);
+    const since7DaysStale = new Date(Date.now() - STALE_ROLLOUT_DAYS * MS_PER_DAY);
 
     const [
       projects,
@@ -70,6 +134,8 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       rollingOutFlags,
       recentChanges,
       recentLogs,
+      rollingOutConfigs,
+      recentFlagConfigActivity,
     ] = await Promise.all([
       prisma.project.count(),
       prisma.environment.count(),
@@ -94,15 +160,47 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
         take:    MAX_AUDIT_LOGS,
       }),
+      prisma.flagConfig.findMany({
+        where:   { rolloutPercentage: { not: null, lt: ROLLOUT_FULL_PERCENT } },
+        orderBy: { environment: { updatedAt: 'desc' } },
+        take:    MAX_STALE_ROLLOUTS * 4,
+        select: {
+          flagId: true,
+          envId: true,
+          rolloutPercentage: true,
+          flag: {
+            select: {
+              id: true,
+              key: true,
+              name: true,
+              project: { select: { id: true, key: true, name: true } },
+            },
+          },
+          environment: { select: { id: true, key: true, name: true } },
+        },
+      }),
+      prisma.auditLog.findMany({
+        where: {
+          entityType: 'flagConfig',
+          createdAt:  { gte: since7DaysStale },
+          flagId:     { not: null },
+          envId:      { not: null },
+        },
+        select:   { flagId: true, envId: true },
+        distinct: ['flagId', 'envId'],
+        take:     MAX_STALE_ROLLOUTS * 5,
+      }),
     ]);
 
-    // Group by UTC date using extracted helper (caps at MAX_AUDIT_LOGS for safety)
     const countsByDate = groupAuditLogsByDay(recentLogs);
 
     const dailyChanges = buildChartDays().map((date) => ({
       date,
       count: countsByDate.get(date) ?? 0,
     }));
+
+    const allStaleRollouts = buildStaleRollouts(rollingOutConfigs, recentFlagConfigActivity);
+    const staleRollouts    = allStaleRollouts.slice((page - 1) * pageSize, page * pageSize);
 
     return {
       projects,
@@ -112,6 +210,12 @@ export async function registerDashboardRoutes(fastify: FastifyInstance) {
       rollingOutFlags,
       recentChanges,
       dailyChanges,
+      staleRollouts,
+      meta: {
+        page,
+        pageSize,
+        hasMore: allStaleRollouts.length > page * pageSize,
+      },
     };
   });
 }

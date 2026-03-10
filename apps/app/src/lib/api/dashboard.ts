@@ -1,5 +1,24 @@
 export type DailyChange = { date: string; count: number };
 
+export type StaleRollout = {
+  flagId: string;
+  flagKey: string;
+  flagName: string;
+  envId: string;
+  envKey: string;
+  envName: string;
+  projectId: string;
+  projectKey: string;
+  projectName: string;
+  rolloutPercentage: number;
+};
+
+export type PaginationMeta = {
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+};
+
 export type DashboardData = {
   projects: number;
   environments: number;
@@ -8,6 +27,8 @@ export type DashboardData = {
   rollingOutFlags: number;
   recentChanges: number;
   dailyChanges: DailyChange[];
+  staleRollouts: StaleRollout[];
+  meta: PaginationMeta;
 };
 
 export const EMPTY_DASHBOARD: DashboardData = {
@@ -18,6 +39,8 @@ export const EMPTY_DASHBOARD: DashboardData = {
   rollingOutFlags: 0,
   recentChanges: 0,
   dailyChanges: [],
+  staleRollouts: [],
+  meta: { page: 1, pageSize: 50, hasMore: false },
 };
 
 /**

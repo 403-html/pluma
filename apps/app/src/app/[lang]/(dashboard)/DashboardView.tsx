@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import type { DashboardData } from '@/lib/api/dashboard';
+import type { DashboardData, StaleRollout } from '@/lib/api/dashboard';
 import type { en } from '@/i18n/en';
 import {
   ISO_DATE_LENGTH,
@@ -69,6 +69,61 @@ export interface DashboardViewProps {
   labels: DashboardLabels;
 }
 
+interface StaleRolloutsWidgetProps {
+  staleRollouts: StaleRollout[];
+  labels: DashboardLabels;
+}
+
+function StaleRolloutsWidget({ staleRollouts, labels }: StaleRolloutsWidgetProps) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <h2
+        id="stale-rollouts-heading"
+        className="text-sm font-semibold text-muted-foreground mb-1"
+      >
+        {labels.staleRolloutsTitle}
+      </h2>
+      <p className="text-xs text-muted-foreground mb-4">{labels.staleRolloutsSubtitle}</p>
+      {staleRollouts.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          {labels.staleRolloutsEmpty}
+        </p>
+      ) : (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs text-muted-foreground font-medium uppercase tracking-wide border-b border-border">
+              <th scope="col" className="text-left pb-2 pr-4">{labels.staleRolloutsColFlag}</th>
+              <th scope="col" className="text-left pb-2 pr-4">{labels.staleRolloutsColEnvironment}</th>
+              <th scope="col" className="text-left pb-2 pr-4">{labels.staleRolloutsColProject}</th>
+              <th scope="col" className="text-left pb-2">{labels.staleRolloutsColRollout}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {staleRollouts.map((item) => (
+              <tr
+                key={`${item.flagId}-${item.envId}`}
+                className="border-b border-border last:border-0 hover:bg-muted/30"
+              >
+                <td className="py-2 pr-4">
+                  <span className="block text-foreground">{item.flagName}</span>
+                  <span className="text-xs text-muted-foreground">{item.flagKey}</span>
+                </td>
+                <td className="py-2 pr-4 text-foreground">{item.envName}</td>
+                <td className="py-2 pr-4 text-foreground">{item.projectName}</td>
+                <td className="py-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                    {item.rolloutPercentage}%
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardView({ data, labels }: DashboardViewProps) {
   const stats: Array<{ label: string; value: number }> = [
     { label: labels.projects, value: data.projects },
@@ -106,6 +161,10 @@ export default function DashboardView({ data, labels }: DashboardViewProps) {
             <p className="text-sm text-muted-foreground text-center py-8">—</p>
           )}
         </div>
+      </section>
+
+      <section aria-labelledby="stale-rollouts-heading">
+        <StaleRolloutsWidget staleRollouts={data.staleRollouts} labels={labels} />
       </section>
     </div>
   );

@@ -281,6 +281,38 @@ export async function registerFlagConfigRoutes(fastify: FastifyInstance) {
         }
       }
 
+      // Log flagConfig update for rollout/targeting field changes
+      const hasConfigChanges =
+        parsedBody.data.rolloutPercentage !== undefined ||
+        parsedBody.data.allowList !== undefined ||
+        parsedBody.data.denyList !== undefined;
+      if (hasConfigChanges) {
+        try {
+          await writeAuditLog({
+            action: 'update',
+            entityType: 'flagConfig',
+            entityId: validated.flagId,
+            entityKey: validated.flagKey,
+            projectId: validated.projectId,
+            envId: config.envId,
+            envKey: validated.envKey,
+            flagId: config.flagId,
+            flagKey: validated.flagKey,
+            actorId: request.sessionUserId!,
+            actorEmail: request.sessionUser!.email,
+            details: { ...(before ? { before } : {}), after: parsedBody.data as Record<string, unknown> },
+            meta: {
+              ip: request.ip,
+              ua: request.headers['user-agent'] as string | undefined,
+              requestId: request.id,
+              actorType: 'user',
+            },
+          });
+        } catch (auditError) {
+          request.log.error({ err: auditError, envId: config.envId, flagId: config.flagId }, 'PATCH /flagConfigs: failed to write flagConfig audit log');
+        }
+      }
+
       return config;
     },
   );
