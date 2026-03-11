@@ -26,6 +26,22 @@
   overflow: visible;
 }
 
+/*
+ * On wide viewports the layout container is narrower than the viewport, so
+ * the sidebar's left edge doesn't reach the viewport left edge.  This
+ * pseudo-element extends the surface colour leftward by 100vw to fill that gap.
+ */
+.nextra-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: 100vw;
+  background-color: var(--docs-surface);
+  pointer-events: none;
+}
+
 /* ── 2b. Navbar blur layer: background distinct from page background ── */
 /*
  * Specificity (0,2,0) beats nextra's single-class x:bg-nextra-bg/70 rule
