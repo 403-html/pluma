@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Footer, Layout, Navbar } from 'nextra-theme-docs';
 import { getPageMap } from 'nextra/page-map';
 import { Head } from 'nextra/components';
@@ -14,7 +14,7 @@ export const metadata = {
   description: 'Pluma feature flag system documentation.',
 };
 
-const RootLayout: FC<{ children: ReactNode }> = async ({ children }) => {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   const pageMap = await getPageMap();
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
@@ -47,6 +47,4 @@ const RootLayout: FC<{ children: ReactNode }> = async ({ children }) => {
       </body>
     </html>
   );
-};
-
-export default RootLayout;
+}
