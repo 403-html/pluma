@@ -30,6 +30,7 @@ const RootLayout: FC<{ children: ReactNode }> = async ({ children }) => {
         }}
       />
       <body>
+        {/* darkMode=false hides nextra's built-in sidebar ThemeSwitch in favour of the custom ThemeToggle in Navbar */}
         <Layout
           navbar={
             <Navbar logo={<span>Pluma</span>} projectLink="https://github.com/403-html/pluma">

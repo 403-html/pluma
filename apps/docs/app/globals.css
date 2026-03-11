@@ -6,13 +6,13 @@
   --pluma-dark-slate-grey: #354f52;
   --pluma-charcoal-blue: #2f3e46;
 
-  /* Sidebar + navbar surface (light mode): muted-teal-tinted grey */
-  --docs-surface: #dce8e4;
+  /* Sidebar + navbar surface (light mode): Pluma ash-grey */
+  --docs-surface: var(--pluma-ash-grey);
 }
 
 .dark {
-  /* Sidebar + navbar surface (dark mode): dark-slate-grey */
-  --docs-surface: #354f52;
+  /* Sidebar + navbar surface (dark mode): Pluma dark-slate-grey */
+  --docs-surface: var(--pluma-dark-slate-grey);
 }
 
 /* ── 2a. Sidebar: background distinct from page background ── */
@@ -32,30 +32,33 @@
  * (0,1,0), so no !important is needed.
  */
 .nextra-navbar .nextra-navbar-blur {
-  /* light mode: muted-teal tint at 85 % */
-  background-color: rgba(220, 232, 228, 0.85);
+  /* color-mix derives the tinted value directly from the CSS var */
+  background-color: color-mix(in srgb, var(--pluma-ash-grey) 90%, transparent);
+  /* match the dark-mode bottom border — use muted-teal to stay on-palette */
+  border-bottom-color: var(--pluma-muted-teal);
 }
 
 .dark .nextra-navbar .nextra-navbar-blur {
-  /* dark mode: dark-slate-grey at 85 % */
-  background-color: rgba(53, 79, 82, 0.85);
+  background-color: color-mix(in srgb, var(--pluma-dark-slate-grey) 90%, transparent);
+  /* dark mode already has a visible nextra-border; keep on-palette */
+  border-bottom-color: var(--pluma-dark-slate-grey);
 }
 
-/* ── 1. Toggle button: right edge of sidebar, half-protruding outside ──
+/* ── 1. Toggle button: right edge of sidebar, few px from top ──
  *
  * The sidebar <aside> has position:sticky which creates a containing block
- * for absolutely-positioned children.  We move the footer container
- * (nextra-sidebar-footer) to the right edge, vertically centred, then use
- * translateX(50%) to push exactly half the button's width outside the
- * sidebar — so it straddles the edge like a drawer pull.
+ * for absolutely-positioned children.  We pin the footer container to the
+ * top-right corner, then use translateX(50%) to push exactly half the
+ * button's width outside the sidebar — so it straddles the edge like a
+ * drawer pull.
  */
 .nextra-sidebar .nextra-sidebar-footer {
   position: absolute;
-  top: 50%;
+  top: 12px;
   right: 0;
   /* override nextra's x:sticky x:bottom-0 */
   bottom: auto;
-  transform: translateY(-50%) translateX(50%);
+  transform: translateX(50%);
   /* strip bottom-bar decorative styles */
   margin: 0;
   padding: 0;
