@@ -6,7 +6,6 @@ import 'nextra-theme-docs/style.css'
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const pageMap = await getPageMap()
-  const sdkVersion = process.env.NEXT_PUBLIC_SDK_VERSION
   return (
     <html lang="en" suppressHydrationWarning>
       <Head
@@ -31,7 +30,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           }
           footer={
             <Footer>
-              Pluma Documentation{sdkVersion ? ` — SDK v${sdkVersion}` : ''}
+              {`Pluma Documentation${process.env.NEXT_PUBLIC_SDK_VERSION ? ` — SDK v${process.env.NEXT_PUBLIC_SDK_VERSION}` : ''}`}
             </Footer>
           }
           docsRepositoryBase="https://github.com/403-html/pluma/blob/main/apps/docs"
