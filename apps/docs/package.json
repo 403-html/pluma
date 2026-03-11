@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && pagefind --site out --output-path out/_pagefind",
+    "build": "next build && node node_modules/pagefind/lib/runner/bin.cjs --site out --output-path out/_pagefind",
     "preview": "node preview.mjs",
     "start": "next start"
   },
