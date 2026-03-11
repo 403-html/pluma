@@ -17,7 +17,7 @@ import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const client = PlumaSnapshotCache.create({
   baseUrl: "http://localhost:2137",
-  token: "sdk_your_token_here", // Organisation → API Keys in the Pluma UI
+  token: "sdk_your_token_here", // Organization → API Keys in the Pluma UI
   ttlMs: 30_000, // optional; defaults to 30_000 ms
 });
 
@@ -29,7 +29,7 @@ if (evaluator.isEnabled("my-feature")) {
 ```
 
 SDK tokens are scoped to a project and environment. Create them in the Pluma UI
-under **Organisation → API Keys**.
+under **Organization → API Keys**.
 
 ## Express.js
 

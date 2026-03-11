@@ -11,6 +11,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <Head
         color={{
+          // Pluma palette: deep-teal (light) / muted-teal (dark) — mirrors apps/app/src/app/globals.css
           hue: { light: 165, dark: 133 },
           saturation: { light: 19, dark: 18 },
           lightness: { light: 40, dark: 59 },
