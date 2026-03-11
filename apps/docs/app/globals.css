@@ -15,6 +15,22 @@
   --docs-surface: var(--pluma-dark-slate-grey);
 }
 
+/*
+ * ── Layout: full-width flex row ──
+ *
+ * Nextra wraps the sidebar + content in a single centered, max-width div
+ * (x:mx-auto x:max-w-(--nextra-content-width)).  On wide viewports that
+ * produces a gap to the left of the sidebar where the page background shows
+ * through.  Removing the centering constraint from that wrapper makes the flex
+ * row span the full viewport width so the sidebar's left edge is always flush
+ * with the viewport.
+ */
+div:has(> .nextra-sidebar) {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 /* ── 2a. Sidebar: background distinct from page background ── */
 .nextra-sidebar {
   background-color: var(--docs-surface);
@@ -24,22 +40,6 @@
    * auto, so the menu still scrolls normally.
    */
   overflow: visible;
-}
-
-/*
- * On wide viewports the layout container is narrower than the viewport, so
- * the sidebar's left edge doesn't reach the viewport left edge.  This
- * pseudo-element extends the surface colour leftward by 100vw to fill that gap.
- */
-.nextra-sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 100%;
-  width: 100vw;
-  background-color: var(--docs-surface);
-  pointer-events: none;
 }
 
 /* ── 2b. Navbar blur layer: background distinct from page background ── */
