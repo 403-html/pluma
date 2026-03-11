@@ -40,8 +40,8 @@
 
 .dark .nextra-navbar .nextra-navbar-blur {
   background-color: color-mix(in srgb, var(--pluma-dark-slate-grey) 90%, transparent);
-  /* dark mode already has a visible nextra-border; keep on-palette */
-  border-bottom-color: var(--pluma-dark-slate-grey);
+  /* dark mode already has a visible nextra-border; keep on-palette and maintain contrast */
+  border-bottom-color: var(--pluma-muted-teal);
 }
 
 /* ── 1. Toggle button: right edge of sidebar, few px from top ──
