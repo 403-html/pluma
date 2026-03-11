@@ -38,83 +38,10 @@ under **Organisation → API Keys**.
 
 ## Framework examples
 
-### Express.js
+Full integration guides are available in the Pluma documentation:
 
-Create the cache once at module level and reuse it across every request.
-
-```ts
-import express from "express";
-import { PlumaSnapshotCache } from "@pluma-flags/sdk";
-
-const app = express();
-
-// Create once; shared across all requests.
-const flagCache = PlumaSnapshotCache.create({
-  baseUrl: process.env.PLUMA_API_URL!,
-  token: process.env.PLUMA_SDK_TOKEN!,
-});
-
-app.get("/dashboard", async (req, res) => {
-  // req.user is set by your auth middleware (passport, JWT, etc.)
-  const evaluator = await flagCache.evaluator({
-    subjectKey: req.user?.id,
-  });
-
-  if (!evaluator.isEnabled("dashboard-v2")) {
-    return res.redirect("/dashboard-legacy");
-  }
-
-  res.render("dashboard-v2");
-});
-
-app.listen(3000);
-```
-
-The `subjectKey` here is the authenticated user's ID. Users on the allow list
-always get the flag; users on the deny list are always blocked; everyone else
-falls through to the rollout percentage or base enabled state.
-
-### Next.js
-
-Use a module-level singleton in a Server Component or Route Handler. The cache
-is shared across server-side renders within the same Node.js process.
-
-```ts
-// lib/flags.ts  (singleton, imported wherever flags are needed)
-import { PlumaSnapshotCache } from "@pluma-flags/sdk";
-
-export const flagCache = PlumaSnapshotCache.create({
-  baseUrl: process.env.PLUMA_API_URL!,
-  token: process.env.PLUMA_SDK_TOKEN!,
-});
-```
-
-```tsx
-// app/dashboard/page.tsx  (Server Component)
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { flagCache } from "@/lib/flags";
-
-export default async function DashboardPage() {
-  // Read the current user's ID from the session cookie or auth token.
-  const userId = (await cookies()).get("user_id")?.value;
-
-  const evaluator = await flagCache.evaluator({ subjectKey: userId });
-
-  if (!evaluator.isEnabled("dashboard-v2")) {
-    redirect("/dashboard-legacy");
-  }
-
-  return <main>{/* new dashboard UI */}</main>;
-}
-```
-
-**Proxy/middleware pattern:** If you need to branch in Next.js `middleware.ts`
-(which runs on the edge and should not call Pluma directly), evaluate the flag
-in an upstream API route or Server Action and forward the result as a response
-header or cookie. The middleware can then read that header to make routing
-decisions without performing a flag fetch itself. Always derive `subjectKey`
-from the authenticated user's session when propagating the result.
+- [JavaScript / Node.js (Express.js)](https://403-html.github.io/pluma/sdk/javascript)
+- [React / Next.js (Server Components)](https://403-html.github.io/pluma/sdk/react)
 
 ## Per-subject targeting
 

@@ -19,6 +19,7 @@ on:
       - main
     paths:
       - "apps/docs/**"
+      - "packages/sdk/package.json"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -69,8 +70,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Extract SDK version
+        run: |
+          SDK_VERSION=$(jq -r '.version' packages/sdk/package.json)
+          echo "SDK_VERSION=${SDK_VERSION}" >> $GITHUB_ENV
+
       - name: Build docs site
         run: pnpm --filter @pluma-flags/docs build
+        env:
+          NEXT_PUBLIC_SDK_VERSION: ${{ env.SDK_VERSION }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

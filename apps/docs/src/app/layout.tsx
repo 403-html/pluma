@@ -3,6 +3,8 @@ import { Layout, Navbar, Footer } from 'nextra-theme-docs'
 import { getPageMap } from 'nextra/page-map'
 import 'nextra-theme-docs/style.css'
 
+const sdkVersion = process.env.NEXT_PUBLIC_SDK_VERSION
+
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const pageMap = await getPageMap()
   return (
@@ -15,7 +17,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               projectLink="https://github.com/403-html/pluma"
             />
           }
-          footer={<Footer>Pluma Documentation</Footer>}
+          footer={
+            <Footer>
+              Pluma Documentation{sdkVersion !== undefined ? ` — SDK v${sdkVersion}` : ''}
+            </Footer>
+          }
           docsRepositoryBase="https://github.com/403-html/pluma/blob/main/apps/docs"
           pageMap={pageMap}
         >
