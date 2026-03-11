@@ -1,71 +1,53 @@
-# React
+# React / Next.js
 
-Integrate Pluma feature flags into your React application.
+Use the Pluma SDK in a Next.js application.
 
 ## Installation
 
 ```bash
 npm install @pluma-flags/sdk
+# or
+pnpm add @pluma-flags/sdk
 ```
 
-## Setup
+## Next.js
 
-Create a shared client instance (e.g. in `lib/pluma.ts`):
+Use a module-level singleton in a Server Component or Route Handler. The cache
+is shared across server-side renders within the same Node.js process.
 
 ```ts
-import { PlumaSnapshotCache } from '@pluma-flags/sdk'
+// lib/flags.ts  (singleton, imported wherever flags are needed)
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
-export const plumaClient = PlumaSnapshotCache.create({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:2137',
-  token: process.env.NEXT_PUBLIC_PLUMA_TOKEN ?? '',
-  ttlMs: 30_000,
-})
+export const flagCache = PlumaSnapshotCache.create({
+  baseUrl: process.env.PLUMA_API_URL!,
+  token: process.env.PLUMA_SDK_TOKEN!,
+});
 ```
 
-## Using in a Component
-
 ```tsx
-import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
-import { plumaClient } from '@/lib/pluma'
+// app/dashboard/page.tsx  (Server Component)
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { flagCache } from "@/lib/flags";
 
-interface FeatureGateProps {
-  flag: string
-  userId: string
-  children: ReactNode
-}
+export default async function DashboardPage() {
+  // Read the current user's ID from the session cookie or auth token.
+  const userId = (await cookies()).get("user_id")?.value;
 
-export function FeatureGate({ flag, userId, children }: FeatureGateProps) {
-  const [enabled, setEnabled] = useState(false)
+  const evaluator = await flagCache.evaluator({ subjectKey: userId });
 
-  useEffect(() => {
-    plumaClient
-      .evaluator({ subjectKey: userId })
-      .then((ev) => setEnabled(ev.isEnabled(flag)))
-      .catch((err: unknown) => console.error('Pluma evaluation failed', err))
-  }, [flag, userId])
+  if (!evaluator.isEnabled("dashboard-v2")) {
+    redirect("/dashboard-legacy");
+  }
 
-  return enabled ? children : null
+  return <main>{/* new dashboard UI */}</main>;
 }
 ```
 
-## Usage
-
-```tsx
-<FeatureGate flag="new-dashboard" userId={user.id}>
-  <NewDashboard />
-</FeatureGate>
-```
-
-## Server Components (Next.js App Router)
-
-```tsx
-import { plumaClient } from '@/lib/pluma'
-
-export default async function Page({ userId }: { userId: string }) {
-  const evaluator = await plumaClient.evaluator({ subjectKey: userId })
-  const showBeta = evaluator.isEnabled('beta-ui')
-
-  return showBeta ? <BetaUI /> : <StableUI />
-}
-```
+**Proxy/middleware pattern:** If you need to branch in Next.js `middleware.ts`
+(which runs on the edge and should not call Pluma directly), evaluate the flag
+in an upstream API route or Server Action and forward the result as a response
+header or cookie. The middleware can then read that header to make routing
+decisions without performing a flag fetch itself. Always derive `subjectKey`
+from the authenticated user's session when propagating the result.

@@ -6,39 +6,63 @@ Use the Pluma SDK in any Node.js or JavaScript environment.
 
 ```bash
 npm install @pluma-flags/sdk
+# or
+pnpm add @pluma-flags/sdk
 ```
 
-## Basic Usage
+## Quick start
 
 ```ts
-import { PlumaSnapshotCache } from '@pluma-flags/sdk'
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const client = PlumaSnapshotCache.create({
-  baseUrl: 'http://localhost:2137',
-  token: 'sdk_your_token_here',
-  ttlMs: 30_000,
-})
+  baseUrl: "http://localhost:2137",
+  token: "sdk_your_token_here", // Organisation → API Keys in the Pluma UI
+  ttlMs: 30_000, // optional; defaults to 30_000 ms
+});
 
-// Evaluate a flag for a specific subject
-const evaluator = await client.evaluator({ subjectKey: 'user-123' })
+const evaluator = await client.evaluator({ subjectKey: "user-123" });
 
-if (evaluator.isEnabled('dark-mode')) {
-  console.log('Dark mode is enabled for user-123')
+if (evaluator.isEnabled("my-feature")) {
+  // flag is enabled for this subject
 }
 ```
 
-## Caching
+SDK tokens are scoped to a project and environment. Create them in the Pluma UI
+under **Organisation → API Keys**.
 
-`PlumaSnapshotCache` fetches all flags for the project once and caches them locally for `ttlMs` milliseconds. Subsequent `evaluator()` calls within the TTL window use the cached snapshot — no extra network requests.
+## Express.js
 
-## Multiple Subjects
+Create the cache once at module level and reuse it across every request.
 
 ```ts
-const [evaluatorA, evaluatorB] = await Promise.all([
-  client.evaluator({ subjectKey: 'user-a' }),
-  client.evaluator({ subjectKey: 'user-b' }),
-])
+import express from "express";
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
-evaluatorA.isEnabled('new-checkout') // true or false
-evaluatorB.isEnabled('new-checkout') // may differ per subject
+const app = express();
+
+// Create once; shared across all requests.
+const flagCache = PlumaSnapshotCache.create({
+  baseUrl: process.env.PLUMA_API_URL!,
+  token: process.env.PLUMA_SDK_TOKEN!,
+});
+
+app.get("/dashboard", async (req, res) => {
+  // req.user is set by your auth middleware (passport, JWT, etc.)
+  const evaluator = await flagCache.evaluator({
+    subjectKey: req.user?.id,
+  });
+
+  if (!evaluator.isEnabled("dashboard-v2")) {
+    return res.redirect("/dashboard-legacy");
+  }
+
+  res.render("dashboard-v2");
+});
+
+app.listen(3000);
 ```
+
+The `subjectKey` here is the authenticated user's ID. Users on the allow list
+always get the flag; users on the deny list are always blocked; everyone else
+falls through to the rollout percentage or base enabled state.

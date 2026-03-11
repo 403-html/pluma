@@ -14,21 +14,21 @@ pnpm add @pluma-flags/sdk
 
 SDK tokens are created in the Pluma UI under **Organisation → API Keys**. Each token is scoped to a project and environment.
 
-## Quick Example
+## Quick start
 
 ```ts
-import { PlumaSnapshotCache } from '@pluma-flags/sdk'
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
 
 const client = PlumaSnapshotCache.create({
-  baseUrl: 'http://localhost:2137',
-  token: 'sdk_your_token_here',
-  ttlMs: 30_000, // optional; defaults to 30 s
-})
+  baseUrl: "http://localhost:2137",
+  token: "sdk_your_token_here", // Organisation → API Keys in the Pluma UI
+  ttlMs: 30_000, // optional; defaults to 30_000 ms
+});
 
-const evaluator = await client.evaluator({ subjectKey: 'user-123' })
+const evaluator = await client.evaluator({ subjectKey: "user-123" });
 
-if (evaluator.isEnabled('my-feature-flag')) {
-  // feature is enabled for this subject
+if (evaluator.isEnabled("my-feature")) {
+  // flag is enabled for this subject
 }
 ```
 
