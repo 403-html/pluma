@@ -3,12 +3,11 @@ import { Layout, Navbar, Footer } from 'nextra-theme-docs'
 import { getPageMap } from 'nextra/page-map'
 import 'nextra-theme-docs/style.css'
 
-const sdkVersion = process.env.NEXT_PUBLIC_SDK_VERSION
-
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const pageMap = await getPageMap()
+  const sdkVersion = process.env.NEXT_PUBLIC_SDK_VERSION
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Layout
           navbar={
