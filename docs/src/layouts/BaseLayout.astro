@@ -1,0 +1,22 @@
+---
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import '../styles.css';
+---
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <slot name="head" />
+    <title>Pluma Docs</title>
+  </head>
+  <body>
+    <div class="container">
+      <Header />
+      <div style="display:flex; gap:1rem; margin-top:1rem">
+        <aside class="sidebar"><Sidebar /></aside>
+        <main class="main"><slot /></main>
+      </div>
+    </div>
+  </body>
+</html>

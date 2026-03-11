@@ -1,0 +1,60 @@
+---
+import { onCleanup } from 'astro/jsx-runtime';
+---
+<input id="site-search" aria-label="Search documentation" placeholder="Search docs..." />
+<ul id="search-results" role="listbox" aria-label="Search results"></ul>
+<script type="module">
+  import FlexSearch from 'https://cdn.jsdelivr.net/npm/flexsearch@0.7.31/dist/flexsearch.bundle.js';
+  let index;
+  async function init() {
+    const res = await fetch('/search-index.json');
+    const docs = await res.json();
+    index = new FlexSearch.Document({
+      tokenize: 'forward',
+      document: { id: 'id', index: ['title', 'content'], store: ['title','url'] }
+    });
+    for(const d of docs) index.add(d);
+    const input = document.getElementById('site-search');
+    const results = document.getElementById('search-results');
+    input.addEventListener('input', async (e) => {
+      const q = e.target.value.trim();
+      results.innerHTML = '';
+      if(!q) return;
+      const r = index.search(q, { enrich: true });
+      // merge results from fields
+      const ids = new Set();
+      const items = [];
+      for(const field of r){
+        for(const seg of field.result){
+          if(!ids.has(seg)){
+            ids.add(seg);
+            const doc = index.export(seg);
+          }
+        }
+      }
+      // Simpler: perform search on 'title' and 'content' combined
+      const combined = index.search(q, { field: ['title','content'], enrich: true });
+      const seen = new Set();
+      for(const block of combined){
+        for(const row of block.result){
+          if(seen.has(row)) continue;
+          seen.add(row);
+          // we need stored doc
+          // FlexSearch store is not easily retrievable; instead fetch original docs
+        }
+      }
+      // fallback: fetch index and do simple filter
+      const all = await fetch('/search-index.json').then(r=>r.json());
+      const filtered = all.filter(d => (d.title + ' ' + d.content).toLowerCase().includes(q.toLowerCase()));
+      for(const f of filtered.slice(0,10)){
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = f.url;
+        a.textContent = f.title;
+        li.appendChild(a);
+        results.appendChild(li);
+      }
+    });
+  }
+  init();
+</script>

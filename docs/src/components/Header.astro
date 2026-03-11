@@ -1,0 +1,21 @@
+---
+import Search from './Search.astro';
+---
+<header class="header" role="banner">
+  <div>
+    <a href="/" aria-label="Pluma docs home"><strong>Pluma</strong> Docs</a>
+  </div>
+  <div style="display:flex; gap:12px; align-items:center">
+    <Search />
+    <button aria-pressed="false" id="theme-toggle" aria-label="Toggle dark mode">Toggle</button>
+  </div>
+</header>
+<script>
+  const btn = document.getElementById('theme-toggle');
+  btn.addEventListener('click', () => {
+    const html = document.documentElement;
+    const dt = html.getAttribute('data-theme');
+    html.setAttribute('data-theme', dt === 'dark' ? 'light' : 'dark');
+    btn.setAttribute('aria-pressed', dt !== 'dark');
+  });
+</script>
