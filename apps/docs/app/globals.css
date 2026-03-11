@@ -1,0 +1,22 @@
+/* Pluma brand palette */
+:root {
+  --pluma-ash-grey: #cad2c5;
+  --pluma-muted-teal: #84a98c;
+  --pluma-deep-teal: #52796f;
+  --pluma-dark-slate-grey: #354f52;
+  --pluma-charcoal-blue: #2f3e46;
+}
+
+/*
+ * Move the sidebar footer controls (dark-mode switch + collapse button)
+ * from the bottom of the sidebar to the top.
+ *
+ * .nextra-sidebar is a flex-column container; the footer div is the last
+ * child. Setting order: -1 renders it before the menu list, and changing
+ * sticky positioning from bottom-0 to top-0 pins it at the top.
+ */
+.nextra-sidebar > .x\:sticky.x\:bottom-0 {
+  order: -1;
+  bottom: auto;
+  top: 0;
+}
