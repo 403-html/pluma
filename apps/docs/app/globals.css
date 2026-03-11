@@ -5,18 +5,80 @@
   --pluma-deep-teal: #52796f;
   --pluma-dark-slate-grey: #354f52;
   --pluma-charcoal-blue: #2f3e46;
+
+  /* Sidebar + navbar surface (light mode): muted-teal-tinted grey */
+  --docs-surface: #dce8e4;
 }
 
+.dark {
+  /* Sidebar + navbar surface (dark mode): dark-slate-grey */
+  --docs-surface: #354f52;
+}
+
+/* ── 2a. Sidebar: background distinct from page background ── */
+.nextra-sidebar {
+  background-color: var(--docs-surface);
+  /*
+   * overflow: visible lets the toggle button protrude outside the sidebar's
+   * right edge. The inner .nextra-scrollbar div retains its own overflow-y:
+   * auto, so the menu still scrolls normally.
+   */
+  overflow: visible;
+}
+
+/* ── 2b. Navbar blur layer: background distinct from page background ── */
 /*
- * Move the sidebar footer controls (dark-mode switch + collapse button)
- * from the bottom of the sidebar to the top.
- *
- * .nextra-sidebar is a flex-column container; the footer div is the last
- * child. Setting order: -1 renders it before the menu list, and changing
- * sticky positioning from bottom-0 to top-0 pins it at the top.
+ * Specificity (0,2,0) beats nextra's single-class x:bg-nextra-bg/70 rule
+ * (0,1,0), so no !important is needed.
  */
-.nextra-sidebar > .x\:sticky.x\:bottom-0 {
-  order: -1;
+.nextra-navbar .nextra-navbar-blur {
+  /* light mode: muted-teal tint at 85 % */
+  background-color: rgba(220, 232, 228, 0.85);
+}
+
+.dark .nextra-navbar .nextra-navbar-blur {
+  /* dark mode: dark-slate-grey at 85 % */
+  background-color: rgba(53, 79, 82, 0.85);
+}
+
+/* ── 1. Toggle button: right edge of sidebar, half-protruding outside ──
+ *
+ * The sidebar <aside> has position:sticky which creates a containing block
+ * for absolutely-positioned children.  We move the footer container
+ * (nextra-sidebar-footer) to the right edge, vertically centred, then use
+ * translateX(50%) to push exactly half the button's width outside the
+ * sidebar — so it straddles the edge like a drawer pull.
+ */
+.nextra-sidebar .nextra-sidebar-footer {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  /* override nextra's x:sticky x:bottom-0 */
   bottom: auto;
-  top: 0;
+  transform: translateY(-50%) translateX(50%);
+  /* strip bottom-bar decorative styles */
+  margin: 0;
+  padding: 0;
+  border-top: none;
+  background: transparent;
+  z-index: 20;
+}
+
+/* Render the toggle as a circular drawer-pull tab */
+.nextra-sidebar .nextra-sidebar-footer button[aria-expanded] {
+  background-color: var(--docs-surface);
+  border: 1.5px solid var(--pluma-muted-teal);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
+  color: var(--pluma-deep-teal);
+}
+
+.dark .nextra-sidebar .nextra-sidebar-footer button[aria-expanded] {
+  color: var(--pluma-ash-grey);
 }
