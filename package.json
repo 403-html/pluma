@@ -14,7 +14,10 @@
     "format:check": "prettier --check \"**/*.md\"",
     "test": "pnpm -r test",
     "storybook": "pnpm --filter @pluma-flags/storybook dev",
-    "build-storybook": "pnpm --filter @pluma-flags/storybook build"
+    "build-storybook": "pnpm --filter @pluma-flags/storybook build",
+    "docs:dev": "pnpm --filter docs dev",
+    "docs:build": "pnpm --filter docs build",
+    "docs:preview": "pnpm --filter docs preview"
   },
   "devDependencies": {
     "@commitlint/cli": "19.8.0",

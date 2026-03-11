@@ -1,0 +1,408 @@
+No projects matched the filters in "/Users/ether/Documents/code/pluma"
+EXIT:0
+No projects matched the filters in "/Users/ether/Documents/code/pluma"
+EXIT:0
+Scope: all 8 workspace projects
+Progress: resolved 0, reused 1, downloaded 0, added 0
+/Users/ether/Documents/code/pluma/docs:
+ ERR_PNPM_NO_MATCHING_VERSION  No matching version found for shiki@^0.15.0 while fetching it from https://registry.npmjs.org/
+
+This error happened while installing a direct dependency of /Users/ether/Documents/code/pluma/docs
+
+The latest release of shiki is "4.0.2".
+
+Other releases are:
+  * next: 0.9.4
+
+If you need the full list of all 194 published versions run "pnpm view shiki versions".
+
+> docs@0.1.0 build /Users/ether/Documents/code/pluma/docs
+> node ./scripts/build-search-index.mjs && astro build
+
+node:internal/modules/package_json_reader:316
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'marked' imported from /Users/ether/Documents/code/pluma/docs/scripts/build-search-index.mjs
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:316:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:858:18)
+    at defaultResolve (node:internal/modules/esm/resolve:990:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:718:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:735:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:764:52)
+    at #resolve (node:internal/modules/esm/loader:700:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v24.12.0
+/Users/ether/Documents/code/pluma/docs:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  docs@0.1.0 build: `node ./scripts/build-search-index.mjs && astro build`
+Exit status 1
+EXIT:0
+Scope: all 8 workspace projects
+Progress: resolved 0, reused 1, downloaded 0, added 0
+/Users/ether/Documents/code/pluma/docs:
+ ERR_PNPM_NO_MATCHING_VERSION  No matching version found for astro@^3.7.0 while fetching it from https://registry.npmjs.org/
+
+This error happened while installing a direct dependency of /Users/ether/Documents/code/pluma/docs
+
+The latest release of astro is "6.0.2".
+
+Other releases are:
+  * next--format-astro-url: 0.0.0-20220816201344
+  * next--wasm: 0.0.0-wasm-20220921185024
+  * next--imgcache: 0.0.0-imgcache-20220929145446
+  * next--perf-2: 0.0.0-perf-2-20221003212959
+  * next--node-standalone: 0.0.0-node-standalone-20221011210529
+  * next--include-files: 0.0.0-include-files-20221014142503
+  * next--hmr-recovery: 0.0.0-hmr-recovery-20221027125930
+  * next--config-errors: 0.0.0-config-errors-20221101194733
+  * next--vercel-image-2: 0.0.0-vercel-image-2-20221112151551
+  * next--new-config: 0.0.0-new-config-20221114154518
+  * next--image-next: 0.0.0-image-next-20221114175548
+  * next--image-api: 0.0.0-image-api-20221114180701
+  * next--vercel-code: 0.0.0-vercel-code-20221115191719
+  * next--telefunc: 0.0.0-telefunc-20221130131719
+  * next--error-overlay: 0.0.0-error-overlay-20221203190718
+  * next--join-base: 0.0.0-join-base-20221208170900
+  * next--content-collections: 0.0.0-content-collections-20221215161753
+  * next--prerender: 0.0.0-prerender-20221215222121
+  * next--vercel-proc-bug: 0.0.0-vercel-proc-bug-20230124214915
+  * next--netlify-undici-fix: 0.0.0-netlify-undici-fix-20230131152620
+  * next--mdx-links: 0.0.0-mdx-links-20230206172907
+  * next--shiki-vercel: 0.0.0-shiki-vercel-20230209184129
+  * next--headbody: 0.0.0-headbody-20230210211734
+  * next--devapp: 0.0.0-devapp-20230213161446
+  * next--head-bubbling: 0.0.0-head-bubbling-20230217175534
+  * next--loaders: 0.0.0-loaders-20230222215040
+  * next--vercel-fix: 0.0.0-vercel-fix-20230227215002
+  * next--markdoc: 0.0.0-markdoc-20230302210326
+  * next--check-watch: 0.0.0-check-watch-20230303211357
+  * next--ssr-manifest: 0.0.0-ssr-manifest-20230306183729
+  * next--cloudcannon-fix: 0.0.0-cloudcannon-fix-20230306211609
+  * next--experimental-assets: 0.0.0-experimental-assets-20230307131344
+  * next--vercel-clientaddress: 0.0.0-vercel-clientaddress-20230309142435
+  * next--image-image-size: 0.0.0-image-image-size-20230309180922
+  * next--vercel-json: 0.0.0-vercel-json-20230313201834
+  * next--head-prop: 0.0.0-head-prop-20230323183456
+  * next--schema-image: 0.0.0-schema-image-20230401013700
+  * next--scopedStyleStrategy: 0.0.0-scopedStyleStrategy-20230406135310
+  * next--image-wasm-ssr: 0.0.0-image-wasm-ssr-20230411145607
+  * next--data-collections: 0.0.0-data-collections-20230418125011
+  * next--middleware: 0.0.0-middleware-20230418135507
+  * next--vercel-image: 0.0.0-vercel-image-20230428112211
+  * next--multi-chunk: 0.0.0-multi-chunk-20230508112531
+  * next--outlet: 0.0.0-outlet-20230516145630
+  * next--spa: 0.0.0-spa-20230519211519
+  * next--content-serial: 0.0.0-content-serial-20230522100058
+  * next--nested-hydrate: 0.0.0-nested-hydrate-20230524151829
+  * next--redirects: 0.0.0-redirects-20230524173123
+  * next--markdoc-import-urls: 0.0.0-markdoc-import-urls-20230607221652
+  * next--simple-nested-hydration: 0.0.0-simple-nested-hydration-20230612101258
+  * next--tailwind-config: 0.0.0-tailwind-config-20230612122302
+  * next--pm-fix: 0.0.0-pm-fix-20230620193235
+  * next--markdoc-config-changes: 0.0.0-markdoc-config-changes-20230626153541
+  * next--vercel-split: 0.0.0-vercel-split-20230629135007
+  * next--vercel-edge-middleware: 0.0.0-vercel-edge-middleware-20230630125718
+  * next--netlify-edge-middleware: 0.0.0-netlify-edge-middleware-20230714131425
+  * next--view-transitions: 0.0.0-view-transitions-20230731172701
+  * rc: 3.0.0-rc.11
+  * next--astro-check-fix: 0.0.0-astro-check-fix-20230830133734
+  * next--vt-root-anim: 0.0.0-vt-root-anim-20230830212910
+  * next--vt-fallback-filter: 0.0.0-vt-fallback-filter-20230831170045
+  * next--vercel-symbolic-link: 0.0.0-vercel-symbolic-link-20230901110045
+  * next--symbolic-link: 0.0.0-symbolic-link-20230901124103
+  * next--sanitize-filenames: 0.0.0-sanitize-filenames-20230901203435
+  * next--fix-mime: 0.0.0-fix-mime-20230904023307
+  * next--vercel-upgrade: 0.0.0-vercel-upgrade-20230905174957
+  * next--optional-sharp: 0.0.0-optional-sharp-20230906121801
+  * next--propagation-metadata: 0.0.0-propagation-metadata-20230907174633
+  * next--perf: 0.0.0-perf-20230907211643
+  * next--vercel-speed-insights: 0.0.0-vercel-speed-insights-20230912155045
+  * next--picture: 0.0.0-picture-20231008095742
+  * next--srcset-remote: 0.0.0-srcset-remote-20231013141048
+  * next--concurrent-assets: 0.0.0-concurrent-assets-20231015222920
+  * next--fragments: 0.0.0-fragments-20231017161931
+  * next--integration-middleware: 0.0.0-integration-middleware-20231019151221
+  * next--content-cache: 0.0.0-content-cache-20231019190330
+  * experimental--react-children-client: 0.0.0-react-children-client-20231023164643
+  * experimental--dev-overlay: 0.0.0-dev-overlay-20231024213927
+  * experimental--extra-logging: 0.0.0-extra-logging-20231030194239
+  * experimental--i18n-routing: 0.0.0-i18n-routing-20231101144500
+  * experimental--content-cache: 0.0.0-content-cache-20231108193031
+  * experimental--assets-uint8array: 0.0.0-assets-uint8array-20231109073138
+  * experimental--name: 0.0.0-name-20231110143304
+  * experimental--404-trailing-slash: 0.0.0-404-trailing-slash-20231117145629
+  * experimental--self-closing-children: 0.0.0-self-closing-children-20231120173528
+  * experimental--netlify-fix: 0.0.0-netlify-fix-20231122190344
+  * experimental--xray: 0.0.0-xray-20231129021231
+  * experimental--add-stable: 0.0.0-add-stable-20231208215901
+  * experimental--vt-partytown: 0.0.0-vt-partytown-20231212203707
+  * experimental--handle-unhandled: 0.0.0-handle-unhandled-20231213202808
+  * experimental--dupicate-content-entry-improved-message: 0.0.0-dupicate-content-entry-improved-message-20231220220040
+  * experimental--9591: 0.0.0-9591-20240103143428
+  * experimental--ssg-no-streaming: 0.0.0-ssg-no-streaming-20240104123901
+  * experimental--9624: 0.0.0-9624-20240105191325
+  * experimental--pin-sharp: 0.0.0-pin-sharp-20240109233547
+  * experimental--data-astro-transition: 0.0.0-data-astro-transition-20240111220209
+  * experimental--9685: 0.0.0-9685-20240112193246
+  * experimental--isr: 0.0.0-isr-20240125224234
+  * experimental--toolbar-absolute-paths: 0.0.0-toolbar-absolute-paths-20240126155246
+  * experimental--improve-sync-errors: 0.0.0-improve-sync-errors-20240201210128
+  * experimental--cc-hmr: 0.0.0-cc-hmr-20240205141934
+  * experimental--cssesc: 0.0.0-cssesc-20240207015359
+  * experimental--edge-middleware-verification: 0.0.0-edge-middleware-verification-20240207135919
+  * experimental--astro-content-fix: 0.0.0-astro-content-fix-20240207175526
+  * experimental--island-loading-error-messages: 0.0.0-island-loading-error-messages-20240209173859
+  * experimental--debug-missing-endpoint: 0.0.0-debug-missing-endpoint-20240209211325
+  * experimental--get-remote-dimensions: 0.0.0-get-remote-dimensions-20240211001920
+  * experimental--render-nodejs: 0.0.0-render-nodejs-20240213145612
+  * experimental--node-crypto-error: 0.0.0-node-crypto-error-20240214144952
+  * experimental--allow-cc: 0.0.0-allow-cc-20240222155628
+  * experimental--edge-nested: 0.0.0-edge-nested-20240223135627
+  * experimental--audits-ui: 0.0.0-audits-ui-20240223144827
+  * experimental--no-error-in-stream: 0.0.0-no-error-in-stream-20240223213844
+  * experimental--vite-runtime-api: 0.0.0-vite-runtime-api-20240224085712
+  * experimental--svelte-editor-fix: 0.0.0-svelte-editor-fix-20240227111439
+  * experimental--direct-render-script: 0.0.0-direct-render-script-20240227141119
+  * experimental--treeshake-scoped-css: 0.0.0-treeshake-scoped-css-20240304133731
+  * experimental--db-export-bug: 0.0.0-db-export-bug-20240307130354
+  * experimental--db-integrations-support: 0.0.0-db-integrations-support-20240307154857
+  * experimental--db-batch: 0.0.0-db-batch-20240307184301
+  * experimental--non-admin-test: 0.0.0-non-admin-test-20240308195029
+  * experimental--token-renewal: 0.0.0-token-renewal-20240315122343
+  * experimental--inline-ccc: 0.0.0-inline-ccc-20240324145742
+  * experimental--head-body-content: 0.0.0-head-body-content-20240329190922
+  * experimental--10745: 0.0.0-10745-20240410180016
+  * experimental--js-strictest: 0.0.0-js-strictest-20240411160410
+  * experimental--skew-protection: 0.0.0-skew-protection-20240412093445
+  * experimental--cc-invalid: 0.0.0-cc-invalid-20240417202858
+  * experimental--toolbar-improvements: 0.0.0-toolbar-improvements-20240420123233
+  * experimental--assets-vitest: 0.0.0-assets-vitest-20240422184742
+  * experimental--route-key: 0.0.0-route-key-20240430102522
+  * experimental--mdx-v3: 0.0.0-mdx-v3-20240502124041
+  * experimental--cc-preserve-cache: 0.0.0-cc-preserve-cache-20240502141405
+  * experimental--vitals-fix: 0.0.0-vitals-fix-20240503214211
+  * experimental--actions: 0.0.0-actions-20240507170618
+  * experimental--node-streaming: 0.0.0-node-streaming-20240515211034
+  * experimental--astro-env: 0.0.0-astro-env-20240522153443
+  * experimental--container: 0.0.0-container-20240524172326
+  * experimental--cf-build-option: 0.0.0-cf-build-option-20240527121637
+  * experimental--ccc-scripts: 0.0.0-ccc-scripts-20240531125856
+  * experimental--vitest-config: 0.0.0-vitest-config-20240611074527
+  * experimental--experimental-container: 0.0.0-experimental-container-20240613104104
+  * experimental--refactor-prerender: 0.0.0-refactor-prerender-20240614140807
+  * experimental--content-layer: 0.0.0-content-layer-20240628202150
+  * experimental--content-layer-images: 0.0.0-content-layer-images-20240717095022
+  * experimental--noSync: 0.0.0-noSync-20240718092432
+  * experimental--server-islands: 0.0.0-server-islands-20240718131003
+  * experimental--contentlayer: 0.0.0-contentlayer-20240808151214
+  * experimental--content-collections-intellisense: 0.0.0-content-collections-intellisense-20240808223933
+  * experimental--server-island-regression: 0.0.0-server-island-regression-20240814104839
+  * experimental--si-crypto-reg: 0.0.0-si-crypto-reg-20240814162819
+  * experimental--immutable-datastore: 0.0.0-immutable-datastore-20240815133714
+  * experimental--content-types-dev: 0.0.0-content-types-dev-20240815140037
+  * experimental--si-get: 0.0.0-si-get-20240815175345
+  * experimental--mdx-layout-style: 0.0.0-mdx-layout-style-20240822115312
+  * experimental--actions-bun-workaround: 0.0.0-actions-bun-workaround-20240827210959
+  * experimental--dynamic-middleware: 0.0.0-dynamic-middleware-20240829171109
+  * experimental--crypto-env: 0.0.0-crypto-env-20240829194602
+  * experimental--tw5: 0.0.0-tw5-20240917210903
+  * experimental--edge-middleware-regression: 0.0.0-edge-middleware-regression-20241003093448
+  * experimental--test-apis: 0.0.0-test-apis-20241008195645
+  * experimental--astro-url-fix: 0.0.0-astro-url-fix-20241011143901
+  * experimental--env-override: 0.0.0-env-override-20241016131627
+  * experimental--env-middleware: 0.0.0-env-middleware-20241105160737
+  * experimental--env-race-condition: 0.0.0-env-race-condition-20241114151936
+  * experimental--si-header: 0.0.0-si-header-20241120190819
+  * experimental--process-env-override: 0.0.0-process-env-override-20241206130809
+  * experimental--astroenv-dev: 0.0.0-astroenv-dev-20241206160513
+  * experimental--svg-leak: 0.0.0-svg-leak-20241209134543
+  * experimental--routemanifest-refactor: 0.0.0-routemanifest-refactor-20241209145150
+  * experimental--middleware-fix: 0.0.0-middleware-fix-20241210163342
+  * experimental--atomic-writes: 0.0.0-atomic-writes-20241212091949
+  * experimental--sessions: 0.0.0-sessions-20241216171652
+  * experimental--clean-sm: 0.0.0-clean-sm-20241216182429
+  * experimental--dev-after-sync: 0.0.0-dev-after-sync-20250102175105
+  * experimental--render-type: 0.0.0-render-type-20250103094003
+  * experimental--data-store-location: 0.0.0-data-store-location-20250109131010
+  * experimental--alpine-scripts: 0.0.0-alpine-scripts-20250121133658
+  * experimental--trailing-slash-redirect: 0.0.0-trailing-slash-redirect-20250128153540
+  * experimental--router-noexec: 0.0.0-router-noexec-20250129135648
+  * experimental--adapter-sessions: 0.0.0-adapter-sessions-20250207124921
+  * legacy: 4.16.19
+  * alpha: 6.0.0-alpha.5
+  * beta: 6.0.0-beta.20
+
+If you need the full list of all 1300 published versions run "pnpm view astro versions".
+Scope: all 8 workspace projects
+Progress: resolved 0, reused 1, downloaded 0, added 0
+/Users/ether/Documents/code/pluma/docs:
+ ERR_PNPM_NO_MATCHING_VERSION  No matching version found for tailwindcss@^3.5.0 while fetching it from https://registry.npmjs.org/
+
+This error happened while installing a direct dependency of /Users/ether/Documents/code/pluma/docs
+
+The latest release of tailwindcss is "4.2.1".
+
+Other releases are:
+  * next: 4.0.0
+  * v3-lts: 3.4.19
+  * insiders: 0.0.0-insiders.51aa9d7
+
+If you need the full list of all 2476 published versions run "pnpm view tailwindcss versions".
+Scope: all 8 workspace projects
+Progress: resolved 0, reused 1, downloaded 0, added 0
+Progress: resolved 870, reused 744, downloaded 2, added 0
+Progress: resolved 982, reused 856, downloaded 2, added 0
+Progress: resolved 1032, reused 906, downloaded 2, added 0
+ WARN  1 deprecated subdependencies found: git-raw-commits@4.0.0
+Packages: +211
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1045, reused 919, downloaded 2, added 4
+Progress: resolved 1045, reused 919, downloaded 2, added 5, done
+packages/db postinstall$ node scripts/generate.mjs
+packages/db postinstall: Loaded Prisma config from prisma.config.ts.
+packages/db postinstall: Prisma schema loaded from prisma/schema.prisma.
+packages/db postinstall: ✔ Generated Prisma Client (v7.4.2) to ./../../node_modules/.pnpm/@prisma+client@7.4.2_prisma@7.4.2_@types+react@19.2.14_react-dom@19.2.4_react@19.2.4__r_49b4b128965f74ea9bbd7586bc0c7d7a/node_modules/@prisma/client in 59ms
+packages/db postinstall: Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+packages/db postinstall: Done
+ WARN  Issues with peer dependencies found
+.
+└─┬ eslint-plugin-react-hooks 7.0.1
+  └── ✕ unmet peer eslint@"^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0": found 10.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: msw@2.12.10.                                        │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Done in 5.6s using pnpm v10.29.3
+
+> docs@0.1.0 build /Users/ether/Documents/code/pluma/docs
+> node ./scripts/build-search-index.mjs && astro build
+
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+Wrote public/search-index.json with 5 entries
+[config] Astro found issue(s) with your configuration:
+
+! Invalid URL
+
+/Users/ether/Documents/code/pluma/docs:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  docs@0.1.0 build: `node ./scripts/build-search-index.mjs && astro build`
+Exit status 1
+EXIT:0
+
+> docs@0.1.0 build /Users/ether/Documents/code/pluma/docs
+> node ./scripts/build-search-index.mjs && astro build
+
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+Wrote public/search-index.json with 5 entries
+15:29:55 [vite] Re-optimizing dependencies because lockfile has changed
+15:29:55 [types] Generated 162ms
+15:29:55 [build] output: "static"
+15:29:55 [build] mode: "static"
+15:29:55 [build] directory: /Users/ether/Documents/code/pluma/docs/dist/
+15:29:55 [build] Collecting build info...
+15:29:55 [build] ✓ Completed in 168ms.
+15:29:55 [build] Building static entrypoints...
+15:29:55 [ERROR] [vite] ✗ Build failed in 539ms
+[vite:css] [postcss] It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+file: /Users/ether/Documents/code/pluma/docs/src/styles.css:undefined:NaN
+  Location:
+    undefined:0:NaN
+  Stack trace:
+    at at (/Users/ether/Documents/code/pluma/node_modules/.pnpm/tailwindcss@4.2.1/node_modules/tailwindcss/dist/lib.js:38:1643)
+    at LazyResult.runAsync (/Users/ether/Documents/code/pluma/node_modules/.pnpm/postcss@8.5.8/node_modules/postcss/lib/lazy-result.js:290:26)
+    at LazyResult.then (/Users/ether/Documents/code/pluma/node_modules/.pnpm/postcss@8.5.8/node_modules/postcss/lib/lazy-result.js:436:17)
+/Users/ether/Documents/code/pluma/docs:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  docs@0.1.0 build: `node ./scripts/build-search-index.mjs && astro build`
+Exit status 1
+EXIT:0
+Scope: all 8 workspace projects
+Progress: resolved 0, reused 1, downloaded 0, added 0
+Progress: resolved 1011, reused 887, downloaded 0, added 0
+ WARN  1 deprecated subdependencies found: git-raw-commits@4.0.0
+Packages: +33 -3
++++++++++++++++++++++++++++++++++---
+Progress: resolved 1075, reused 951, downloaded 0, added 5, done
+packages/db postinstall$ node scripts/generate.mjs
+packages/db postinstall: Loaded Prisma config from prisma.config.ts.
+packages/db postinstall: Prisma schema loaded from prisma/schema.prisma.
+packages/db postinstall: ✔ Generated Prisma Client (v7.4.2) to ./../../node_modules/.pnpm/@prisma+client@7.4.2_prisma@7.4.2_@types+react@19.2.14_react-dom@19.2.4_react@19.2.4__r_49b4b128965f74ea9bbd7586bc0c7d7a/node_modules/@prisma/client in 68ms
+packages/db postinstall: Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+packages/db postinstall: Done
+ WARN  Issues with peer dependencies found
+.
+└─┬ eslint-plugin-react-hooks 7.0.1
+  └── ✕ unmet peer eslint@"^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0": found 10.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: msw@2.12.10.                                        │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Done in 3.4s using pnpm v10.29.3
+
+> docs@0.1.0 build /Users/ether/Documents/code/pluma/docs
+> node ./scripts/build-search-index.mjs && astro build
+
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+marked(): mangle parameter is enabled by default, but is deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install https://www.npmjs.com/package/marked-mangle, or disable by setting `{mangle: false}`.
+marked(): headerIds and headerPrefix parameters enabled by default, but are deprecated since version 5.0.0, and will be removed in the future. To clear this warning, install  https://www.npmjs.com/package/marked-gfm-heading-id, or disable by setting `{headerIds: false}`.
+Wrote public/search-index.json with 5 entries
+15:30:21 [vite] Re-optimizing dependencies because lockfile has changed
+15:30:21 [types] Generated 253ms
+15:30:21 [build] output: "static"
+15:30:21 [build] mode: "static"
+15:30:21 [build] directory: /Users/ether/Documents/code/pluma/docs/dist/
+15:30:21 [build] Collecting build info...
+15:30:21 [build] ✓ Completed in 259ms.
+15:30:21 [build] Building static entrypoints...
+15:30:22 [vite] ✓ built in 701ms
+15:30:22 [vite] ✓ built in 7ms
+15:30:22 [build] Rearranging server assets...
+
+ generating static routes 
+15:30:22   ├─ /contributing/index.html (+4ms) 
+15:30:22   ├─ /getting-started/index.html (+1ms) 
+15:30:22   ├─ /installation/index.html (+1ms) 
+15:30:22   ├─ /sdk/usage/index.html (+1ms) 
+15:30:22   ├─ /index.html (+2ms) 
+15:30:22 ✓ Completed in 17ms.
+
+15:30:22 [build] ✓ Completed in 750ms.
+15:30:22 [build] 5 page(s) built in 1.01s
+15:30:22 [build] Complete!
+EXIT:0

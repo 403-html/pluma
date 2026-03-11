@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "title": "Contributing to Docs",
+    "url": "/contributing",
+    "content": "Contributing to Docs Edit files under docs/src. Run dev server with: pnpm --filter docs dev When ready, build the site: pnpm --filter docs build"
+  },
+  {
+    "id": 2,
+    "title": "Getting Started",
+    "url": "/getting-started",
+    "content": "Getting Started This guide helps you run the docs site locally and find SDK examples. Commands: pnpm install pnpm --filter docs dev"
+  },
+  {
+    "id": 3,
+    "title": "",
+    "url": "/",
+    "content": "Pluma Project overview — Pluma is a modular monorepo. This docs site provides SDK usage, developer guides, and contribution instructions. Quick links Getting started Installation SDK Usage"
+  },
+  {
+    "id": 4,
+    "title": "Installation",
+    "url": "/installation",
+    "content": "Installation Install dependencies at the repository root and run the docs package dev server. pnpm install pnpm --filter docs dev"
+  },
+  {
+    "id": 5,
+    "title": "SDK Usage",
+    "url": "/sdk/usage",
+    "content": "SDK Usage Examples for JavaScript and TypeScript. TypeScript import { PlumaClient } from &#39;@pluma/sdk&#39;; const client = new PlumaClient({ apiKey: process.env.PLUMA_API_KEY }); async function main(){ const snap = await client.snapshots.create({ name: &#39;example&#39; }); console.log(snap.id); } JavaScript const { PlumaClient } = require(&#39;@pluma/sdk&#39;); const client = new PlumaClient({ apiKey: process.env.PLUMA_API_KEY }); client.snapshots.create({ name: &#39;example&#39; }).then(r=&gt;console.log(r.id)); Notes: adapt imports depending on your workspace package name."
+  }
+]
