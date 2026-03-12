@@ -29,7 +29,12 @@ npm install @pluma-flags/sdk
 ```
 
 ```ts
-const client = PlumaSnapshotCache.create({ baseUrl, token });
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
+
+const client = PlumaSnapshotCache.create({
+  baseUrl: "http://localhost:2137/sdk/v1",
+  token: "REPLACE_WITH_SDK_TOKEN",
+});
 const evaluator = await client.evaluator({ subjectKey: "user-123" });
 evaluator.isEnabled("my-feature");
 ```
