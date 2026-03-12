@@ -17,6 +17,7 @@
 ## Quick start
 
 ```bash
+cp docker-compose.example.yml docker-compose.yml
 docker compose up -d
 ```
 

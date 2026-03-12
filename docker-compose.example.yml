@@ -1,0 +1,49 @@
+# Pluma — example Docker Compose file for production use.
+#
+# Copy this file and start the stack:
+#   cp docker-compose.example.yml docker-compose.yml
+#   docker compose up -d
+#
+# UI  → http://localhost:3000
+# API → http://localhost:2137
+#
+# Override defaults with a .env file or inline env vars:
+#   DB_PASSWORD=secret docker compose up -d
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER:-pluma}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pluma}
+      POSTGRES_DB: ${DB_NAME:-pluma}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${DB_USER:-pluma} -d ${DB_NAME:-pluma}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ghcr.io/403-html/pluma-api:latest
+    ports:
+      - "2137:2137"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@db:5432/${DB_NAME:-pluma}?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: ghcr.io/403-html/pluma-app:latest
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: ${API_URL:-http://api:2137}
+    depends_on:
+      - api
+
+volumes:
+  db_data:
