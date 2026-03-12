@@ -1,0 +1,53 @@
+---
+title: Next.js
+---
+
+# Next.js
+
+Use a module-level singleton in a Server Component or Route Handler. The cache
+is shared across server-side renders within the same Node.js process.
+
+## Singleton setup
+
+```ts
+// lib/flags.ts  (singleton, imported wherever flags are needed)
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
+
+export const flagCache = PlumaSnapshotCache.create({
+  baseUrl: process.env.PLUMA_API_URL!,
+  token: process.env.PLUMA_SDK_TOKEN!,
+});
+```
+
+## Server Component example
+
+```tsx
+// app/dashboard/page.tsx  (Server Component)
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { flagCache } from "@/lib/flags";
+
+export default async function DashboardPage() {
+  // Read the current user's ID from the session cookie or auth token.
+  const userId = (await cookies()).get("user_id")?.value;
+
+  const evaluator = await flagCache.evaluator({ subjectKey: userId });
+
+  if (!evaluator.isEnabled("dashboard-v2")) {
+    redirect("/dashboard-legacy");
+  }
+
+  return <main>{/* new dashboard UI */}</main>;
+}
+```
+
+## Proxy/middleware pattern
+
+If you need to branch in Next.js `middleware.ts` (which runs on the edge and
+should not call Pluma directly), evaluate the flag in an upstream API route or
+Server Action and forward the result as a response header or cookie. The
+middleware can then read that header to make routing decisions without performing
+a flag fetch itself.
+
+Always derive `subjectKey` from the authenticated user's session when
+propagating the result.

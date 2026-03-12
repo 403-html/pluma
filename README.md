@@ -85,42 +85,32 @@ docker compose up -d
 
 ```bash
 npm install @pluma-flags/sdk
-# or
-pnpm add @pluma-flags/sdk
 ```
-
-SDK tokens are created in the Pluma UI under **Organisation → API Keys**. Each
-token is scoped to a project and environment.
 
 ```ts
-import { PlumaSnapshotCache } from "@pluma-flags/sdk";
-
-const client = PlumaSnapshotCache.create({
-  baseUrl: "http://localhost:2137",
-  token: "sdk_your_token_here", // Organisation → API Keys in the Pluma UI
-  ttlMs: 30_000, // optional; defaults to 30_000 ms (30 s)
-});
-
+const client = PlumaSnapshotCache.create({ baseUrl, token });
 const evaluator = await client.evaluator({ subjectKey: "user-123" });
-
-if (evaluator.isEnabled("my-feature-flag")) {
-  // feature is enabled for this subject
-}
+evaluator.isEnabled("my-feature");
 ```
 
-For the full SDK reference (caching, per-subject targeting, framework examples,
-and the complete API) see [`packages/sdk/README.md`](packages/sdk/README.md).
+Create SDK tokens in the Pluma UI under **Organisation → API Keys**. See the
+[full SDK documentation](https://403-html.github.io/pluma/sdk) for framework
+examples, per-subject targeting, caching, and the complete API reference.
+
+## Documentation
+
+📖 **[403-html.github.io/pluma](https://403-html.github.io/pluma/)** — getting
+started, SDK reference, architecture, scaling, and more.
 
 ## Scaling
 
-The `api` service is stateless and can be scaled horizontally by running
-multiple replicas behind an nginx reverse proxy. See [SCALING.md](SCALING.md)
-for a step-by-step guide.
+Stateless API — scale horizontally behind nginx. See [SCALING.md](SCALING.md) or
+the [scaling guide](https://403-html.github.io/pluma/scaling).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup and contribution
-guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) or the
+[contributing guide](https://403-html.github.io/pluma/contributing).
 
 ## Support
 
