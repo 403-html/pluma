@@ -1,6 +1,10 @@
+---
+title: Scaling
+---
+
 # Scaling Pluma
 
-The `api` service is stateless — run multiple replicas behind nginx; Docker DNS
+The `api` service is stateless — run multiple replicas behind nginx. Docker DNS
 handles discovery automatically.
 
 ## nginx.conf
@@ -29,14 +33,14 @@ http {
 }
 ```
 
-## docker-compose.yml
+## docker-compose.yml changes
 
 Remove `ports` from the `api` service, add `deploy.replicas`, and add an `nginx`
 service:
 
 ```yaml
 api:
-  image: ghcr.io/403-html/pluma-api:latest
+  image: ghcr.io/403-html/pluma-api:v1.2.0
   environment:
     DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@db:5432/${DB_NAME:-pluma}?schema=public
   depends_on:
@@ -55,13 +59,19 @@ nginx:
     - api
 ```
 
-## Scaling
+## Scale
+
+Scale the API to any number of replicas:
 
 ```bash
 docker compose up -d --scale api=N
 ```
 
+Replace `N` with the desired number of instances.
+
 ## Verify
+
+Confirm that Docker DNS resolves all replicas:
 
 ```bash
 docker compose exec nginx nslookup api

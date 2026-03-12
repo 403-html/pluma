@@ -1,0 +1,48 @@
+---
+title: Express.js
+---
+
+# Express.js
+
+Create the cache once at module level and reuse it across every request.
+
+```ts
+import express from "express";
+import { PlumaSnapshotCache } from "@pluma-flags/sdk";
+
+const app = express();
+
+// Create once; shared across all requests.
+const flagCache = PlumaSnapshotCache.create({
+  baseUrl: process.env.PLUMA_API_URL!,
+  token: process.env.PLUMA_SDK_TOKEN!,
+});
+
+app.get("/dashboard", async (req, res) => {
+  // req.user is set by your auth middleware (passport, JWT, etc.)
+  const evaluator = await flagCache.evaluator({
+    subjectKey: req.user?.id,
+  });
+
+  if (!evaluator.isEnabled("dashboard-v2")) {
+    return res.redirect("/dashboard-legacy");
+  }
+
+  res.render("dashboard-v2");
+});
+
+app.listen(3000);
+```
+
+## How it works
+
+The `subjectKey` here is the authenticated user's ID. Evaluation precedence for
+each flag:
+
+1. Users on the **deny list** are always blocked (`false`).
+2. Users on the **allow list** always get the flag (`true`).
+3. Everyone else falls through to the **rollout percentage** or the base enabled
+   state.
+
+See [Targeting & Caching](/sdk/targeting) for the full evaluation order and
+caching details.

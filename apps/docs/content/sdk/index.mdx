@@ -1,9 +1,13 @@
-# @pluma-flags/sdk
+---
+title: SDK Overview
+---
 
-Client SDK for evaluating feature flags from a
+# SDK Overview
+
+`@pluma-flags/sdk` is the client SDK for evaluating feature flags from a
 [Pluma](https://github.com/403-html/pluma) self-hosted feature flag server.
 
-Fetches a flag snapshot from the Pluma API and evaluates flags locally; no
+It fetches a flag snapshot from the Pluma API and evaluates flags locally — no
 round-trip per flag check. Supports per-subject targeting via allow/deny lists
 and deterministic rollout percentages.
 
@@ -36,8 +40,9 @@ if (evaluator.isEnabled("my-feature")) {
 SDK tokens are scoped to a project and environment. Create them in the Pluma UI
 under **Organisation → API Keys**.
 
-## Documentation
+## What's next
 
-For the full documentation — framework examples (Express, Next.js), per-subject
-targeting, caching behaviour, parent flags, and API reference — see the
-**[Pluma SDK docs](https://pluma.to/sdk)**.
+- [Express.js example](/sdk/express) — integrate Pluma into an Express app
+- [Next.js example](/sdk/nextjs) — singleton setup with Server Components
+- [Targeting & Caching](/sdk/targeting) — per-subject evaluation, TTL cache, and parent flags
+- [API Reference](/sdk/api-reference) — full method and options reference

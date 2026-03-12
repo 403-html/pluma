@@ -1,0 +1,59 @@
+---
+title: Architecture
+---
+
+# Architecture
+
+An overview of how Pluma is structured, how flag evaluation works, and how the
+components fit together.
+
+## Two API planes
+
+Pluma exposes two separate API surfaces:
+
+- **Admin API** (`/api/v1/*`) — CRUD operations for flags, environments,
+  projects, and SDK tokens. Authenticated via session (web UI).
+- **SDK API** (`/sdk/v1/*`) — read-only flag snapshot endpoint consumed by
+  `@pluma-flags/sdk`. Authenticated via Bearer SDK token scoped to a project
+  and environment.
+
+## Tech stack
+
+| Component       | Technology                       |
+| --------------- | -------------------------------- |
+| API server      | Fastify                          |
+| Web UI          | Next.js 16                       |
+| Database        | PostgreSQL + Prisma              |
+| Client SDK      | TypeScript (`@pluma-flags/sdk`)  |
+| Documentation   | Nextra 4                         |
+
+## How flag evaluation works
+
+1. The SDK fetches a **flag snapshot** from the SDK API.
+2. The snapshot is **cached locally** (default 30 s TTL) — no round-trip per
+   flag check.
+3. Each flag is **evaluated locally** by the SDK using the snapshot data.
+4. Evaluation supports **per-subject targeting** (allow/deny lists +
+   deterministic rollout) and **parent/child flag hierarchies**.
+
+See [Targeting & Caching](/sdk/targeting) for the full evaluation precedence
+and caching details.
+
+## Monorepo structure
+
+| Path             | Description                        |
+| ---------------- | ---------------------------------- |
+| `apps/api`       | Fastify API server                 |
+| `apps/app`       | Next.js 16 UI                      |
+| `apps/docs`      | Nextra documentation site          |
+| `packages/sdk`   | npm SDK (`@pluma-flags/sdk`)       |
+| `packages/db`    | Prisma schema + migrations         |
+| `packages/types` | Shared TypeScript types            |
+
+## Authentication
+
+- **Admin (web UI)** — session-based authentication. Users log in through the
+  web interface to manage flags, environments, and SDK tokens.
+- **SDK** — Bearer token authentication. Each SDK token is scoped to a specific
+  project and environment. Tokens are created in the Pluma UI under
+  **Organisation → API Keys**.

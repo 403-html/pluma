@@ -1,16 +1,34 @@
 ---
-title: Welcome to Pluma Docs
+title: Pluma Documentation
 ---
 
-# Welcome to Pluma Docs
+# Pluma Documentation
 
-Pluma is a self-hosted feature flag system. Manage flags via a web UI and evaluate them in your application with a lightweight SDK.
+Pluma is a self-hosted feature flag system. Manage flags via a web UI and
+evaluate them in your application with a lightweight SDK.
 
-## Getting Started
+## Features
 
-- **Admin UI** – manage feature flags, environments, and SDK tokens through the web interface.
-- **SDK** – evaluate flags in your application using `@pluma-flags/sdk`.
+- **Web UI** — create and manage flags, environments, projects, and SDK tokens.
+- **Lightweight SDK** — fetches a flag snapshot once and evaluates locally; no
+  round-trip per flag check.
+- **Per-subject targeting** — allow/deny lists and deterministic rollout
+  percentages.
+- **Parent/child flag hierarchies** — organise flags into trees with inherited
+  evaluation.
+- **Self-hosted via Docker Compose** — no external dependencies beyond
+  PostgreSQL.
 
 ## Quick links
 
+- [Getting Started](/getting-started) — Docker Compose setup and first flag
+  evaluation
+- [SDK](/sdk) — install, framework examples, and API reference
+- [Architecture](/architecture) — how the system is structured
+- [Scaling](/scaling) — horizontal scaling behind nginx
+- [Contributing](/contributing) — dev setup and PR guidelines
 - [GitHub](https://github.com/403-html/pluma)
+
+## License
+
+Apache 2.0 — see [LICENSE](https://github.com/403-html/pluma/blob/main/LICENSE).

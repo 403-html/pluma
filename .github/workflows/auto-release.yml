@@ -604,6 +604,19 @@ jobs:
             (cd apps/app && npm pkg set version="${{ needs.detect.outputs.docker_version }}")
           fi
 
+      - name: Update Docker image tags in docs and compose example
+        if: needs.tag-docker.result == 'success'
+        run: |
+          VERSION="v${{ needs.detect.outputs.docker_version }}"
+          sed -i "s|ghcr.io/403-html/pluma-api:v[0-9]*\.[0-9]*\.[0-9]*|ghcr.io/403-html/pluma-api:${VERSION}|g" \
+            docker-compose.example.yml \
+            apps/docs/content/getting-started.mdx \
+            apps/docs/content/scaling.mdx
+          sed -i "s|ghcr.io/403-html/pluma-app:v[0-9]*\.[0-9]*\.[0-9]*|ghcr.io/403-html/pluma-app:${VERSION}|g" \
+            docker-compose.example.yml \
+            apps/docs/content/getting-started.mdx \
+            apps/docs/content/scaling.mdx
+
       - name: Commit and push to main
         run: |
           git config user.name "github-actions[bot]"
