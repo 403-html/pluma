@@ -116,6 +116,24 @@ jobs:
           if [[ -n "${DOCKER_OVERRIDE}" ]]; then echo "docker bump override from label: ${DOCKER_OVERRIDE}"; fi
           if [[ -n "${SDK_OVERRIDE}" ]]; then echo "sdk bump override from label: ${SDK_OVERRIDE}"; fi
 
+          # Detect docs-only PR: has 'docs' label AND no semver release labels
+          # (i.e. none matching <pkg>:(patch|minor|major)).  Used in the detect
+          # step to suppress accidental releases triggered purely by accumulated
+          # path commits when the PR author only intended a docs change.
+          #
+          # PR_LABELS is newline-separated (one label per line) — produced by the
+          # jq expression '.[].name' above, consistent with how the existing
+          # TYPES_LABELS / DOCKER_LABELS / SDK_LABELS greps work.
+          # grep -E with ^ / $ anchors and grep -qx both rely on this format.
+          SEMVER_LABELS=$(echo "${PR_LABELS}" | grep -E '^(types|sdk|api|app):(patch|minor|major)$' || true)
+          if echo "${PR_LABELS}" | grep -qx 'docs' && [[ -z "${SEMVER_LABELS}" ]]; then
+            DOCS_ONLY="true"
+            echo "::notice::docs-only PR detected — releases will be suppressed"
+          else
+            DOCS_ONLY="false"
+          fi
+          echo "docs_only=${DOCS_ONLY}" >> "$GITHUB_OUTPUT"
+
       # ---- Skip-release guard ----------------------------------------
       # If the HEAD commit was itself a version-bump commit we exit early to
       # prevent an infinite loop (bump commit → CI → auto-release → bump …).
@@ -295,6 +313,22 @@ jobs:
           else
             echo "No docs changes detected"
             echo "deploy_docs=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # --- Docs-only PR guard ---
+          # If the triggering PR carried only the 'docs' label (no semver release
+          # label), suppress all non-docs releases even when path-based detection
+          # found accumulated commits in those paths from earlier PRs.
+          # deploy_docs is intentionally left untouched — it runs on path changes.
+          # GitHub Actions uses last-write-wins for duplicate $GITHUB_OUTPUT keys,
+          # so appending false here overrides any true written above.
+          if [[ '${{ steps.pr_bump.outputs.docs_only }}' == 'true' ]]; then
+            echo "::notice::Docs-only PR — overriding release_types/release_sdk/release_docker to false"
+            {
+              echo "release_types=false"
+              echo "release_sdk=false"
+              echo "release_docker=false"
+            } >> "$GITHUB_OUTPUT"
           fi
 
           # Output last known tags for changelog generation
