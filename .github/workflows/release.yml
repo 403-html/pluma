@@ -158,6 +158,19 @@ jobs:
               ;;
           esac
 
+      - name: Update Docker image tags in docs and compose example
+        if: needs.detect.outputs.target == 'docker'
+        run: |
+          VERSION="v${{ needs.detect.outputs.version }}"
+          sed -i "s|ghcr.io/403-html/pluma-api:v[0-9]*\.[0-9]*\.[0-9]*|ghcr.io/403-html/pluma-api:${VERSION}|g" \
+            docker-compose.example.yml \
+            apps/docs/content/getting-started.mdx \
+            apps/docs/content/scaling.mdx
+          sed -i "s|ghcr.io/403-html/pluma-app:v[0-9]*\.[0-9]*\.[0-9]*|ghcr.io/403-html/pluma-app:${VERSION}|g" \
+            docker-compose.example.yml \
+            apps/docs/content/getting-started.mdx \
+            apps/docs/content/scaling.mdx
+
       - name: Commit and push to main
         run: |
           TARGET="${{ needs.detect.outputs.target }}"
