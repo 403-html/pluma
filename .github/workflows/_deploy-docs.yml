@@ -48,8 +48,6 @@ jobs:
 
       - name: Build docs
         run: pnpm docs:build
-        env:
-          PAGES_BASE_PATH: /${{ github.event.repository.name }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

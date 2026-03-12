@@ -48,7 +48,7 @@ Docs deploy automatically as part of
 [`auto-release.yml`](.github/workflows/auto-release.yml) when `apps/docs/`
 changed. The `deploy-docs` job runs in parallel with package releases.
 
-Live site: `https://403-html.github.io/pluma/`
+Live site: `https://pluma.to/`
 
 No versioning is required — every merge that touches `apps/docs/` re-deploys the
 latest content.

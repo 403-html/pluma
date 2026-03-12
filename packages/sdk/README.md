@@ -40,4 +40,4 @@ under **Organisation → API Keys**.
 
 For the full documentation — framework examples (Express, Next.js), per-subject
 targeting, caching behaviour, parent flags, and API reference — see the
-**[Pluma SDK docs](https://403-html.github.io/pluma/sdk)**.
+**[Pluma SDK docs](https://pluma.to/sdk)**.

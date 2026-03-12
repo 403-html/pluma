@@ -36,8 +36,8 @@ evaluator.isEnabled("my-feature");
 
 ## Documentation
 
-📖 **[403-html.github.io/pluma](https://403-html.github.io/pluma/)** — getting
-started, SDK reference, architecture, scaling, and more.
+📖 **[pluma.to](https://pluma.to)** — getting started, SDK reference,
+architecture, scaling, and more.
 
 ## Contributing
 
