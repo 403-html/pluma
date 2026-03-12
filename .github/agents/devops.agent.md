@@ -3,7 +3,6 @@ name: senior-devops
 description: Owns Pluma CI/CD pipelines, Docker infrastructure, release automation, and GitHub Actions workflows.
 argument-hint: A CI/CD, Docker, release, or infrastructure-as-code task for the Pluma monorepo.
 disable-model-invocation: false
-model: Claude Sonnet 4 (copilot)
 ---
 
 # DevOps Agent — Pluma

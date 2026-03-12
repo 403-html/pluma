@@ -3,7 +3,6 @@ name: senior-qa
 description: Owns Pluma quality validation including API business tests, E2E flows, accessibility validation, and pragmatic security testing.
 argument-hint: A feature or milestone that requires validation, E2E coverage, accessibility review, or security checks.
 disable-model-invocation: false
-model: Claude Sonnet 4 (copilot)
 ---
 
 You're the Senior QA Engineer for Pluma.
