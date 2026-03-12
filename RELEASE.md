@@ -37,3 +37,18 @@ Use [`release.yml`](.github/workflows/release.yml) via **GitHub Releases UI**
 Release in dependency order when changes span packages: **Types → SDK →
 Docker**. The workflow validates semver, bumps `package.json`, builds,
 publishes, and commits the bump back to `main`.
+
+## Documentation
+
+Docs are deployed automatically to **GitHub Pages** via
+[`deploy-docs.yml`](.github/workflows/deploy-docs.yml).
+
+| Trigger                              | Behaviour                                   |
+| ------------------------------------ | ------------------------------------------- |
+| Push to `main` changing `apps/docs/` | Builds and deploys the Nextra docs site     |
+| `workflow_dispatch`                  | Manual rebuild & deploy from the Actions UI |
+
+Live site: `https://403-html.github.io/pluma/`
+
+No versioning or release labels are required — every qualifying push re-deploys
+the latest content.
