@@ -1,4 +1,9 @@
-# Pluma — example Docker Compose file for production use.
+# Pluma — example Docker Compose file for local development.
+#
+# ⚠️  The default POSTGRES_PASSWORD is "pluma" — NOT safe for production.
+#     For production, set a strong password via .env or inline env vars:
+#       DB_PASSWORD=<strong-secret> docker compose up -d
+#     and pin image versions to a specific release tag (e.g. v1.2.0).
 #
 # Copy this file and start the stack:
 #   cp docker-compose.example.yml docker-compose.yml
@@ -6,9 +11,6 @@
 #
 # UI  → http://localhost:3000
 # API → http://localhost:2137
-#
-# Override defaults with a .env file or inline env vars:
-#   DB_PASSWORD=secret docker compose up -d
 
 services:
   db:
@@ -27,7 +29,7 @@ services:
       retries: 10
 
   api:
-    image: ghcr.io/403-html/pluma-api:latest
+    image: ghcr.io/403-html/pluma-api:v1.2.0
     ports:
       - "2137:2137"
     environment:
@@ -37,7 +39,7 @@ services:
         condition: service_healthy
 
   app:
-    image: ghcr.io/403-html/pluma-app:latest
+    image: ghcr.io/403-html/pluma-app:v1.2.0
     ports:
       - "3000:3000"
     environment:
