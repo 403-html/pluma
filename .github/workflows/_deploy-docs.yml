@@ -1,0 +1,64 @@
+# Reusable workflow — build and deploy Pluma docs to GitHub Pages.
+# Called by auto-release.yml when apps/docs/ has changed.
+name: _Deploy Docs
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: >
+          Git ref or SHA to checkout. Defaults to the calling workflow's SHA
+          when omitted.
+        required: false
+        type: string
+        default: ""
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  deploy:
+    name: Build and deploy docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs
+        run: pnpm docs:build
+        env:
+          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/docs/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
