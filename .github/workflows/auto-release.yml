@@ -134,6 +134,17 @@ jobs:
           fi
           echo "docs_only=${DOCS_ONLY}" >> "$GITHUB_OUTPUT"
 
+          # Detect no-release PR: has 'no-release' label.  Suppresses all
+          # releases AND the docs deploy, regardless of any other labels or
+          # path-based detection results.
+          if echo "${PR_LABELS}" | grep -qx 'no-release'; then
+            NO_RELEASE="true"
+            echo "::notice::no-release PR detected — all releases and docs deploy will be suppressed"
+          else
+            NO_RELEASE="false"
+          fi
+          echo "no_release=${NO_RELEASE}" >> "$GITHUB_OUTPUT"
+
       # ---- Skip-release guard ----------------------------------------
       # If the HEAD commit was itself a version-bump commit we exit early to
       # prevent an infinite loop (bump commit → CI → auto-release → bump …).
@@ -328,6 +339,22 @@ jobs:
               echo "release_types=false"
               echo "release_sdk=false"
               echo "release_docker=false"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+          # --- No-release PR guard ---
+          # If the triggering PR carried the 'no-release' label, suppress every
+          # downstream action including deploy_docs.  This overrides both the
+          # path-based detection above and the docs-only guard.
+          # GitHub Actions uses last-write-wins for duplicate $GITHUB_OUTPUT keys,
+          # so appending false here overrides any true written above.
+          if [[ '${{ steps.pr_bump.outputs.no_release }}' == 'true' ]]; then
+            echo "::notice::no-release PR — suppressing all releases and docs deploy"
+            {
+              echo "release_types=false"
+              echo "release_sdk=false"
+              echo "release_docker=false"
+              echo "deploy_docs=false"
             } >> "$GITHUB_OUTPUT"
           fi
 
