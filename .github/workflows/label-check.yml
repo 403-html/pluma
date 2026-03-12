@@ -1,5 +1,5 @@
 # Required PR status check. Add "Label Check / Labels" to branch protection for main.
-# A PR must carry at least one of: api|app|sdk|types : patch|minor|major  OR  no-release
+# A PR must carry at least one of: api|app|sdk|types : patch|minor|major  OR  docs  OR  no-release
 name: Label Check
 
 on:
@@ -26,19 +26,23 @@ jobs:
 
           COUNT=$(echo "${LABELS}" | grep -cE '^(api|app|sdk|types):(patch|minor|major)$' || true)
           NO_RELEASE=$(echo "${LABELS}" | grep -c '^no-release$' || true)
+          DOCS=$(echo "${LABELS}" | grep -c '^docs$' || true)
 
-          if [[ "${COUNT}" -eq 0 && "${NO_RELEASE}" -eq 0 ]]; then
+          if [[ "${COUNT}" -eq 0 && "${NO_RELEASE}" -eq 0 && "${DOCS}" -eq 0 ]]; then
             echo "::error::Add at least one release label or the no-release label before merging:"
             echo "::error::  api:patch  api:minor  api:major"
             echo "::error::  app:patch  app:minor  app:major"
             echo "::error::  sdk:patch  sdk:minor  sdk:major"
             echo "::error::  types:patch  types:minor  types:major"
-            echo "::error::  no-release  (for CI, docs, or chore PRs)"
+            echo "::error::  docs  (for documentation-only changes)"
+            echo "::error::  no-release  (for CI or chore PRs)"
             exit 1
           fi
 
           if [[ "${NO_RELEASE}" -gt 0 ]]; then
             echo "✓ no-release label present — skipping release label check"
+          elif [[ "${DOCS}" -gt 0 && "${COUNT}" -eq 0 ]]; then
+            echo "✓ docs label present — docs deploy only"
           else
             echo "✓ ${COUNT} release label(s)"
           fi

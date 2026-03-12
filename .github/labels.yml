@@ -14,4 +14,5 @@ labels:
   - { name: "types:patch", color: "0e8a16", description: "Types fix (packages/types)"             }
   - { name: "types:minor", color: "fbca04", description: "Types feature (packages/types)"         }
   - { name: "types:major", color: "d93f0b", description: "Types breaking change (packages/types)" }
-  - { name: "no-release",  color: "ededed", description: "No release required (CI, docs, chore)"   }
+  - { name: "docs",        color: "0075ca", description: "Documentation change (apps/docs)"         }
+  - { name: "no-release",  color: "ededed", description: "No release required (CI, chore)"          }

@@ -13,6 +13,9 @@ package group is released independently when its paths changed.
 | `api:patch/minor/major` / `app:patch/minor/major` | Docker (API + App)       | patch / minor / major |
 | `sdk:patch/minor/major`                           | npm `@pluma-flags/sdk`   | patch / minor / major |
 | `types:patch/minor/major`                         | npm `@pluma-flags/types` | patch / minor / major |
+| `docs`                                            | GitHub Pages deploy      | —                     |
+
+Use `no-release` for CI or chore PRs that touch no releasable paths.
 
 Multiple labels are allowed. For direct pushes (no label) the bump falls back to
 conventional-commit inference (`feat:` → minor, `feat!:` / `fix!:` etc → major,
@@ -21,6 +24,7 @@ else patch).
 Job order: `detect → release-types → tag-types`,
 `release-types → release-sdk → tag-sdk`,
 `release-api + release-app → tag-docker`, all tag jobs → `update-main`.
+`deploy-docs` runs in parallel when `apps/docs/` changed.
 
 ## Manual / Hotfix
 
@@ -40,15 +44,11 @@ publishes, and commits the bump back to `main`.
 
 ## Documentation
 
-Docs are deployed automatically to **GitHub Pages** via
-[`deploy-docs.yml`](.github/workflows/deploy-docs.yml).
-
-| Trigger                              | Behaviour                                   |
-| ------------------------------------ | ------------------------------------------- |
-| Push to `main` changing `apps/docs/` | Builds and deploys the Nextra docs site     |
-| `workflow_dispatch`                  | Manual rebuild & deploy from the Actions UI |
+Docs deploy automatically as part of
+[`auto-release.yml`](.github/workflows/auto-release.yml) when `apps/docs/`
+changed. The `deploy-docs` job runs in parallel with package releases.
 
 Live site: `https://403-html.github.io/pluma/`
 
-No versioning or release labels are required — every qualifying push re-deploys
-the latest content.
+No versioning is required — every merge that touches `apps/docs/` re-deploys the
+latest content.

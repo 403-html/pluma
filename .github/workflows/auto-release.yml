@@ -7,6 +7,7 @@
 #   types/v*   → publish @pluma-flags/types to npm
 #   sdk/v*     → publish @pluma-flags/sdk to npm (waits for types if also releasing)
 #   v*         → build & push Docker images to GHCR (pluma-api + pluma-app)
+#   docs       → deploy Nextra docs site to GitHub Pages
 #
 # Skip-release guard: if the HEAD commit subject matches ^chore\(release\):
 #   the workflow exits immediately to break the version-bump → CI → release loop.
@@ -37,7 +38,8 @@ env:
 permissions:
   contents: write      # push tags, push to main, create GitHub Releases
   packages: write      # push Docker images to GHCR
-  id-token: write      # npm provenance for SDK publish
+  pages: write         # deploy docs to GitHub Pages
+  id-token: write      # npm provenance for SDK publish + GitHub Pages OIDC
   pull-requests: read  # read merged PR labels for bump override
 
 jobs:
@@ -52,6 +54,7 @@ jobs:
       release_types:  ${{ steps.detect.outputs.release_types }}
       release_sdk:    ${{ steps.detect.outputs.release_sdk }}
       release_docker: ${{ steps.detect.outputs.release_docker }}
+      deploy_docs:    ${{ steps.detect.outputs.deploy_docs }}
       types_version:  ${{ steps.detect.outputs.types_version }}
       sdk_version:    ${{ steps.detect.outputs.sdk_version }}
       docker_version: ${{ steps.detect.outputs.docker_version }}
@@ -277,6 +280,21 @@ jobs:
           else
             echo "No Docker changes detected"
             echo "release_docker=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # --- Docs ---
+
+          LAST_RELEASE_TAG=$(get_last_tag "v*.*.*")
+          DOCS_BASE="${LAST_RELEASE_TAG:-${INITIAL_COMMIT}}"
+          DOCS_COMMITS=$(git log "${DOCS_BASE}..HEAD" --format="%s" -- apps/docs/ \
+            | grep -vc '^chore(release):' || true)
+
+          if [[ "${DOCS_COMMITS}" -gt 0 ]]; then
+            echo "Detected docs changes — will deploy"
+            echo "deploy_docs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No docs changes detected"
+            echo "deploy_docs=false" >> "$GITHUB_OUTPUT"
           fi
 
           # Output last known tags for changelog generation
@@ -527,6 +545,69 @@ jobs:
             --title "Docker v${VERSION}" \
             --notes-file /tmp/release_notes.md \
             --latest=true
+
+  # ------------------------------------------------------------ deploy-docs
+  # Deploys the Nextra docs site to GitHub Pages when apps/docs/ changed.
+  # Independent of the npm/Docker release pipeline — runs in parallel.
+  deploy-docs:
+    name: Deploy docs to GitHub Pages
+    needs: detect
+    if: needs.detect.outputs.deploy_docs == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect.outputs.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Get pnpm store path
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs
+        run: pnpm docs:build
+        env:
+          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/docs/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   # ------------------------------------------------------------ update-main
   # Commits the version bumps back to main so the repo stays in sync.
