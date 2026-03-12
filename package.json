@@ -7,6 +7,8 @@
   "scripts": {
     "app:dev": "pnpm --filter @pluma-flags/app dev",
     "api:dev": "pnpm --filter @pluma-flags/api dev",
+    "docs:dev": "pnpm --filter @pluma-flags/docs dev",
+    "docs:build": "pnpm --filter @pluma-flags/docs build",
     "build": "pnpm -r build",
     "build:esbuild": "node tooling/esbuild/build.mjs",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
