@@ -31,6 +31,9 @@ FROM node:22-alpine AS base
 # Resolve pnpm from the `packageManager` field in the root package.json.
 RUN corepack enable
 
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+
 WORKDIR /app
 
 # Stage 2 — deps
@@ -55,7 +58,8 @@ COPY --link packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
 
 ENV DATABASE_URL=postgresql://placeholder
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # Stage 3 — builder
 # Build all workspace packages and create the pruned deployment directory.
