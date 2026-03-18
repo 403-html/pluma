@@ -112,6 +112,8 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextuser
 
+WORKDIR /app
+
 # Standalone output is a self-contained server; copy it as the working tree.
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next/standalone ./
 
@@ -120,8 +122,6 @@ COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next/standalone ./
 COPY --from=builder --chown=nextuser:nodejs /app/apps/app/.next/static ./apps/app/.next/static
 
 USER nextuser
-
-WORKDIR /app
 
 EXPOSE 3000
 
