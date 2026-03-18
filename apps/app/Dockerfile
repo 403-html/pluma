@@ -58,7 +58,7 @@ COPY --link packages/db/scripts/             ./packages/db/scripts/
 
 ENV DATABASE_URL=postgresql://placeholder
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=pnpm-app,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
 # ─────────────────────────────────────────
@@ -85,7 +85,7 @@ ENV DATABASE_URL=postgresql://placeholder
 
 # Build @pluma-flags/types first — its package.json exports point to dist/index.js,
 # which does not exist in the Docker context (dist/ is excluded by .dockerignore).
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=pnpm-app,target=/pnpm/store \
     pnpm --filter @pluma-flags/types build && \
     pnpm --filter @pluma-flags/app build
 

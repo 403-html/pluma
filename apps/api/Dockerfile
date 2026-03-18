@@ -58,7 +58,7 @@ COPY --link packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
 
 ENV DATABASE_URL=postgresql://placeholder
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=pnpm-api,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
 # Stage 3 — builder
