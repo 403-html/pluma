@@ -19,16 +19,16 @@
     "build-storybook": "pnpm --filter @pluma-flags/storybook build"
   },
   "devDependencies": {
-    "@commitlint/cli": "19.8.0",
-    "@commitlint/config-conventional": "19.8.0",
+    "@commitlint/cli": "20.5.0",
+    "@commitlint/config-conventional": "20.5.0",
     "@eslint/js": "^10.0.1",
-    "@next/eslint-plugin-next": "^16.1.6",
-    "@typescript-eslint/eslint-plugin": "^8.56.1",
-    "@typescript-eslint/parser": "^8.56.1",
-    "esbuild": "^0.27.3",
-    "eslint": "^10.0.3",
+    "@next/eslint-plugin-next": "^16.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "esbuild": "^0.27.4",
+    "eslint": "^10.1.0",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-storybook": "10.2.10",
+    "eslint-plugin-storybook": "10.3.1",
     "globals": "^17.4.0",
     "prettier": "3.8.1"
   }
