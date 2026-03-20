@@ -29,7 +29,7 @@ services:
       retries: 10
 
   api:
-    image: ghcr.io/403-html/pluma-api:v1.3.0
+    image: ghcr.io/403-html/pluma-api:v1.4.0
     ports:
       - "2137:2137"
     environment:
@@ -39,7 +39,7 @@ services:
         condition: service_healthy
 
   app:
-    image: ghcr.io/403-html/pluma-app:v1.3.0
+    image: ghcr.io/403-html/pluma-app:v1.4.0
     ports:
       - "3000:3000"
     environment:

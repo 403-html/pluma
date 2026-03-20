@@ -40,7 +40,7 @@ service:
 
 ```yaml
 api:
-  image: ghcr.io/403-html/pluma-api:v1.3.0
+  image: ghcr.io/403-html/pluma-api:v1.4.0
   environment:
     DATABASE_URL: postgresql://${DB_USER:-pluma}:${DB_PASSWORD:-pluma}@db:5432/${DB_NAME:-pluma}?schema=public
   depends_on:
