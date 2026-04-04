@@ -35,11 +35,11 @@
   },
   "dependencies": {
     "@pluma-flags/types": "workspace:*",
-    "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
     "bcryptjs": "3.0.3",
     "dotenv": "^17.3.1",
     "pg": "^8.20.0",
-    "prisma": "^7.5.0"
+    "prisma": "^7.6.0"
   }
 }
