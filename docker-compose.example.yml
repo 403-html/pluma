@@ -11,6 +11,8 @@
 #
 # UI  → http://localhost:3000
 # API → http://localhost:2137
+#
+# To upgrade to a new release, see: https://pluma.to/upgrading
 
 services:
   db:

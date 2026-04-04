@@ -1,0 +1,86 @@
+---
+title: Upgrading
+---
+
+# Upgrading Pluma
+
+How to safely update a self-hosted Pluma installation to a newer release.
+
+## Watch for releases
+
+Subscribe to new releases on GitHub so you are notified when a version drops:
+
+1. Open [github.com/403-html/pluma](https://github.com/403-html/pluma).
+2. Click **Watch → Custom → Releases** and save.
+
+All release notes are published on the
+[Releases page](https://github.com/403-html/pluma/releases) and include a
+changelog, any breaking changes, and rollback instructions when applicable.
+
+## Before you upgrade
+
+**Always back up your database first.**
+
+```bash
+pg_dump -U pluma -d pluma > pluma_backup_$(date +%Y%m%d).sql
+```
+
+Keep the backup for at least 7 days after the upgrade. For major version
+upgrades, consult the release notes for additional pre-upgrade steps.
+
+## Update the image tag
+
+Open your `docker-compose.yml` and bump both image tags to the new version:
+
+```yaml
+api:
+  image: ghcr.io/403-html/pluma-api:v1.4.1   # ← change to new version
+
+app:
+  image: ghcr.io/403-html/pluma-app:v1.4.1   # ← change to new version
+```
+
+## Pull and restart
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Database migrations run automatically when the API container starts — no manual
+steps required.
+
+## Verify
+
+Confirm the new version is running and migrations completed successfully:
+
+```bash
+docker compose logs api
+```
+
+Look for a line similar to:
+
+```
+All migrations have been successfully applied.
+```
+
+If the migration fails, stop the containers and restore your backup:
+
+```bash
+docker compose down
+psql -U pluma -d pluma < pluma_backup_YYYYMMDD.sql
+```
+
+Then report the issue on the
+[Pluma issue tracker](https://github.com/403-html/pluma/issues).
+
+## Pinned versions vs `latest`
+
+| Strategy       | Image tag         | Recommended for       |
+| -------------- | ----------------- | --------------------- |
+| Pinned version | `v1.4.1`          | Production            |
+| Latest         | `latest`          | Local dev / testing   |
+
+Use pinned versions in production so upgrades are intentional and auditable.
+The `latest` tag always points to the most recent release and will upgrade
+automatically on the next `docker compose pull`.

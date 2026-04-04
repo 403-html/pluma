@@ -4,5 +4,6 @@ export default {
   sdk: 'SDK',
   architecture: 'Architecture',
   scaling: 'Scaling',
+  upgrading: 'Upgrading',
   contributing: 'Contributing',
 }
