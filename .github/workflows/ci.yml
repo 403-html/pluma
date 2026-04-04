@@ -249,3 +249,23 @@ jobs:
           cd /tmp/smoke-test
           npm install --no-package-lock "${TYPES_TGZ}" "${SDK_TGZ}"
           node smoke.mjs
+
+  # ─────────────────────────────────────────────
+  # Job 5 — Upgrade test  (independent of build artifacts)
+  # Builds the stack from source, verifies the API becomes healthy
+  # (i.e. prisma migrate deploy ran cleanly), then restarts the API
+  # service and confirms migration idempotency and health hold.
+  # ─────────────────────────────────────────────
+  upgrade-test:
+    name: Upgrade test
+    runs-on: ubuntu-latest
+    needs: lint
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run upgrade test
+        run: bash scripts/upgrade-test.sh
