@@ -58,7 +58,7 @@ export function CopyPill({ value, copyValue, variant = 'pill', className = '' }:
   const iconSize = variant === 'inline' ? 16 : 12;
   const stateClasses =
     state === 'success'
-      ? 'text-green-600 dark:text-green-400'
+      ? 'text-success'
       : state === 'error'
         ? 'text-destructive'
         : variant === 'inline'
@@ -73,7 +73,7 @@ export function CopyPill({ value, copyValue, variant = 'pill', className = '' }:
 
   const variantClasses =
     variant === 'inline'
-      ? 'bg-transparent px-0 py-0 hover:bg-muted/20 text-foreground font-mono text-[0.95rem]'
+      ? 'bg-transparent px-0 py-0 hover:bg-muted/20 text-foreground font-mono text-sm-plus'
       : 'bg-muted px-2 py-0.5 hover:bg-muted/80 font-mono text-xs';
 
   const textSpanClass = variant === 'inline' ? 'truncate min-w-0 flex-1' : undefined;
