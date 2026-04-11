@@ -16,6 +16,18 @@ if (typeof window !== 'undefined') {
   };
 }
 
+export const globalTypes = {
+  theme: {
+    description: 'Global theme',
+    toolbar: {
+      title: 'Theme',
+      icon: 'paintbrush',
+      items: ['light', 'dark'],
+      dynamicTitle: true,
+    },
+  },
+};
+
 const preview: Preview = {
   parameters: {
     controls: {
@@ -25,6 +37,13 @@ const preview: Preview = {
       },
     },
   },
+  decorators: [
+    (Story, context) => {
+      const theme = (context.globals['theme'] as string | undefined) ?? 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      return Story();
+    },
+  ],
 };
 
 export default preview;
