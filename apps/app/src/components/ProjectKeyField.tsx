@@ -55,7 +55,7 @@ export function ProjectKeyField({
             ref={inputRef}
             id={id}
             type="text"
-            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             value={value}
             onChange={onChange}
             onBlur={onBlur}
@@ -80,11 +80,11 @@ export function ProjectKeyField({
 
   return (
     <>
-      <div className="flex items-center relative gap-2 px-3 py-2.5 bg-muted/30 border border-border rounded-md font-mono text-[0.95rem] min-h-[3rem] group">
+      <div className="flex items-center relative gap-2 px-3 py-2.5 bg-muted/30 border border-border rounded-md font-mono text-sm-plus min-h-12 group">
         {value ? (
           <CopyPill value={value} copyValue={copyValue} variant="inline" />
         ) : (
-          <span className="flex-1 font-mono text-[0.95rem] text-foreground" aria-label="placeholder">
+          <span className="flex-1 font-mono text-sm-plus text-foreground" aria-label="placeholder">
             {placeholder}
           </span>
         )}
