@@ -59,7 +59,7 @@ export default function OrganizationView() {
           id="tab-apikeys"
           onClick={() => setActiveTab('apiKeys')}
           className={cn(
-            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
             activeTab === 'apiKeys'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
@@ -75,7 +75,7 @@ export default function OrganizationView() {
           id="tab-accounts"
           onClick={() => setActiveTab('accounts')}
           className={cn(
-            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
             activeTab === 'accounts'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
