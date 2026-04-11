@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { FocusScope } from '@radix-ui/react-focus-scope';
 import { CurrentUserProvider } from '@/context/CurrentUserContext';
 
 interface DashboardShellProps {
@@ -53,18 +54,20 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       {/* ── Sidebar overlay backdrop (mobile only) ───────────────────────────── */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-[49] md:hidden"
+          className="fixed inset-0 bg-black/50 z-49 md:hidden"
           aria-hidden="true"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
-      <Sidebar
-        id="app-sidebar"
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      <FocusScope loop trapped={isSidebarOpen} asChild>
+        <Sidebar
+          id="app-sidebar"
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </FocusScope>
 
       {/* ── Main content ─────────────────────────────────────────────────────── */}
       <div className="min-w-0">{children}</div>
