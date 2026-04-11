@@ -18,7 +18,7 @@ type SidebarButtonProps = {
 };
 
 function SidebarButton({ icon, label, onClick, disabled, danger = false, active = false }: SidebarButtonProps) {
-  const base = "w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-white text-[0.95rem] font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed";
+  const base = "w-full flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-sidebar-foreground text-sm-plus font-[inherit] cursor-pointer rounded-md transition-colors hover:bg-sidebar-foreground/10 disabled:opacity-50 disabled:cursor-not-allowed";
   const activeClass = active ? 'bg-white/15' : '';
   return (
     <button
@@ -82,7 +82,7 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
       className={cn(
         // Base styles (shared across breakpoints)
         'top-0 h-screen overflow-y-auto w-[var(--sidebar-width)]',
-        'bg-[#2f3e46] text-white flex flex-col border-r border-white/20',
+        'bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-foreground/20',
         // Mobile: fixed drawer, slides in/out; Desktop: sticky in-grid panel
         'fixed z-50 transition-transform duration-200 ease-in-out',
         'md:sticky md:translate-x-0',
@@ -92,7 +92,7 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
     >
       <div className="flex-1 overflow-y-auto">
         {/* Logo/branding section - can be expanded in the future */}
-        <div className="px-4 py-6 border-b border-white/10">
+        <div className="px-4 py-6 border-b border-sidebar-foreground/10">
           <h2 className="text-2xl font-bold">Pluma</h2>
         </div>
 
@@ -107,7 +107,7 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
       </div>
 
       {/* Bottom actions */}
-      <div className="border-t border-white/10 py-4 px-2 flex flex-col gap-2">
+      <div className="border-t border-sidebar-foreground/10 py-4 px-2 flex flex-col gap-2">
         {isAdminOrOperator && (
           <SidebarButton
             icon={<Building2 size={20} />}
@@ -119,8 +119,8 @@ export default function Sidebar({ id, isOpen = false, onClose }: SidebarProps) {
         <SidebarButton icon={<Settings size={20} />} label={t.sidebar.settings} onClick={() => navigate(`/${locale}/settings`)} disabled={isLoggingOut} active={isActive('settings')} />
         <SidebarButton icon={<LogOut size={20} />} label={t.sidebar.logout} onClick={handleLogout} disabled={isLoggingOut} danger />
       </div>
-      <div className="px-4 py-3 border-t border-white/10">
-        <p className="text-xs text-white/70 text-center">{t.poweredBy.text}</p>
+      <div className="px-4 py-3 border-t border-sidebar-foreground/10">
+        <p className="text-xs text-sidebar-foreground/70 text-center">{t.poweredBy.text}</p>
       </div>
     </aside>
   );
