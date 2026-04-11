@@ -27,9 +27,16 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+  /* Sidebar tokens */
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  /* Success state */
+  --color-success: hsl(var(--success));
   /* Bridge --font-mono (defined in :root below) into Tailwind v4's theme namespace
      so that the font-mono utility resolves to 'Roboto Mono'. */
   --font-family-mono: var(--font-mono);
+  /* Custom text size used by Sidebar, CopyPill, ProjectKeyField */
+  --text-sm-plus: 0.95rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -97,6 +104,11 @@ body {
     --input: 133 18% 72%;
     /* deep-teal focus ring */
     --ring: 165 19% 40%;
+    /* sidebar: charcoal-blue #2f3e46 */
+    --sidebar: 201 20% 15%;
+    --sidebar-foreground: 0 0% 100%;
+    /* success: ≈ green-600 */
+    --success: 142 71% 45%;
     --chart-1: 165 19% 40%;
     --chart-2: 133 18% 59%;
     --chart-3: 186 22% 26%;
@@ -155,6 +167,9 @@ body {
     --input: 186 22% 28%;
     /* muted-teal focus ring on dark */
     --ring: 133 18% 59%;
+    --sidebar: 201 20% 15%;
+    --sidebar-foreground: 0 0% 100%;
+    --success: 142 69% 58%;
     --chart-1: 133 18% 59%;
     --chart-2: 165 19% 40%;
     --chart-3: 97 9% 80%;
@@ -204,6 +219,9 @@ body {
       --border: 186 22% 28%;
       --input: 186 22% 28%;
       --ring: 133 18% 59%;
+      --sidebar: 201 20% 15%;
+      --sidebar-foreground: 0 0% 100%;
+      --success: 142 69% 58%;
       --chart-1: 133 18% 59%;
       --chart-2: 165 19% 40%;
       --chart-3: 97 9% 80%;
